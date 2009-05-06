@@ -1,0 +1,570 @@
+\documentclass[nojss]{jss}
+\usepackage{thumbpdf}
+%% need no \usepackage{Sweave.sty}
+
+
+\author{Fabrizio Carlevaro\\Universit\'e de Gen\`eve 
+  \And Yves Croissant\\Universit\'e Lumi\`ere Lyon 2 
+  \And St\'ephane Hoareau \\Universit\'e de la R\'eunion}
+
+\Plainauthor{Fabrizio Carlevaro, Yves Croissant, Stephane Hoareau}
+
+\title{Estimation of limited dependent variable models in
+ \proglang{R}: The \pkg{mhurdle} Package}
+
+\Plaintitle{Estimation of limited dependent variable models in
+  R: The mhurdle Package}
+
+
+\Keywords{limited dependent variable, maximum likelihood estimation,
+  \proglang{R}}
+
+\Plainkeywords{limited dependent variable, maximum likelihood estimation,
+  R}
+
+
+
+\Abstract{
+  \pkg{mhurdle} is a package for \proglang{R} which enables the
+  estimation of a wide set of models for which the response is zero
+  left-censored (limited-dependent variables). These kind of models
+  are called \emph{Tobit} models in the econometric literature and
+  are of particular interest to analyze the consumption of households
+}
+
+
+\Address{
+Yves Croissant\\
+LET-ISH\\
+Avenue Berthelot\\
+F-69363 Lyon cedex 07\\
+Telephone: +33/4/78727249 \\
+Fax: +33/4/78727248 \\
+E-mail: \email{yves.croissant@let.ish-lyon.cnrs.fr}
+\\
+}
+
+
+
+
+\begin{document}
+
+\SweaveOpts{engine=R,eps=FALSE}
+%\VignetteIndexEntry{Estimation of limited dependent variable models in  R: The mhurdle Package}
+%\VignetteDepends{mhurdle, truncreg, Formula, maxLik}
+%\VignetteKeywords{limited dependent variable, maximum likelihood estimation, R, econometrics}
+%\VignettePackage{mhurdle}
+
+%\maketitle
+
+\section{Introduction}
+
+In applied econometric studies, the dependent variable often exhibits
+limited variation, \emph{e.g.}:
+
+\begin{itemize}
+\item the number of hours of work supplied is non-negative,
+\item the expenditure in the consumption of a particularly good is non-negative,
+\item the assistance to a cultural or sportive event can't be greater
+  than the capacity of the room or stadium,
+\end{itemize}
+
+In these circumstances, ordinary least squares estimation is biased and
+inconsistent. However, the model can be estimated consistently using
+maximum likelihood methods that take into account the censored nature
+of the dependent variable.
+
+This problem has been treated for a long time in the statistic
+literature dealing with survival models which are implemented in
+\proglang{R} with the \pkg{survival} package \citep{SURVA/08}).
+
+
+It has also close links with the problem of selection bias, for which
+some methods are implemented in the \pkg{sampleSelection} package
+\citep{TOOME/HENNI/08}.
+
+\pkg{mhurdle} deals specifically with models where the dependent variable
+is zero-left censored and may present a large proportion of 0, which
+is typically the case in household expenditure surveys.
+
+Since the seminal paper of \cite{TOBIN/58}, a large literature in the
+econometric field has been developed to deal correctly with this
+problem of zero observations. More specifically, zero observations may
+appear for the following three reasons:
+
+\begin{itemize}
+\item budget constraint: the household would like to consume the good,
+  but his consumer problem has a corner solution because the good is
+  too expensive and/or his income is to low,
+\item selection: the good is not selected by the household, \emph{i.e.} it's
+  not an argument of its utility function \citep{CRAGG/71},
+\item infrequency: the good is bought by the household, but with a low
+  frequency so that zero expenditure may be observed during the survey
+  \citep{DEATO/IRISH/84}. 
+\end{itemize}
+
+The original \emph{Tobin} takes only the first source of zero into
+account. With \pkg{mhurdle}, the three sources of zero may be introduced
+in the model\footnote{actually, for the moment, only two out of the
+  three may be introduced at the same time.}.
+
+
+<<preliminaries,echo=FALSE,results=hide>>=
+library("Formula")
+library("truncreg")
+library("maxLik")
+library("mhurdle")
+options(prompt= "R> ", useFancyQuotes = FALSE)
+@
+
+For the three sources of zero, a continuous latent variable is defined,
+with zero observed if the latent variable is negative. The latent
+variables are defined as the sum of a linear combination of different
+covariates and an error term, and the correlation between the errors
+of different equations may be taken into account.
+
+The paper is organized as follows: Section~\ref{sec:limdepvar}
+presents a brief overview of the theoretical models
+used. Section~\ref{sec:software} discusses the software approach used
+in the package. Section~\ref{sec:examples} illustrates the use of
+\pkg{mhurdle} with several examples. Finally,
+section~\ref{sec:conclusion} concludes.
+
+\section{Theoretical background}
+
+\label{sec:limdepvar}
+
+The general model rests on the following three equations:  
+
+$$
+\left\{
+\begin{array}{rcl}
+  y_1^* &=&\beta_1 'x_1 + \epsilon_1 \\
+  y_2^* &=&\beta_2 'x_2 + \epsilon_2 \\
+  y_3^* &=&\beta_3 'x_3 + \epsilon_3 \\
+\end{array}
+\right.
+$$
+
+\begin{itemize}
+\item $y_1^*$ defines the selection mechanism: if negative, the good
+  is not an argument of the utility function and therefore is not
+  consumed,
+
+\item $y_2^*$ defines the consumption mechanism: if negative, the
+  solution of the consumption program is a corner solution and the
+  consumption is therefore null,
+
+\item $y_3^*$ defines the infrequency mechanism: if negative, the good
+  is not consumed during the survey. Therefore, the probability of
+  consumption during the survey is $\mbox{P}(y_3^*>0)$ and, in case of
+  consumption, what is observed is an expenditure for a period greater than
+  the survey period. There is therefore the following relation
+  between the expenditure $E$ and the consumption $C$: $C = E \times
+  \mbox{P}(y_3^*>0)$.
+  
+\end{itemize}
+
+$\epsilon_1$ and $\epsilon_3$ are assumed to follow a normal
+distribution. Moreover, for identifiability reasons, we suppose
+without restrictions that they are standard normal variables.  As
+we'll hereafter consider models in which either selection or
+infrequency may be present, we'll simplify in what follow our
+notations, substituting $\beta'x$ for $\beta_2'x_2$ and $\gamma's$ for
+$\beta_1'x_1$ or $\beta_3 x_3$.
+
+$y_2^*$ may follow a normal, log-normal or truncated normal
+distribution. In the first case, corner solution may appear because a
+normal variable have negative values. On the opposite, if one of the
+other two distributions is used, no zero consumption may be observed
+because of resources insufficiency.
+
+As no more than two equations are considered simultaneously, only one
+coefficient of correlation ($\rho$) has to be estimated if the
+equations are assumed to be correlated.
+
+
+As for the ordinary \emph{Tobit} models, the likelihood of the models we
+consider have two components: the first one describes a binary choice
+(consuming or not), the second one describes the choice of the level of
+consumption for those who consume.
+
+The contribution of a zero observation to the log-likelihood function
+can be written as follow:
+
+\begin{equation}
+  \label{eq:nullpart}
+%\begin{array}{rcll}
+\ln L_i \mid y_i = 0 = 
+\left\|
+\begin{array}{ll}
+\ln (1 - \Phi(\gamma's_i)) & \\
+\ln \left(1 - \frac{\Phi(\gamma's_i,\beta'x_i/\sigma,\rho)}
+  {\Phi(\beta'x_i/\sigma)}\right) & \mbox{truncated} \\
+\ln (1 - \Phi(\gamma's_i,\beta'x_i/\sigma,\rho)) & \mbox{double hurdle} \\
+\end{array}
+\right.
+%\end{array}
+\end{equation}
+
+The first line corresponds to the simplest case where the zero is
+occurring only for selection/infrequency reasons (single-hurdle model)
+and does not depends on the consumption equation. This is the case if
+a log-normal distribution is chosen for the consumption equation. The
+second line corresponds also to a single-hurdle model, but with a
+truncated distribution used for the consumption equation. In this
+case, the probability of zero depends on the consumption equation's
+parameters and covariates. Finally, the last line describes a double
+hurdle model, where zero observations may occur because of
+selection/infrequency and because of resources insufficiency.
+
+
+The contribution of a positive observation to the log-likelihood
+function is easier presented by defining the ``residual'' of the
+estimation as :
+
+\begin{equation}
+  \label{eq:resid}
+e_i  = 
+\left\|
+\begin{array}{ll}
+\ln y_i + \mbox{ifr} \times \ln \Phi (\gamma's_i) - \beta'x_i & \mbox{log-normal} \\
+  y_i  \Phi (\gamma's_i)^{\mbox{ifr}} - \beta'x_i & \mbox{otherwise}\\
+\end{array}
+\right.
+\end{equation}
+
+\textbf{ifr} being a dummy variable equal to 1 if the infrequency is in
+effect. One can remark that the parameter and the covariates of the
+infrequency equation enter the definition of this ``residual'',
+because this residual is defined for the average consumption, which
+depends on the probability of consuming, as described previously. 
+
+The contribution of a positive observation to the log-likelihood
+function is then:
+
+\begin{equation}
+  \label{eq:pospart}
+\begin{array}{rcll}
+\ln L_i \mid y_i > 0 & = & -\ln(\sigma)  & \\
+& +  & \ln \phi(e_i/\sigma)  & \\
+& +  & \ln \Phi\left( \frac{\gamma's_i+\rho e_i / \sigma}{\sqrt{1-\rho^2}}\right) \\
+& - & \ln (y) & \mbox{log-normal} \\
+& - & \ln\left( \Phi(\beta'x_i)\right) & \mbox{truncated} \\
+& + & \mbox{ifr} \times \ln (\Phi(\gamma's_i))  & \mbox{not log-normal}
+\end{array}
+\end{equation}
+
+Using (\ref{eq:nullpart}), (\ref{eq:resid}) and (\ref{eq:pospart}),
+the log-likelihood function is then:
+
+\begin{equation}
+  \label{eq:likelihood}
+  \ln L = \sum_{i \mid y_i = 0} \ln L_i \mid y_i = 0 + \sum_{i \mid y_i > 0} \ln L_i \mid y_i > 0
+\end{equation}
+
+Note that for uncorrelated single-hurdle selection models,
+(\ref{eq:nullpart}) depends only on $\gamma$ and (\ref{eq:pospart})
+depends only on $\beta$, so that the model may be estimated in two
+independent parts :
+
+\begin{itemize}
+\item a simple probit model to estimate $\gamma$,
+\item a linear, log-linear or truncated model to estimate $\beta$.
+\end{itemize}
+
+\section{Software approach}
+\label{sec:software}
+
+Three points are very important to implement correctly the models
+described in the previous section. The first is two provide a good
+interface to describe the model to be estimated. The second one is the
+problem of finding good starting values. The last one is to offer
+flexible optimization tools in order to maximize the likelihood.
+
+\subsection{Model description}
+\label{sec:modeldesc}
+
+In \pkg{R}, the model to be estimated is described using formula
+objects, the left-hand side being the response and the right-hand side
+indicating the effects of the covariates, for example, \texttt{y \~{} x1
+  + x2*x3} indicates that the response (\texttt{y}) depends on linear
+effects of the three variables on the right-hand side and on the
+interactive effect of \texttt{x2} and \texttt{x3}.
+
+With the model considered in \pkg{mhurdle}, two kind of covariates are
+used: those of the consumption equation (called $x_2$, and then $x$
+previously) and those of the selection/infrequency equation ($x_1$ or
+$x_3$, and then $s$).  To describe a model with two kinds of
+covariates, a general solution is given by the \pkg{Formula}
+package \citep{FORMUL/09}, which provides extended formula objects,
+with suitable methods. To describe a model where \texttt{y} is the
+(limited)-dependent variable, \texttt{x1, x2} are the covariates of
+the consumption equation and \texttt{s1, s2} those of the
+selection/infrequency equation, one will simply use :
+
+<<>>=
+library("Formula")
+f <- Formula(y ~ x1 + x2 | s1 + s2)
+@ 
+
+To illustrate the use of \pkg{Formula}, we'll use the \code{tobin}
+data from the \pkg{survival} package. This data.frame is an extract
+(20 observations) of the original data used by Tobin in his seminal
+article.
+
+<<>>=
+data("tobin", package = "survival")
+head(tobin, 3)
+@ 
+
+The three variables are :
+
+\begin{description}
+\item[durable] durable goods purchase,
+\item[age] age in years,
+\item[quant] liquidity ratio ($\times 1000$).
+\end{description}
+
+
+To estimate a model for the durable goods purchase using the liquidity
+ratio as a covariate for the consumption equation and the age as
+covariate for the selection equation, we would use:
+
+<<>>=
+f <- Formula(durable ~ quant | age)
+@ 
+
+Several methods are provided to deal with those extended formulas.
+Especially, the model matrices of the two equations are easily
+computed using:
+
+<<>>=
+X <- model.matrix(f, data = tobin, part = "first")
+S <- model.matrix(f, data = tobin, part = "second")
+head(X,3)
+head(S,3)
+@ 
+
+For the end user, all these manipulations are internal to the
+\code{mhurdle} function. All that should be done is to provide a formula
+of the type \texttt{y \~{} x1 + x2 | s1 + s2} as first argument of the
+function.
+
+
+\subsection{Starting values}
+\label{sec:startvalues}
+
+For the models considered here, the log-likelihood function will be, in
+general, not concave. Moreover, this kind of models are highly
+parametrized, and therefore often poorly identified. For these
+reasons, the question of finding good starting values is crucial.
+
+For selection models, a popular approach was initiated by Heckman
+\citep{HECKM/76}. It consists on estimating the model on two steps:
+
+\begin{itemize}
+\item the first one is a simple probit model,
+\item the second one is a linear model on the truncated sample of
+  positive observations with an augmented variable constructed using
+  the results of the first step in order to correct the truncation
+  bias.
+\end{itemize}
+
+This estimator, sometimes called ``heckit'' is unbiased and
+inefficient. It is implemented in package \pkg{sampleSelection}.
+
+This approach doesn't have general virtues for the model we deal with:
+except in a very special case (correlated single-hurdle model with
+log-normal distribution), it is not very useful because the first step
+is not a simple probit model (see \ref{eq:nullpart}).
+
+As noted previously, for single-hurdle independent selection models,
+the estimation may be performed in two independent steps, a probit and
+a linear, log-linear or truncated model. In the last case, package
+\pkg{truncreg} \citep{TRUNCR/09} is used.
+
+In case of dependent selection models, the coefficients of these
+simple models are used as starting values, with $\rho = 0$.
+
+
+For infrequency models (also called p-Tobit models), the starting
+values are computed in two steps. In the first step, $\gamma$ is
+estimated using a simple probit. In the second step, a linear,
+log-linear or truncated model is estimated on the subset of the sample
+for which the dependent variable is positive, using
+$y_i\phi(\gamma's_i)$ (or $\ln y_i +\ln \Phi(\beta'x_i)$ in case of a
+log-normal distribution). Dependent p-Tobit models are currently not
+implemented. 
+
+
+\subsection{Optimisation}
+\label{sec:optimisation}
+
+Two kinds of routines are currently used for maximum likelihood
+estimation. The first one can be called ``Newton-like'' methods. In
+this case, at each iteration, an estimation of the hessian is
+calculated, whether using the second derivates of the function
+(Newton-Ralphson method) or using the outer product of the gradient
+(BHHH). This approach is very powerful if the function is
+well-behaved, but it may performs poorly otherwise and scratch after a
+few iterations.
+
+The second one, BFGS, updates at each iteration the estimation of the
+hessian. It is often more robust and may performs well in cases where
+the first one doesn't work.
+
+Two optimization functions are included in core \proglang{R}:
+\code{nlm} which use the Newton-Ralphson method and \code{optim} which
+use BFGS (among other methods). Recently, the \pkg{maxLik} package
+\citep{MAXLIK/08} provides a unified approach. With a unique
+interface, all the previously described methods are available.
+
+The behavior of \code{maxLik} can be controlled by the user using in
+\code{mhurdle} arguments like \texttt{print.level} (from 0-silent to
+2-verbal), \texttt{iterlim} (the maximum number of iterations),
+\texttt{methods} (the method used, one of \texttt{"nr"},
+\texttt{"bhhh"} or \texttt{"bfgs"}) that are passed to \code{maxLik}.
+
+
+\section{Examples}
+\label{sec:examples}
+
+The package is loaded using:
+
+<<>>=
+library("mhurdle")
+@ 
+
+
+\subsection{Estimation}
+
+The estimation is performed using the \code{mhurdle} function, which
+has the following arguments:
+
+\begin{description}
+\item[formula] a formula which describes the model to estimate: it
+  should have two parts on the right-hand side, the first one dealing
+  with the consumption equation, the second one with the
+  selection/infrequency equation,
+\item[data] a data.frame containing the variables present in the
+  formula,
+\item[subset, weights, na.action] these are arguments passed to the
+  model.frame function in order to extract the data suitable for the
+  model: these arguments are present in the \code{lm} function and
+  most of the estimation functions,
+\item[start] starting values, if \code{NULL}, the starting values are
+  computed as described in the previous section,
+\item[dist] this argument indicates the distribution of the
+  consumption latent variable: either log-normal \code{"l"} (the default),
+  normal \code{"n"} or truncated normal \code{"t"}.
+\item[res] a logical value indicating whether zero may occur
+  because of resources insufficiency,
+\item[sel] a logical value indicating whether zero may occur
+  because of the presence of a selection process,
+\item[ifr] a logical value indicating whether zero may occur
+  because of the presence of infrequency in purchase,
+\item[corr] a logical value indicating whether the errors of
+  the two equations are correlated or not.
+\item[...] further arguments that are passed to the optimization
+  function \code{maxLik}.
+\end{description}
+
+Different combinations leads to a large variety of models. Note that
+some of them are irrelevant, for example a model with
+\code{dist = "l"} and \code{res = TRUE}, because corner
+solutions can't occur with a log-normal distribution for the
+consumption. 
+
+Other models are relevant, but not implemented. As noticed before, it
+is particularly the case of models with a selection \emph{and} an
+infrequency process.
+
+We first estimate an independent double-hurdle selection model:
+
+<<>>=
+dhi <- mhurdle(durable ~ age + quant | age + quant, tobin, 
+            sel = TRUE, ifr = FALSE, dist = "n", res = TRUE, corr = FALSE)
+summary(dhi)
+@ 
+
+Note that a Lagrange multiplier test is performed in order to test the
+hypothesis of no correlation. In the previous example, this hypothesis
+is not rejected.
+
+We then update the model in order to estimate a dependent
+double-hurdle selection model:
+
+<<>>=
+dhd <- update(dhi, corr = TRUE)
+@ 
+
+To estimate a correlated single-hurdle selection model with a
+log-normal distribution, we would use:
+
+<<>>=
+shl <- mhurdle(durable ~ age + quant | age + quant, tobin, sel = TRUE,
+            ifr = FALSE, dist = "l", corr = TRUE, res = FALSE)
+@ 
+
+The last example is an independent double-hurdle p-tobit:
+
+<<>>=
+pdhi <- mhurdle(durable ~ age + quant | age + quant, tobin, sel = FALSE,
+            ifr = TRUE, dist = "n", res = TRUE, corr = FALSE)
+@ 
+
+To add the \code{age} squared to the infrequency equation and to remove the
+variable \code{age} from the regression equation, one can update the
+formula the following way:
+
+<<>>=
+pdhib <- update(pdhi, . ~ . - age | . + I(age^2) )
+@ 
+
+\subsection{Methods}
+
+\code{coef}, \code{vcov}, \code{logL}, \code{predict} methods are
+provided in order to extract part of the results.
+
+Coefficients and the matrix of variance are extracted using the usual
+\code{coef} and \code{vcov} functions. Those methods for \code{mhurdle}
+objects have a second argument which indicates what subset has to be
+returned (the default is to return all).
+
+<<>>=
+coef(dhd, "sel")
+coef(dhd, "sigma")
+vcov(dhd, "reg")
+@ 
+
+
+Fitted values are obtained using the \code{fitted} function. It
+returns a matrix whose columns are respectively the probability of 0
+and the mean value for a positive observation:
+
+<<>>=
+head(fitted(dhd))
+@ 
+
+A \code{predict} function is also provided, which returns the same two
+columns.
+
+<<>>=
+pr <- predict(dhd,newdata=data.frame(durable=c(0,.3,1.2),
+                                     age=c(20,30,38),
+                                     quant=c(.3,.1,.5)))
+head(pr)
+@ 
+
+\section{Conclusion}
+\label{sec:conclusion}
+With \pkg{mhurdle}, we aim at providing different extensions of the
+\emph{Tobit} model that are not currently implemented in \proglang{R}
+in an unified framework.
+
+
+\bibliography{bibliomhurdle}
+
+\end{document}
+

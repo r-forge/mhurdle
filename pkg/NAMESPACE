@@ -1,0 +1,12 @@
+export(mhurdle, sim.mhurdle, r.squared, vuongtest)
+import(Formula)
+import(truncreg)
+S3method(coef, mhurdle)
+S3method(vcov, mhurdle)
+S3method(logLik, mhurdle)
+S3method(print, mhurdle)
+S3method(summary, mhurdle)
+S3method(update, mhurdle)
+S3method(print,summary.mhurdle)
+S3method(predict, mhurdle)
+
