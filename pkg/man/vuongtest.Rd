@@ -5,11 +5,16 @@
   The Vuong test is suitable to discriminate between two non-nested models.
 }
 \usage{
-vuongtest(x, y)
+vuongtest(x, y,
+          type = c("non.nested", "nested", "overlapping"),
+          hyp = FALSE)
 }
 \arguments{
   \item{x}{a first fitted model of class \code{"mhurdle"},}
   \item{y}{a second fitted model of class \code{"mhurdle"},}
+  \item{type}{the kind of test to be computed,}
+  \item{hyp}{a boolean, \code{TRUE} if one of the models is asumed to be
+    the true model.}
 }
 \value{
   an object of class \code{"htest"}
@@ -28,10 +33,10 @@ vuongtest(x, y)
 ## independent double hurdle ptobit
 
 data("tobin",package="survival")
-dhi <- mhurdle(durable ~ age + quant | age + quant, tobin, 
-            sel = FALSE, ifr = TRUE, dist = "n", res = TRUE, corr = FALSE)
-dhs <- mhurdle(durable ~ age + quant | age + quant, tobin, 
-            sel = FALSE, ifr = TRUE,  dist = "l", res = FALSE, corr = TRUE)
+dhi <- mhurdle(durable ~ 0 | age + quant | age + quant, tobin, 
+             dist = "n", corr = FALSE)
+dhs <- mhurdle(durable ~ 0 | age + quant | age + quant, tobin, 
+              dist = "l", corr = FALSE)
 vuongtest(dhi, dhs)
 
 }

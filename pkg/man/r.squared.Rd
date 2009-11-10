@@ -8,8 +8,7 @@
   or the whole model.
 }
 \usage{
-r.squared(object, which = c("all", "zero", "positive"),
-          type = c("linear", "mcfadden")) 
+r.squared(object, which = c("all", "zero", "positive"))
 }
 \arguments{
   \item{object}{an object of class \code{"mhurdle"},}
@@ -17,8 +16,6 @@ r.squared(object, which = c("all", "zero", "positive"),
     computed, one of \code{"all"} (the whole model), \code{"zero"} (null
     versus positive values), \code{"positive"} (values for the truncated
     sample of positive values),}
-  \item{type}{one of \code{"linear"} or \code{"mcfadden"}: in the second
-    case, the measure is based on the likelihood.}
 }
 \value{
   a numerical value
@@ -32,14 +29,11 @@ r.squared(object, which = c("all", "zero", "positive"),
 }
 \examples{
 data("tobin", package = "survival")
-dhi <- mhurdle(durable ~ age + quant | age + quant, tobin, 
-            sel = TRUE, ifr = FALSE, dist = "n", res = TRUE, corr = FALSE)
+dhi <- mhurdle(durable ~ age + quant | age + quant | 0, tobin, 
+            dist = "n", corr = FALSE)
 r.squared(dhi)
-r.squared(dhi, which = "zero", type = "mcfadden")
-r.squared(dhi, which = "positive", type = "linear")
-r.squared(dhi, which = "all", type = "linear")
-
-
+r.squared(dhi, "zero")
+r.squared(dhi, "positive")
 
 }
 \keyword{}

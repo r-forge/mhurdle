@@ -16,19 +16,20 @@ nm.mhurdle <- function(object,
 
   which <- match.arg(which)
   K <- sapply(object$coef.names,length)
-  soi <- ifelse(describe(object, "sel"), "sel", "ifr")
   if (which == "all"){
-    soi.names <- paste(soi, object$coef.names[[soi]],sep = ".")
     reg.names <- paste("reg", object$coef.names$reg,sep = ".")
-    result <- c(soi.names, reg.names, object$coef.names$other)
+    sel.names <- ifr.names <- NULL
+    if (describe(object, "sel")) sel.names <- paste("sel", object$coef.names$sel,sep = ".")
+    if (describe(object, "ifr")) ifr.names <- paste("ifr", object$coef.names$ifr,sep = ".")
+
+    result <- c(sel.names, reg.names, ifr.names, object$coef.names$other)
   }
   if (which == "sel") result <- object$coef.names[[1]]
-  if (which == "ifr") result <- object$coef.names[[1]]
   if (which == "reg") result <- object$coef.names[[2]]
-  if (which == "other"){
-    if (describe(object, "corr")) result <- c("sigma","rho")
-    else result <- "sigma"
-  }
+  if (which == "ifr") result <- object$coef.names[[3]]
+  if (which == "other")
+    if (describe(object, "corr")) {result <- c("sigma","rho")}
+    else {result <- "sigma"}
   if (which == "rho") result <- "rho"
   if (which == "sigma") result <- "sigma"
   result
@@ -41,27 +42,23 @@ sub.mhurdle <- function(object,
   which <- match.arg(which)
   K <- sapply(object$coef.names,length)
   if (which == "all") sub <- NULL
+  if (which == "reg") sub <- 1:K[[1]] 
   if (which == "sel"){
     if (!describe(object, "sel")) stop("no sel equation")
-    sub <- 1:K[[1]]
+    else sub <- (K[[1]]+1):(K[[1]]+K[[2]])
   }
   if (which == "ifr"){
-    if (!describe(object, "ifr")) stop("no ifruency equation")
-    sub<- 1:K[[1]]
+    if (!describe(object, "ifr")) stop("no ifrequency equation")
+    else sub <- (K[[1]]+K[[2]]+1):(K[[1]]+K[[2]]+K[[3]])
   }
-  if (which == "reg"){
-    sub <- (K[[1]]+1):(K[[1]]+K[[2]])
-  }
-  if (which == "other"){
-    sub <- -c(1:(K[[1]]+K[[2]]))
-  }
+  if (which == "other")
+    if (describe(object,"corr")) sub <- (K[[1]]+K[[2]]+K[[3]]+1):(K[[1]]+K[[2]]+K[[3]]+2)
+    else sub <- (K[[1]]+K[[2]]+K[[3]]+1) 
   if (which == "rho"){
     if (!describe(object, "corr")) stop("no corr coefficient estimated")
-    sub <- K[[1]]+K[[2]]+2
+    else sub <- K[[1]]+K[[2]]+K[[3]]+2
   }
-  if (which == "sigma"){
-    sub <- K[[1]]+K[[2]]+1
-  }    
+  if (which == "sigma") sub <- K[[1]]+K[[2]]+K[[3]]+1
   sub
 }
 
@@ -94,20 +91,30 @@ vcov.mhurdle <- function(object,
   result
 }
 
-
-
-logLik.mhurdle <- function(object, which = c("all", "zero", "positive"), ...){
+logLik.mhurdle <- function(object,
+                           which = c("all", "zero", "positive"),
+                           naive = FALSE, ...){
   which <- match.arg(which)
-  x <- object$logLik
-  y <- attr(x, "y")
-  x <- switch(which,
-              all      = sum(x),
-              zero     = sum(x[y == 0]),
-              positive = sum(x[y > 0])
+  if (!naive){
+    x <- object$logLik
+    y <- attr(x, "y")
+    x <- switch(which,
+                all      = sum(x),
+                zero     = sum(x[y == 0]),
+                positive = sum(x[y > 0])
               )
-  attr(x,"df") <- NULL
-  attr(x,"y")  <- NULL
-  sum(x)
+    attr(x,"df") <- NULL
+    attr(x,"y")  <- NULL
+    result <- sum(x)
+  }
+  else{
+    naive <- object$naive
+    result <- switch(which,
+                     all      = naive$logLik,
+                     zero     = naive$logLik.part['zero'],
+                     positive = naive$logLik.part['positive'])
+  }
+  result
 }
 
 print.mhurdle <- function (x, digits = max(3, getOption("digits") - 2),
@@ -131,18 +138,18 @@ summary.mhurdle <- function (object,...){
   CoefTable <- cbind(b,std.err,z,p)
   colnames(CoefTable) <- c("Estimate","Std. Error","t-value","Pr(>|t|)")
   object$CoefTable <- CoefTable
+  object$r.squared <- c(all      = r.squared(object, "all"),
+                        zero     = r.squared(object, "zero"),
+                        positive = r.squared(object, "positive"))
   class(object) <- c("summary.mhurdle","mhurdle")
   return(object)
 }
 
 print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
                                   width = getOption("width"), ...){
-
   cat("\nCall:\n")
   print(x$call)
-
   cat("\n")
-  
   y <- x$model[,1]
   zeros <- length(y[y==0])/length(y)
   if (zeros>0) cat(paste("Frequency of 0: ",round(zeros,digits=digits),"\n"))
@@ -169,7 +176,28 @@ print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
     cat(paste("score test : z = ", round(rhotest$test$statistic,3),
               " (p.value = ",round(rhotest$test$p.value,3),")\n",sep=""))
   }
+
+  cat("\nMc Fadden R^2 :\n")
+  rs <- x$r.squared
+  cat(paste(" - all      :", signif(rs[1], digits), "\n"))
+  cat(paste(" - zero     :", signif(rs[2], digits), "\n"))
+  cat(paste(" - positive :", signif(rs[3], digits), "\n"))
+
+  if (FALSE){
+  cat(paste("model r-squared: ",
+            signif(r.squared(x,which="all",type="linear",dfcor=FALSE,r2pos = "rss"),
+                   digits)))
+  cat("\n")
+  cat(paste("censored mechanism r-squared: ",
+            signif(r.squared(x,which="zero",type="linear",dfcor=FALSE,r2pos = "rss"),
+                   digits)))
+  cat("\n")
+  cat(paste("positive r-squared: ",
+            signif(r.squared(x,which="positive",type="linear",dfcor=FALSE,r2pos = "rss"),
+                   digits)))
+  cat("\n")}
   invisible(x)
+
 }
 
 print.est.stat <- function(x, ...){
@@ -210,57 +238,73 @@ update.mhurdle <- function (object, new, ...){
   eval(call, parent.frame())
 }
 
-compute.fitted.mhurdle <- function(param, X, S, dist, res, sel, ifr, corr){
-  z <- typo.mhurdle()
-  model <- z[as.character(res),
-             as.character(sel),
-             as.character(ifr),
-             as.character(corr),
-             dist]
+compute.fitted.mhurdle <- function(param, X, S, P, dist, corr){
+
+  KS <- ifelse(is.null(S), 0, ncol(S))
+  KP <- ifelse(is.null(P), 0, ncol(P))  
   KX <- ncol(X)
-  KS <- ncol(S)
-  betaS <- param[1:KS]
+  sel <- KS > 0
+  ifr <- KP > 0
+  if (sel) betaS <- param[1:KS] else betaS <- NULL
   betaX <- param[(KS+1):(KS+KX)]
-  sigma <- param[KX+KS+1]
+  if (ifr) betaP <- param[(KX+KS+1):(KX+KS+KP)] else betaP <- NULL
+  sigma <- param[KX+KS+KP+1]
+  if (corr) rho <- param[KX+KS+KP+2] else rho <- 0
   bX <- as.numeric(crossprod(t(X),betaX))
-  bS <- as.numeric(crossprod(t(S),betaS))
   PhiX <- pnorm(bX/sigma)
   phiX <- dnorm(bX/sigma)
-  PhiS <- pnorm(bS)
-  phiS <- dnorm(bS)
-  if (corr){
-    rho <- param[KX+KS+2]
-    Phib <- pbivnorm(bS, bX/sigma, rho, gradient = FALSE)
+
+  if (sel){
+    bS <- as.numeric(crossprod(t(S),betaS))
+    PhiS <- pnorm(bS)
+    phiS <- dnorm(bS)
+    Phib <- pbivnorm(bS,bX/sigma,rho)
+    psi <- psy(bS,bX/sigma,rho)
+    millsG <- psi/Phib
+    Phib.grad <- attr(Phib,"gradient")
+    attr(Phib, "gradient") <- NULL
+    Phib.S <- Phib.grad$x1
+    Phib.X <- Phib.grad$x2
+    Phib.rho <- Phib.grad$rho
+    Phib.rho.rho <- Phib.grad$rho.rho
+  }
+  else{
+    bS <- 0
+    Phib <- PhiX
+    PhiS <- 1
     psi <- psy(bS,bX/sigma,rho)
     millsG <- psi/Phib
   }
+  if (ifr){
+    bP <- as.numeric(crossprod(t(P),betaP))
+    PhiP <- pnorm(bP)
+  }
   else{
-    Phib <- pnorm(bS) * pnorm(bX/sigma)
-    millsG <- mills(bS)
+    PhiP <- 1
   }
-
-  prob.null <- 1 - PhiS
-  if (dist == "t" && corr) prob.null <- 1 - Phib/PhiX
-  if (res) prob.null <- 1 - Phib
+ 
+ 
+  if (dist == "l" ) prob.null <- 1 - PhiS*PhiP
+  if (dist == "t" ) prob.null <- 1 - Phib*PhiP/PhiX
+  if (dist == "n" ) prob.null <- 1 - Phib*PhiP
   
-  if (dist == "l") esp.cond <- exp(bX+sigma^2/2) else{
-    esp.cond <- bX + sigma * millsG
-  }
-  if (ifr) esp.cond <- esp.cond / PhiS
-  if (dist == "l" && corr){
-    dl <- (PhiS+rho*sigma*phiS+
-           (rho*sigma)^2/2*(PhiS-bS*phiS)+
-           (rho*sigma)^3/6*(2+bS^2)*phiS+
-           (rho*sigma)^4/12*(3*PhiS-bS*(3+bS^2)*phiS))/PhiS
-    if (ifr) esp.cond <- exp(bX+sigma^2*(1-rho^2))*dl/PhiS
-    if (sel) esp.cond <- exp(bX+sigma^2*(1-rho^2))*dl
-  }
+  if ((dist == "l") && sel){
+    phiS <- dnorm(bS)
+    esp.cond <-
+      exp(bX+sigma^2*(1-rho^2))/PhiP*(PhiS+rho*sigma*phiS+
+                                      (rho*sigma)^2/2*(PhiS-bS*phiS)+
+                                      (rho*sigma)^3/6*(2+bS^2)*phiS+
+                                      (rho*sigma)^4/12*(3*PhiS-bS*(3+bS^2)*phiS))/PhiS}
+  if ((dist == "l") && !sel){
+    esp.cond <- exp(bX+sigma^2*(1-rho^2))/PhiP}
   
+  if (dist !="l")
+    esp.cond <- bX/PhiP + sigma * millsG/PhiP^2
   result <- cbind(zero = prob.null,
                   positive = esp.cond)
-  
   result
 }
+
 
 predict.mhurdle <- function(object, newdata = NULL, ...){
   if (is.null(newdata)){
@@ -268,94 +312,33 @@ predict.mhurdle <- function(object, newdata = NULL, ...){
   }
   else{
     cl <- object$call
-    sel <- ifelse(is.null(cl$sel), TRUE, cl$sel)
-    res <- ifelse(is.null(cl$resd), TRUE, cl$res)
-    ifr <- ifelse(is.null(cl$ifr), TRUE, cl$ifr)
     dist <- ifelse(is.null(cl$dist), TRUE, cl$dist)
     corr <- ifelse(is.null(cl$corr), FALSE, cl$corr)
     m <- model.frame(formula(object), newdata)
-    X <- model.matrix(formula(object),m)
-    S <- model.matrix(formula(object),m, part = "second")
-    result <- compute.fitted.mhurdle(coef(object), X, S, dist, res, sel, ifr, corr)
-    
+    X <- model.matrix(formula(object),m,rhs=1)
+    S <- model.matrix(formula(object),m,rhs=2)
+    P <- model.matrix(formula(object),m,rhs=3)
+    result <- compute.fitted.mhurdle(coef(object), X, S, P,  dist, corr)
   }
   result
 }
 
-fitted.mhurdle <- function(object, which = c("zero", "positive"), ...){
+fitted.mhurdle <- function(object, which = c("all", "zero", "positive"), ...){
   which <- match.arg(which)
   switch(which,
-         zero = object$fitted[,1],
-         positive = object$fitted[,2])
+         all = cbind(
+           "zero" = object$fitted.values[,1],
+           "positive" = object$fitted.values[,2]
+           ),
+         zero = object$fitted.values[,1],
+         positive = object$fitted.values[,2]
+         )
 }
-            
-r.squared <- function(object,
-                      which = c("all", "zero", "positive"),
-                      type = c("linear", "mcfadden")){
-  type <- match.arg(type)
-  which <- match.arg(which)
-  
-#  if (!is.logical(adjusted)) stop("adjusted should be logical") else
 
-  if (type == "mcfadden"){
-    result <- 1 - logLik(object, which)/logLik(object$naive, which)
-  }
-  if (type == "linear"){
-    y <- model.response(model.frame(object))
-    p <- mean(y == 0)
-    if (which != "positive"){
-      # number of null observations
-      no <- sum(y == 0)
-      # mean probabilities of 0
-      pmo <- mean(y == 0)
-      # fitted values for 0
-      pfo <- fitted(object, "zero")
-      # residuals for 0
-      eo <- 0 - pfo
-      R2n <- sum( (pfo - pmo)^2) / (no * pmo^2)
-      ## alternative based on residuals
-      ## R2n <- 1- sum(eo^2) / (no * pmo^2)
-    }
-    if (which != "zero"){
-      yp <- y[y>0]
-      yf <- fitted(object, "positive")[y > 0]
-      ym <- mean(yp)
-      ## expression based on fitted values
-      ## R2p <- sum( (yf - ym)^2 ) / sum( (yp - ym)^2)
-      ## alternative based on residuals
-      ## R2p <- 1 - sum( (yp-yf)^2 )/sum( (yp-ym)^2)
-      ## alternative base on the coefficient of correlation
-      R2p <- cor(yf,yp)^2
-    }
-    if (which == "all"){
-      R2 <- p * R2n + (1-p) * R2p
-    }
-    result <- switch(which,
-                     all = R2,
-                     zero = R2n,
-                     positive = R2p
-                     )
-  }
-  result
-}
-  
-  
-vuongtest <- function(x, y){
-  lx <- x$logLik
-  ly <- y$logLik
-  attr(lx, "y") <- attr(ly, "y") <- attr(lx, "df") <- attr(ly, "df") <- NULL
-  n <- length(lx)
-  if (length(ly) != n) stop("the number of observations of the two models differ")
-  LR <- sum(lx - ly)
-  w2 <- 1/n*sum((lx-ly)^2)-(1/n*LR)^2
-  value <- LR/sqrt(n*w2)
-  names(value) <- "normal"
-  pval<- pnorm(abs(value), lower.tail = FALSE)*2
-  data <- paste(deparse(x$call$formula))
-  result <- list(statistic = value,
-                 p.value = pval,
-                 data.name = NULL,
-                 method = "Vuong Test")
-  class(result) <- "htest"
-  result
+
+r.squared <- function(object,
+                      which = c("all", "zero", "positive")){
+  lnL <- logLik(object, which = which, naive = FALSE)
+  lnLo <- logLik(object, which = which, naive = TRUE)
+  as.numeric(1 - lnL/lnLo)
 }

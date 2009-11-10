@@ -19,9 +19,6 @@
 mhurdle(formula, data, subset, weights, na.action,
      start = NULL,
      dist = c("l","t","n"),
-     res = FALSE,
-     sel = TRUE,
-     ifr = FALSE,
      corr = FALSE, ...)
 
 \method{coef}{mhurdle}(object,
@@ -34,6 +31,7 @@ mhurdle(formula, data, subset, weights, na.action,
                      ...)
 \method{logLik}{mhurdle}(object,
                     which = c("all", "zero", "positive"),
+                    naive = FALSE,
                     ...)
 \method{print}{mhurdle}(x, digits = max(3, getOption("digits") - 2),
                      width = getOption("width"), ...)
@@ -42,7 +40,7 @@ mhurdle(formula, data, subset, weights, na.action,
                              width = getOption("width"), ...)
 
 \method{fitted}{mhurdle}(object,
-                         which = c("zero", "positive"),
+                         which = c("all", "zero", "positive"),
                          ...)
 \method{predict}{mhurdle}(object,
                        newdata = NULL, ...)
@@ -59,14 +57,10 @@ mhurdle(formula, data, subset, weights, na.action,
   \item{dist}{the distribution of the error of the consumption
     equation: one of \code{"n"} (normal), \code{"l"} (log-normal) or \code{"t"} (truncated
     normal),}
-  \item{res}{a boolean, \code{TRUE} if 0 may occurs as a corner
-    solution,}
-  \item{sel}{a boolean, \code{TRUE} if 0 may occurs in a selection
-    process,}
-  \item{ifr}{a boolean, \code{TRUE} if 0 may occurs because the good is
-    bought ifrequently,}
   \item{corr}{a boolean, \code{TRUE} if the two error terms are
-    correlated.}
+    correlated,}
+  \item{naive}{a boolean, it \code{TRUE}, the likelihood of the naive
+    model is returned,}
   \item{object,x}{an object of class \code{"mhurdle"},}
   \item{new}{an updated formula for the \code{update} method,}
   \item{digits}{see \code{\link{print}},}
@@ -113,13 +107,12 @@ mhurdle(formula, data, subset, weights, na.action,
 }
 \examples{
 # A dependent double hurdle example
-
-d <- sim.mhurdle(c(0,1,1,2,1.5), rho = 0.6, n = 1000, sel = TRUE,
-              dist = "n", res = TRUE)
-
-x <- mhurdle(y ~ x | s, data = d, sel = TRUE, dist = "n",
-          res = TRUE, corr = TRUE,
-          method = "bfgs", print.level = 3)
+data("tobin", package = "survival")
+x <- mhurdle(durable ~ age+quant | age+quant | 0, data = tobin, dist = "n",
+          corr = TRUE, method = "bfgs")
+# A p-tobit with a log-normal distribution
+x <- mhurdle(durable ~ 0 | age+quant | age+quant, data = tobin, dist = "l",
+          method = "bfgs")
 
 }
 \author{}
