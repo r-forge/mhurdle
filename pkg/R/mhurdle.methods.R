@@ -235,6 +235,11 @@ update.mhurdle <- function (object, new, ...){
       call <- as.call(call)
     }
   }
+  for (i in 1:length(attr(call$formula, "rhs"))){
+    # update.Formula returns "1 - 1" instead of 0 for empty parts
+    zero <- paste(deparse(attr(call$formula, "rhs")[[i]])) == as.character("1 - 1")
+    if (zero) attr(call$formula, "rhs")[[i]] <- 0
+  }
   eval(call, parent.frame())
 }
 
@@ -283,11 +288,9 @@ compute.fitted.mhurdle <- function(param, X, S, P, dist, corr){
     PhiP <- 1
   }
  
- 
   if (dist == "l" ) prob.null <- 1 - PhiS*PhiP
   if (dist == "t" ) prob.null <- 1 - Phib*PhiP/PhiX
   if (dist == "n" ) prob.null <- 1 - Phib*PhiP
-  
   if ((dist == "l") && sel){
     phiS <- dnorm(bS)
     esp.cond <-

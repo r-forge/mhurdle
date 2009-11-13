@@ -786,7 +786,7 @@ To illustrate the use of \code{mhurdle} package, we first estimate
 an independent triple-hurdle model, which we call \code{model12i} :
 
 <<>>=
-model12i <- mhurdle(durable~age+quant|age+quant|age+quant, tobin, dist="n", method="nr")
+model12i <- mhurdle(durable~age+quant|age+quant|age+quant, tobin, dist="n", method="bfgs")
 @ 
 
 Note that a Lagrange multiplier test is performed in order to test the
@@ -801,7 +801,7 @@ the best model. To estimate a model where only lack of ressources is
 relevant to explain zero tobacco budget shares, we use :
 
 <<>>=
-model5 <- mhurdle(durable~0|age+quant|age+quant, tobin, dist="n", method="nr")
+model5 <- mhurdle(durable~0|age+quant|age+quant, tobin, dist="n", method="bfgs")
 @ 
 
 To estimate a single-hurdle good selection model with a log-normal
@@ -828,18 +828,18 @@ model8i <- mhurdle(durable~age+quant|age+quant|0, tobin, dist="n")
 We then update the model in order to estimate a dependent
 double-hurdle selection model:
 
-% \begin{verbatim}
-% model8d <- update(model8i, corr = TRUE)
-% \end{verbatim}
 
-% To add the \code{region} to the infrequency equation and to remove the
-% variable \code{nadults} from the selection equation, one can update the
-% formula the following way:
+<<>>=
+model8d <- update(model8i, corr = TRUE)
+@ 
 
-% \begin{verbatim}
-% model8i <- update(model8i, . - nadults  | . ~ . | . + region )
-% \end{verbatim}
+To remove the \code{age} variable from the selection equation and to
+add the square of the \code{age} to the regression equation, one can
+update the model the following way:
 
+<<>>=
+model8ibus <- update(model8i, . ~ . - age | . + I(age^2)| .)
+@ 
 
 \subsection{Methods}
 
@@ -904,13 +904,11 @@ A \cite{VUONG/89} test is also provided as a criteria for model
 selection.
 
 <<>>=
-vuongtest(shp,thi)
+vuongtest(model6i, model8d) 
 @ 
 
-In the previous example, the Vuong test also suggest that the double
-hurdle dependant model is the best suited model within the family of
-mhurdle models.
-
+In the previous example, the Vuong test is unable to discriminate
+between two non-nested models. 
 
 \section{Conclusion}
 \label{sec:conclusion}

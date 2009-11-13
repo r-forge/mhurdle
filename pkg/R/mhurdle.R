@@ -69,7 +69,6 @@ mhurdle <- function(formula, data, subset, weights, na.action,
                 logLik = logLik.naive,
                 logLik.part = c(zero = logLik.naive.zero, positive = logLik.naive.pos)
                 )
-
   ####
   #  Special cases where the models can be estimated directly, without
   #  relevant starting values
@@ -88,6 +87,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
   # used as starting values for (3d, 4d)
   if (sel && !ifr &&  dist != "n" && !corr){
     result <- sel.simple(X, S, y, dist = dist)
+    result$naive <- naive
     result$call <- cl.save
     result$model <- mf
     result$formula <- formula

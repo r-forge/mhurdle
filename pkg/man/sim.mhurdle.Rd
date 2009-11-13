@@ -7,50 +7,42 @@
   
 }
 \usage{
-sim.mhurdle(param = c(0.5, 0.5, 0.5, 0.5, 0.5), rho = 0, n = 200, 
-         sel = TRUE, ifr = FALSE,
-         dist = c("l", "t", "n"), res = FALSE) 
+sim.mhurdle(reg = c(0.5, 0.5, 1), sel = NULL, ifr = NULL, rho = 0,
+           n = 200, dist = c("l", "t", "n"))
 }
 \arguments{
 
-  \item{param}{the parameters of the simulation, see details,}
-  \item{rho}{the coefficient of correlation,}
-  \item{n}{the size of the sample,}
-  \item{sel}{a boolean, \code{TRUE} if 0 may occurs in a selection
+  \item{reg}{the parameters of the regression equation (of length three
+    : the intercept, the slope and the standard deviation of the error,}
+  \item{sel}{the parameters of the selection equation (of lenght two :
+    the intercept and the slope). If null, there is no selection
     process,}
-  \item{ifr}{a boolean, \code{TRUE} if 0 may occurs because the good is
-    bought infrequently,}
-  \item{dist}{the distribution of the error of the consumption
-    equation: one of \code{"n"} (normal), \code{"l"} (log-normal) or \code{"t"} (truncated
-    normal),}
-  \item{res}{a boolean, \code{TRUE} if 0 may occurs as a corner
-    solution,}
+  \item{ifr}{the parameters of the purchase equation (of lenght two :
+    the intercept and the slope). If null, there is no purchase
+    process,}
+  \item{rho}{the coefficient of correlation between the regression and
+    the selection equations : only relevant if there is a selection process,}
+  \item{n}{the size of the sample,}
+  \item{dist}{the distribution of the error of the consumption equation:
+    one of \code{"n"} (normal), \code{"l"} (log-normal) or \code{"t"}
+    (truncated normal),}
 }
 \value{
-  a \code{data.frame} containing \code{y} the dependent variable, \code{x} the
-  explanatory variable in the consumption equation and \code{s} the
-  explanatory variable in the selection/infrequency equation.
+  a \code{data.frame} containing \code{y} the dependent variable,
+  \code{x} the explanatory variable in the consumption, \code{s} the
+  explanatory variable in the selection equation and \code{p} the
+  explanatory variable in the infrequency equation.
 }
 
 \details{
-  
-  The \code{param} argument is a vector of length 5 containing the
-  intercept and the coefficient for the sel/ifruency equation,
-  the intercept and the coefficient for the consumption equation, and
-  the standard deviation of the error term in the consumption equation.
-  The two explanatory variables are standard normal variables.
-}
-\references{
-}
-\seealso{
+  The explanatory variables are standard normal variables.
 }
 \examples{
 
 # simulation of a data set of 1000 observations for Cragg's dependent
 # double hurdle model
 
-d <- sim.mhurdle(c(0,1,1,2), rho = 0.6, n = 1000, sel = TRUE,
-              dist = "n", res = TRUE)
+d <- sim.mhurdle(c(0.5, 0.5, 2), sel = c(0.5, 0.5), n = 1000, dist = "n")
 
 }
 \author{}

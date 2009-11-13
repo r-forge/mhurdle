@@ -1,4 +1,4 @@
-export(mhurdle, r.squared, vuongtest)
+export(mhurdle, r.squared, vuongtest, sim.mhurdle)
 import(Formula)
 import(truncreg)
 S3method(coef, mhurdle)
