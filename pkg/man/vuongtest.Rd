@@ -19,8 +19,8 @@ vuongtest(x, y,
 \value{
   an object of class \code{"htest"}
 }
-\details{
-}
+% \details{
+% }
 \references{
   Vuong Q.H. (1989) Likelihood ratio tests for model selection and
   non-nested hypothesis, Econometrica, vol.57(2), pp.307-33.
@@ -40,5 +40,4 @@ dhs <- mhurdle(durable ~ 0 | age + quant | age + quant, tobin,
 vuongtest(dhi, dhs)
 
 }
-\author{}
-\keyword{}
+\keyword{htest}

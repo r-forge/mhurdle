@@ -24,8 +24,8 @@ nm.mhurdle <- function(object,
 
     result <- c(sel.names, reg.names, ifr.names, object$coef.names$other)
   }
-  if (which == "sel") result <- object$coef.names[[1]]
-  if (which == "reg") result <- object$coef.names[[2]]
+  if (which == "reg") result <- object$coef.names[[1]]
+  if (which == "sel") result <- object$coef.names[[2]]
   if (which == "ifr") result <- object$coef.names[[3]]
   if (which == "other")
     if (describe(object, "corr")) {result <- c("sigma","rho")}
@@ -130,6 +130,19 @@ print.mhurdle <- function (x, digits = max(3, getOption("digits") - 2),
   invisible(x)
 }
 
+
+coef.summary.mhurdle <- function(object,
+                                 which = c("all", "sel", "ifr", "reg", "other", "sigma", "rho"),
+                                 ...){
+  which <- match.arg(which)
+  sub <- sub.mhurdle(object, which)
+  nm <- nm.mhurdle(object, which)
+  result <- object$CoefTable
+  if (!is.null(sub)) result <- result[sub, , drop=FALSE]
+  rownames(result) <- nm
+  result
+}
+
 summary.mhurdle <- function (object,...){
   b <- coef(object)
   std.err <- sqrt(diag(vcov(object)))
@@ -138,9 +151,8 @@ summary.mhurdle <- function (object,...){
   CoefTable <- cbind(b,std.err,z,p)
   colnames(CoefTable) <- c("Estimate","Std. Error","t-value","Pr(>|t|)")
   object$CoefTable <- CoefTable
-  object$r.squared <- c(all      = r.squared(object, "all"),
-                        zero     = r.squared(object, "zero"),
-                        positive = r.squared(object, "positive"))
+  object$r.squared <- c(regression = r.squared(object, which = "all", type = "regression"),
+                        mcfadden = r.squared(object, which = "all", type = "mcfadden"))
   class(object) <- c("summary.mhurdle","mhurdle")
   return(object)
 }
@@ -171,33 +183,17 @@ print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
   if (!is.null(x$rho)){
     rhotest <- sumrho(x$rho)
     cat("rho: ")
-    cat(paste("implied value :", round(rhotest$value,3)," ",sep=""))
+#    cat(paste("implied value :", round(rhotest$value,3)," ",sep=""))
     z <- 
     cat(paste("score test : z = ", round(rhotest$test$statistic,3),
               " (p.value = ",round(rhotest$test$p.value,3),")\n",sep=""))
   }
 
-  cat("\nMc Fadden R^2 :\n")
+  cat("\nR^2 :\n")
   rs <- x$r.squared
-  cat(paste(" - all      :", signif(rs[1], digits), "\n"))
-  cat(paste(" - zero     :", signif(rs[2], digits), "\n"))
-  cat(paste(" - positive :", signif(rs[3], digits), "\n"))
-
-  if (FALSE){
-  cat(paste("model r-squared: ",
-            signif(r.squared(x,which="all",type="linear",dfcor=FALSE,r2pos = "rss"),
-                   digits)))
-  cat("\n")
-  cat(paste("censored mechanism r-squared: ",
-            signif(r.squared(x,which="zero",type="linear",dfcor=FALSE,r2pos = "rss"),
-                   digits)))
-  cat("\n")
-  cat(paste("positive r-squared: ",
-            signif(r.squared(x,which="positive",type="linear",dfcor=FALSE,r2pos = "rss"),
-                   digits)))
-  cat("\n")}
+  cat(paste(" McFadden   :", signif(rs['mcfadden'], digits), "\n"))
+  cat(paste(" Regression :", signif(rs['regression'], digits), "\n"))
   invisible(x)
-
 }
 
 print.est.stat <- function(x, ...){
@@ -291,18 +287,20 @@ compute.fitted.mhurdle <- function(param, X, S, P, dist, corr){
   if (dist == "l" ) prob.null <- 1 - PhiS*PhiP
   if (dist == "t" ) prob.null <- 1 - Phib*PhiP/PhiX
   if (dist == "n" ) prob.null <- 1 - Phib*PhiP
-  if ((dist == "l") && sel){
+
+ if ((dist == "l") && sel){
     phiS <- dnorm(bS)
     esp.cond <-
-      exp(bX+sigma^2*(1-rho^2))/PhiP*(PhiS+rho*sigma*phiS+
+      exp(bX+0.5*sigma^2*(1-rho^2))/PhiP*(PhiS+rho*sigma*phiS+
                                       (rho*sigma)^2/2*(PhiS-bS*phiS)+
                                       (rho*sigma)^3/6*(2+bS^2)*phiS+
                                       (rho*sigma)^4/12*(3*PhiS-bS*(3+bS^2)*phiS))/PhiS}
+
   if ((dist == "l") && !sel){
-    esp.cond <- exp(bX+sigma^2*(1-rho^2))/PhiP}
+    esp.cond <- exp(bX+0.5*sigma^2*(1-rho^2))/PhiP}
   
   if (dist !="l")
-    esp.cond <- bX/PhiP + sigma * millsG/PhiP^2
+    esp.cond <- bX/PhiP + sigma * millsG/PhiP
   result <- cbind(zero = prob.null,
                   positive = esp.cond)
   result
@@ -339,9 +337,9 @@ fitted.mhurdle <- function(object, which = c("all", "zero", "positive"), ...){
 }
 
 
-r.squared <- function(object,
-                      which = c("all", "zero", "positive")){
-  lnL <- logLik(object, which = which, naive = FALSE)
-  lnLo <- logLik(object, which = which, naive = TRUE)
-  as.numeric(1 - lnL/lnLo)
-}
+## r.squared <- function(object,
+##                       which = c("all", "zero", "positive")){
+##   lnL <- logLik(object, which = which, naive = FALSE)
+##   lnLo <- logLik(object, which = which, naive = TRUE)
+##   as.numeric(1 - lnL/lnLo)
+## }

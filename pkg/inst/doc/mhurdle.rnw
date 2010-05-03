@@ -1,36 +1,38 @@
 \documentclass[nojss]{jss}
-%\usepackage[T1]{fontenc}
-%\usepackage{ucs}
-%\usepackage[utf8x]{inputenc}
-%\usepackage{url}
-%\usepackage{/usr/local/share/texmf/tex/Sweave}
+\usepackage{amsmath}
+\usepackage{amssymb, amsfonts}
 
 
-
-%\VignetteIndexEntry{Multiple hurdle models in R: The mhurdle Package}
-%\VignetteDepends{mhurdle, truncreg, Formula, maxLik}
-%\VignetteKeywords{limited dependent variable, maximum likelihood estimation,R}
+%\VignetteIndexEntry{Multiple Hurdle Models in R: the mhurdle Package}
+%\VignetteDepends{Formula, truncreg, maxLik}
+%\VignetteKeywords{Limited dependent variable, tobit, hurdle models, econometric computing, R}
 %\VignettePackage{mhurdle}
 
 \title{Multiple hurdle models in \proglang{R}: The \pkg{mhurdle} Package}
-  
+
 \Plaintitle{Multiple hurdle models in R: The mhurdle Package}
 
+% \footnote{This package has been developed as part
+% of a PhD dissertation carried out by Stéphane Hoareau
+% \cite{Hoareau/09} at the University of La Réunion under the
+% supervision of Fabrizio Carlevaro and Yves Croissant.}
 
-\author{Fabrizio Carlevaro\\Universit\'e de Gen\`eve \And%
-  Yves Croissant\\Universit\'e de la R\'eunion \And
-  St\'ephane Hoareau\\Universit\'e de la R\'eunion}
 
+\author{Fabrizio Carlevaro\\Universit\'e de Gen\`eve \\
+ Yves Croissant\\Universit\'e de la R\'eunion \\
+ St\'ephane Hoareau\\Universit\'e de la R\'eunion}
 
 \Plainauthor{Fabrizio Carlevaro, Yves Croissant, St\'ephane Hoareau}
 
-
-
 \Address{
 Fabrizio Carlevaro\\
+Facult\'e des sciences \'economiques et sociales\\
+Universit\'e de Gen\`eve\\
 Uni Mail\\
 40 Bd du Pont d'Arve\\
-CH-1211 GenÃ¨ve 4\\
+CH-1211 Gen\`eve 4\\
+Telephone: +41/22/3798914\\
+E-mail:\email{fabrizio.carlevaro@unige.ch}
 \\
 \\
 Yves Croissant\\
@@ -55,7 +57,6 @@ E-mail: \email{stephane.hoareau@univ-reunion.fr}
 
 %% need no \usepackage{Sweave.sty}
 
-
 \Abstract{ \pkg{mhurdle} is a package for \proglang{R} enabling the
   estimation of a wide set of models for which the response is zero
   left-censored. This kind of models are called limited dependent or
@@ -67,16 +68,16 @@ E-mail: \email{stephane.hoareau@univ-reunion.fr}
 \Keywords{limited dependent variable, maximum likelihood estimation,
    \proglang{R}}
 
-\Plainkeywords{limited dependent variable, maximum likelihood estimation,R}
+\Plainkeywords{limited dependent variable, maximum likelihood estimation,
+goodness of fit measures, Vuong tests for model selection, R}
 
 \begin{document}
 
 \maketitle
 
-% \footnote{This package has been developed as part of a PhD
-%   dissertation carried out by St\'ephane Hoareau \cite{HOAR/09} at
-%   the University of La R\'eunion under the supervision of Fabrizio
-%   Carlevaro and Yves Croissant.}}
+<<echo=FALSE,results=hide>>=
+options(prompt= "R> ", useFancyQuotes = FALSE)
+@
 
 \section{Introduction}
 
@@ -88,8 +89,8 @@ exhibits a large proportion of fixed values, \emph{e.g.}:
   or inactive persons;
 \item the expenditure for particular goods are nil for all
 households not consuming these goods;
- \item the attendance of a show is always equal to the capacity of
-the room each time the show is performed at ``position closed''.
+\item the attendance of a show is always equal to the capacity of the
+  room each time the show is performed at ``position closed''.
 \end{itemize}
 
 In these circumstances, ordinary least-squares estimation is biased
@@ -99,36 +100,40 @@ nature of the dependent variable.
 
 This problem has been treated for a long time in the statistics
 literature dealing with survival models which are implemented in
-\proglang{R} with the \pkg{survival} package \cite{SURVA/08}.
+\proglang{R} with the \pkg{survival} package of \citet{SURVA/08}.
 
 It has also close links with the problem of selection bias, for which
-some methods are implemented in the \pkg{sampleSelection} package
-\cite{TOOME/HENNI/08}.
+some methods are implemented in the \pkg{sampleSelection} package of
+\citet{TOOME/HENNI/08}.
 
 \pkg{mhurdle} deals specifically with models where the dependent
 variable is zero-left censored and the observations' sample
 consequently may present a large proportion of zeros, which is
-typically the case in household expenditure surveys.
+typically the case in household expenditure surveys\footnote{This
+  package has been developed as part of a PhD dissertation carried out
+  by St\'ephane \citet{HOAR/09} at the University of La
+  R\'eunion under the supervision of Fabrizio Carlevaro and Yves
+  Croissant.}.
 
-Since Tobin's seminal paper \cite{TOBIN/58}, a large econometric
-literature has been developed to deal correctly with this problem of
-zero observations. More specifically, zero observations may appear for
-the following three reasons:
+Since \citet{TOBIN/58} seminal paper, a large econometric literature
+has been developed to deal correctly with this problem of zero
+observations. More specifically, zero observations may appear for the
+following three reasons:
 
 \begin{description}
 \item[lack of resources] : the household would like to consume the
   good, but cannot afford it with its present budget;
 \item[good rejection] : the good is not selected by the household,
 because it is harmful or can be replaced by some substitute good ;
-\item[purchase infrequency] : the good is bought by the household,
-but with a low frequency so that zero expenditure may be observed
-if the survey is carried out over a too short period
-\cite{DEATO/IRISH/84}.
+\item[purchase infrequency] : the good is bought by the household, but
+  with a low frequency so that zero expenditure may be observed if the
+  survey is carried out over a too short period
+  \citep[see][]{DEATO/IRISH/84}.
 \end{description}
 
-The original \emph{Tobit} takes only the first
-source of zeros into account. With \pkg{mhurdle}, the three
-sources of zero may be introduced in the model.
+The original Tobin's model takes only the first source of zeros into
+account. With \pkg{mhurdle}, the three sources of zero may be
+introduced in the model.
 
 For each of the three sources of zeros, a continuous latent variable
 is defined, with a zero observed if the latent variable is
@@ -137,18 +142,20 @@ combination of covariates and a random disturbance with a possible
 correlation between the disturbances of different latent variables.
 
 The paper is organized as follows: Section~\ref{sec:limdepvar}
-presents a brief overview of the theoretical models
-used. Section~\ref{sec:software} discusses the software rationale used
-in the package. Section~\ref{sec:examples} illustrates the use of
-\pkg{mhurdle} with several examples. Section~\ref{sec:conclusion}
-concludes.
-
-
+presents an overview of the theoretical models
+used. Section~\ref{sec:estevalsel} presents the theoretical framework 
+for model estimation, evaluation and selection. Section~\ref{sec:software} 
+discusses the software rationale used in the package. Section~\ref{sec:examples}
+illustrates the use of \pkg{mhurdle} with several
+examples. Section~\ref{sec:conclusion} concludes.
 
 \section{Econometric framework}
 \label{sec:limdepvar}
 
-Our general model rests on the following three equations:
+\subsection{Model specification}
+\label{sec:modelspec}
+
+Our modeling strategy rests on the following three equations:
 
 $$
 \left\{
@@ -161,17 +168,18 @@ $$
 $$
 
 where $x_1$, $x_2$, $x_3$ stand for column-vectors of explanatory
-variables (called covariates in the followings), $\beta_1$,
-$\beta_2$, $\beta_3$ for column-vectors of the impact coefficients
-of the explanatory variables on the dependent variables $y_1^*$,
-$y_2^*$, $y_3^*$ and $\epsilon_1$, $\epsilon_2$, $\epsilon_3$ for
-random disturbances.
+variables (called covariates in the followings), $\beta_1$, $\beta_2$,
+$\beta_3$ for column-vectors of the impact coefficients of the
+explanatory variables on the dependent variables $y_1^*$, $y_2^*$,
+$y_3^*$ and $\epsilon_1$, $\epsilon_2$, $\epsilon_3$ for random
+disturbances.
+
+
 
 \begin{itemize}
-\item The first equation defines the \emph{good selection
-mechanism} : if
-  $y_1^*<0$, the good is not consumed because it is not identified by
-  the household as a relevant consumption good.
+\item The first equation defines the \emph{good selection mechanism} :
+  if $y_1^*<0$, the good is not consumed because it is not identified
+  by the household as a relevant consumption good.
 \item The second equation defines the \emph{desired consumption level}
   of the good ; therefore, if $y_2^*<0$, the good is not consumed, as
   a negative consumption level implied by the budget constraint cannot
@@ -192,21 +200,13 @@ $\sigma^2$, since $y_2^*$ is an observable variable when uncensored.
 
 A priori information may suggest that one or more of these censoring
 mechanisms is ineffective. For instance, we know in advance that all
-households purchase food at some time, implying that the first two
+households purchase food regularly, implying that the first two
 censoring mechanisms are inoperative for food.  In this case, the
-relevant model is defined by the following two equations :
-
-$$
-\left\{
-\begin{array}{l}
-  y_2^* = f(x_2,\epsilon_2, \beta_2)\\
-  y_3^* = \beta_3^\top x_3 + \epsilon_3 \\
-\end{array}
-\right.
-$$
-
-where the first equation defines the desired consumption level $y_2^*$
-of food, as a non negative parametric function of covariates $x_2$ and
+relevant model is defined by only two equations: one defining the 
+desired consumption level of food and the other the decision of food
+purchasing during the survey period. Besides, the desired consumption 
+equation explaining dependent variable $y_2^*$ must be specified as a 
+non negative parametric function of covariates $x_2$ and
 random disturbance $\epsilon_2$.  For the time being, two functional
 forms of this equation have been programmed in \pkg{mhurdle}, namely a
 log-normal functional form :
@@ -215,30 +215,29 @@ $$
 \ln y_2^* = \beta_2^\top x_2+\epsilon_2
 $$
 
-and a truncated normal functional form, defined by a linear
-desired consumption equation with $\epsilon_2$ distributed
-according to a $N(0,\sigma^2)$ left-truncated at $\epsilon_2 =
--\beta_2^\top x_2$, as suggested by \cite{CRAGG/71}.
+and a truncated normal functional form, defined by a linear desired
+consumption equation with $\epsilon_2$ distributed according to a
+$N(0,\sigma^2)$ left-truncated at $\epsilon_2 = -\beta_2^\top x_2$, as
+suggested by \citet{CRAGG/71}.
 
-A priori information may also suggest to set to
-zero some or all correlations between random disturbances
-$\epsilon_1$, $\epsilon_2$, $\epsilon_3$, entailing a partial or
-total independence between the above defined censoring mechanisms.
-In particular, it seems appropriate to a priori suppose zero
-correlation between $\epsilon_1$ and $\epsilon_3$ as well as
-between $\epsilon_2$ and $\epsilon_3$, as a consequence of the
-different nature in the determinants responsible, on one hand, of
-the good selection and desired consumption level decisions and, on
-the other hand, of those responsible of the frequency of purchase
-decision.
+A priori information may also suggest to set to zero some or all
+correlations between random disturbances $\epsilon_1$, $\epsilon_2$,
+$\epsilon_3$, entailing a partial or total independence between the
+above defined censoring mechanisms.  In particular, it seems
+appropriate to a priori suppose zero correlation between $\epsilon_1$
+and $\epsilon_3$ as well as between $\epsilon_2$ and $\epsilon_3$, as
+a consequence of the different nature in the determinants responsible,
+on one hand, of the good selection and desired consumption level
+decisions and, on the other hand, of those responsible of the
+frequency of purchase decision.
 
-Figure 1 outlines the full set of special models that can be
-generated from this general econometric framework by enforcing
-ineffective censoring mechanisms and by selecting an appropriate
-functional form of the desired consumption equation.
+Figure 1 outlines the full set of special models that can be generated
+from this general econometric framework by enforcing ineffective
+censoring mechanisms and by selecting an appropriate functional form
+of the desired consumption equation.
 
-\begin{figure}
-  hspace{-1cm} \includegraphics[width=20cm,height=17cm,angle=90]{mhurdle6.pdf}
+\begin{figure}[!h]
+  \hspace{-1cm} \includegraphics[width=20cm,height=17cm,angle=90]{mhurdle6.pdf}
 \caption{\label{arbre2} The full set of mhurdle special models.}
 \end{figure}
 
@@ -248,45 +247,47 @@ specifications when no correlation between random disturbances
 $\epsilon_1$ and $\epsilon_2$ is considered as a different
 specification assumption from that of correlated disturbances.
 
-Note that among these models, two are not concerned by censored
-data, namely models 1 and 2.  These two specifications are
-relevant only for modelling uncensored samples.
+Note that among these models, two are not concerned by censored data,
+namely models 1 and 2.  These two specifications are relevant only for
+modeling uncensored samples.
 
-All the other models are potentially able to analyse censored
-samples by combining up to the three censoring mechanisms
-described above. With the notable exception of the standard Tobit
-model, that can be estimated also by the \pkg{survival} package
-\cite{SURVA/08}, these models cannot be found in an other
+All the other models are potentially able to analyze censored samples
+by combining up to the three censoring mechanisms described
+above. With the notable exception of the standard Tobit model, that
+can be estimated also by the \pkg{survival} package of
+\citet{SURVA/08}, these models cannot be found in an other
 \proglang{R}-library.
 
 Some of \pkg{mhurdle} models have already been used in the applied
 econometric literature. In particular, models 3 and 4 are single
-hurdle good selection models originated by \cite{CRAGG/71}. The
-double hurdle model combining uncorrelated good selection and lack
-of resources censoring mechanisms is also due to \cite{CRAGG/71};
-the correlated version of this double hurdle model has been
-originated by \cite{Blundell/87}.
+hurdle good selection models originated by \citet{CRAGG/71}. The double
+hurdle model combining uncorrelated good selection and lack of
+resources censoring mechanisms is also due to \citet{CRAGG/71}; the
+correlated version of this double hurdle model has been originated by
+\citet{BLUNDELL/87}.
 
-P-Tobit model is due to \cite{DEATO/IRISH/84} and explains zero
+P-Tobit model is due to \citet{DEATO/IRISH/84} and explains zero
 purchases as the result of lack of resources and/or infrequent
 purchases. Models 6 and 7 are single hurdle models not yet used in
-applied demand analysis, where the operating censoring mechanism
-is due to infrequent purchases.
+applied demand analysis, where the operating censoring mechanism is
+due to infrequent purchases.
 
-Among the original models encompassed by \pkg{mhurdle}, models 9
-and 10 are double hurdle models combining good selection and
-frequency of purchase mechanisms to explain censored samples.
+Among the original models encompassed by \pkg{mhurdle}, models 9 and
+10 are double hurdle models combining good selection and frequency of
+purchase mechanisms to explain censored samples.
 
 Model 12 is an original three hurdle model originated in
-\cite{HOAR/09}. This model explains censored purchases as the
-result of good rejection, lack of resources and/or infrequent
-purchases, respectively.
+\citet{HOAR/09}. This model explains censored purchases either as the
+result of good rejection, lack of resources or infrequent purchases.
 
-As for the standard \emph{Tobit} model, the likelihood of our
-censored models have two components: the first one is the
-probability of a binary choice (purchasing or not), the second one
-is the density function of the chosen expenditure level of
-consumption for the households that consume.
+
+\subsection{Likelihood function}
+
+As for the standard Tobit model, the likelihood of our censored models
+have two components: the first one is the probability of a binary
+choice (purchasing or not), the second one is the density function of
+the chosen expenditure level of consumption for the households that
+consume.
 
 The contribution of a zero observation to the sample log-likelihood
 function can be written as follow:
@@ -294,29 +295,28 @@ function can be written as follow:
 $$
 \ln L_i^- = \left\{
   \begin{array}{ll}
-    \ln \left(1 - \Phi \left(\beta_1^\top x_1,\frac{\beta_2^\top x_2}{\sigma};\rho \right)
-      \Phi(\beta_3^\top x_3) \right) & \mbox{for normal models} \\
-    \ln \left(1 - \Phi (\beta_1^\top x_1) \Phi(\beta_3^\top x_3) \right) & \mbox{for log-normal models} \\
-    \ln \left(1 - \frac{\Phi\left(\beta_1^\top x_1,\frac{\beta_2^\top x_2}{\sigma};\rho\right)}
-      {\Phi\left(\frac{\beta_2^\top x_2}{\sigma}\right)} \Phi(\beta_3^\top x_3) \right) & \mbox{for truncated-normal models} \\
+    \ln \left(1 - \Phi \left(\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};\rho \right)
+      \Phi(\beta_3^\top x_{3i}) \right) & \mbox{for normal models} \\
+    \ln \left(1 - \Phi (\beta_1^\top x_{1i}) \Phi(\beta_3^\top x_{3i}) \right) & \mbox{for log-normal models} \\
+    \ln \left(1 - \frac{\Phi\left(\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};\rho\right)}
+      {\Phi\left(\frac{\beta_2^\top x_{2i}}{\sigma}\right)} \Phi(\beta_3^\top x_{3i}) \right) & \mbox{for truncated-normal models} \\
 \end{array}
 \right.
 $$
 
-where $\Phi(z)$ denotes the distribution function of a $N(0,1)$
-random variable. We remind that log-normal and truncated normal
-models assume that the lack of resources mechanism is inoperative,
-whereas it is operative in normal models.
+where $\Phi(z)$ denotes the distribution function of a $N(0,1)$ random
+variable. We remind that log-normal and truncated normal models assume
+that the lack of resources mechanism is inoperative, whereas it is
+operative in normal models.
 
-The first and the second expression correspond to the case where a
-zero purchase is observed for good rejection or for purchase
-infrequency reasons.  In the first expression, the desired
-consumption equation is specified according to a log-normal
-functional form whereas, in the second expression, it is specified
-according to a truncated-normal functional form. The third
-expression corresponds to the case where a zero purchase is
-observed either for good rejection, for lack of resources or for
-purchase infrequency reasons.
+The second and the third expression correspond to the case where a
+zero purchase is observed only for good rejection or for purchase
+infrequency reasons.  In the second expression, the desired
+consumption equation is specified according to a log-normal functional
+form whereas, in the third expression, it is specified according to a
+truncated-normal functional form. The first expression corresponds to
+the case where a zero purchase is observed either for good rejection,
+for lack of resources or for purchase infrequency reasons.
 
 These expressions become simpler in the following special cases:
 
@@ -324,88 +324,87 @@ These expressions become simpler in the following special cases:
 
 \item when the good selection mechanism is inoperative, implying:
 $$
-P\{y_1^*>0\}=\Phi(\beta_1^\top x_1)=1
+P\{y_{1i}^*>0\}=\Phi(\beta_1^\top x_{1i})=1
 $$
 and consequently:
 $$
   \ln L_i^- = \left\{
 \begin{array}{ll}
-  \ln \left(1 - \Phi \left( \frac{\beta_2^\top x_2}{\sigma} \right)
-   \Phi(\beta_3^\top x_3) \right) & \mbox{for normal models} \\
-  \ln \left(1 - \Phi(\beta_3^\top x_3) \right) & \mbox{otherwise} \\
+  \ln \left(1 - \Phi \left( \frac{\beta_2^\top x_{2i}}{\sigma} \right)
+   \Phi(\beta_3^\top x_{3i}) \right) & \mbox{for normal models} \\
+  \ln \left(1 - \Phi(\beta_3^\top x_{3i}) \right) & \mbox{otherwise} \\
 \end{array}
 \right.
 $$
 
-\item when the purchase frequency mechanism is inoperative,
-implying:
+\item when the purchase frequency mechanism is inoperative, implying:
 $$
-P\{y_3^*>0\}=\Phi(\beta_3^\top x_3)=1
+P\{y_{3i}^*>0\}=\Phi(\beta_3^\top x_{3i})=1
 $$
 and consequently:
 $$
   \ln L_i^- = \left\{
 \begin{array}{ll}
-  \ln \left(1 - \Phi \left(\beta_1^\top x_1,\frac{\beta_2^\top x_2}{\sigma};\rho \right)
+  \ln \left(1 - \Phi \left(\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};\rho \right)
    \right) & \mbox{for normal models} \\
-  \ln \left(1 - \Phi (\beta_1^\top x_1) \right) & \mbox{for log-normal models} \\
-  \ln \left(1 - \frac{\Phi\left(\beta_1^\top x_1,\frac{\beta_2^\top x_2}{\sigma};\rho\right)}
-  {\Phi\left(\frac{\beta_2^\top x_2}{\sigma}\right)} \right) & \mbox{for truncated-normal models} \\
+  \ln \left(1 - \Phi (\beta_1^\top x_{1i}) \right) & \mbox{for log-normal models} \\
+  \ln \left(1 - \frac{\Phi\left(\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};\rho\right)}
+  {\Phi\left(\frac{\beta_2^\top x_{2i}}{\sigma}\right)} \right) & \mbox{for truncated-normal models} \\
 \end{array}
 \right.
 $$
 
-
-\item when the good selection mechanism and the desired
-consumption equation are uncorrelated ($\rho=0$), implying:
+\item when the good selection mechanism and the desired consumption
+  equation are uncorrelated ($\rho=0$), implying:
 $$
-\Phi\left(\beta_1^\top x_1,\frac{\beta_2^\top x_2}{\sigma};0
-\right)=\Phi(\beta_1^\top x_1)\Phi\left(\frac{\beta_2^\top
-x_2}{\sigma}\right)
+\Phi\left(\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};0
+\right)=\Phi(\beta_1^\top x_{1i})\Phi\left(\frac{\beta_2^\top
+x_{2i}}{\sigma}\right)
 $$
 and consequently:
 $$
   \ln L_i^- = \left\{
 \begin{array}{ll}
-  \ln \left(1 - \Phi (\beta_1^\top x_1) \Phi \left( \frac{\beta_2^\top x_2}{\sigma} \right)
-   \Phi(\beta_3^\top x_3) \right) & \mbox{for normal models} \\
-  \ln \left(1 - \Phi (\beta_1^\top x_1) \Phi(\beta_3^\top x_3)
+  \ln \left(1 - \Phi (\beta_1^\top x_{1i}) \Phi \left( \frac{\beta_2^\top x_{2i}}{\sigma} \right)
+   \Phi(\beta_3^\top x_{3i}) \right) & \mbox{for normal models} \\
+  \ln \left(1 - \Phi (\beta_1^\top x_{1i}) \Phi(\beta_3^\top x_{3i})
     \right) & \mbox{otherwise} \\
 \end{array}
 \right.
 $$
 
 \item when both the good selection and the frequency of purchase
-mechanisms are inoperative, implying:
+  mechanisms are inoperative, implying:
 $$
   \ln L_i^- = \left\{
 \begin{array}{ll}
-  \ln \left(1 - \Phi \left( \frac{\beta_2^\top x_2}{\sigma}
+  \ln \left(1 - \Phi \left( \frac{\beta_2^\top x_{2i}}{\sigma}
   \right) \right) & \mbox{for normal models} \\
   -\infty & \mbox{for log-normal and truncated-normal models} \\
 \end{array}
 \right.
 $$
+
 Consequently, in this very special case, log-normal and
 truncated-normal model specifications can only be used to analyze
 uncensored samples.
 
 \end{itemize}
 
-
 The contribution of a positive observation to the log-likelihood
 function is best presented by defining a ``residual'' of the fit as :
-
 
 $$
 e_i  = \left\{
 \begin{array}{lll}
-\ln y_i +  \ln \Phi (\beta_3^\top x_3) - \beta_2^\top x_2 &
+\ln y_i +  \ln \Phi (\beta_3^\top x_{3i}) - \beta_2^\top x_{2i} &
 \mbox{for log-normal models} \\
-  y_i  \Phi (\beta_3^\top x_3) - \beta_2^\top x_2 &  \mbox{otherwise}
+  y_i  \Phi (\beta_3^\top x_{3i}) - \beta_2^\top x_{2i} &  \mbox{otherwise}
 \end{array}
 \right.
 $$
+
+
 
 One observes that the parameters and the covariates of the
 frequency of purchase equation enter the definition of this
@@ -413,18 +412,20 @@ frequency of purchase equation enter the definition of this
 consumption, which depends on the probability of purchasing, as
 described previously.
 
+
+
 The contribution of a positive observation to the log-likelihood
 function is then written as :
 $$
 \begin{array}{ll}
 \ln L_i^+ &=  -\ln \sigma + \ln \phi \left( \frac{e_i}{\sigma}
-\right)+ \ln \Phi\left(\frac{\beta_1^\top x_1+\frac{\rho}{\sigma}e_i}
-{\sqrt(1-\rho^2)}\right)+\ln \Phi (\beta_3^\top x_3\ )\\
+\right)+ \ln \Phi\left(\frac{\beta_1^\top x_{1i}+\frac{\rho}{\sigma}e_i}
+{\sqrt(1-\rho^2)}\right)+\ln \Phi (\beta_3^\top x_{3i})\\
  & + \left\{
 \begin{array}{ll}
-  \ln \Phi (\beta_3^\top x_3\ ) & \mbox{for normal models}\\
-  -\ln y & \mbox{for log-normal models} \\
-  -\ln \Phi \left(\frac{\beta_2^\top x_2}{\sigma}\right)+\ln \Phi (\beta_3^\top x_3\ )
+  \ln \Phi (\beta_3^\top x_{3i}) & \mbox{for normal models}\\
+  -\ln y_i & \mbox{for log-normal models} \\
+  -\ln \Phi \left(\frac{\beta_2^\top x_{2i}}{\sigma}\right)+\ln \Phi (\beta_3^\top x_{3i})
   & \mbox{for truncated-normal models}
 \end{array}
 \right.
@@ -434,8 +435,8 @@ where $\phi(z)$ denotes the density function of a $N(0,1)$ random
 variable.
 
 As for the log-likelihood function of a censored observation, the
-expression of the log-likelihood function of an uncensored
-observation become simpler in the following special cases:
+expression of the log-likelihood function of an uncensored observation
+become simpler in the following special cases:
 
 \begin{itemize}
 
@@ -443,27 +444,26 @@ observation become simpler in the following special cases:
 $$
 \begin{array}{ll}
 \ln L_i^+ &=  -\ln \sigma + \ln \phi \left( \frac{e_i}{\sigma}
-\right)+\ln \Phi (\beta_3^\top x_3 )\\
+\right)+\ln \Phi (\beta_3^\top x_{3i} )\\
  & + \left\{
 \begin{array}{ll}
-  \ln \Phi (\beta_3^\top x_3\ ) & \mbox{for normal models}\\
-  -\ln y & \mbox{for log-normal models} \\
-  -\ln \Phi \left(\frac{\beta_2^\top x_2}{\sigma}\right)+\ln \Phi (\beta_3^\top x_3\ )
+  \ln \Phi (\beta_3^\top x_{3i}\ ) & \mbox{for normal models}\\
+  -\ln y_i & \mbox{for log-normal models} \\
+  -\ln \Phi \left(\frac{\beta_2^\top x_{2i}}{\sigma}\right)+\ln \Phi (\beta_3^\top x_{3i}\ )
   & \mbox{for truncated-normal models}
 \end{array}
 \right.
 \end{array}
 $$
 
-\item when the purchase frequency mechanism is inoperative,
-implying:
+\item when the purchase frequency mechanism is inoperative, implying:
 
 $$
 e_i  = \left\{
 \begin{array}{lll}
-\ln y_i  - \beta_2^\top x_2 &
+\ln y_i  - \beta_2^\top x_{2i} &
 \mbox{for log-normal models} \\
-  y_i  - \beta_2^\top x_2 &  \mbox{otherwise}
+  y_i  - \beta_2^\top x_{2i} &  \mbox{otherwise}
 \end{array}
 \right.
 $$
@@ -473,30 +473,27 @@ and
 $$
 \begin{array}{ll}
 \ln L_i^+ &=  -\ln \sigma + \ln \phi \left( \frac{e_i}{\sigma}
-\right)+ \ln \Phi\left(\frac{\beta_1^\top
-x_1+\frac{\rho}{\sigma}e_i}
-{\sqrt(1-\rho^2)}\right)\\
- & + \left\{
-\begin{array}{ll}
-   -\ln y & \mbox{for log-normal models} \\
-  -\ln \Phi \left(\frac{\beta_2^\top x_2}{\sigma}\right)
+\right)+ \ln \Phi\left(\frac{\beta_1^\top x_{1i}+\frac{\rho}{\sigma}e_i}
+{\sqrt(1-\rho^2)}\right)\\ & + \left\{\begin{array}{ll}
+   -\ln y_i & \mbox{for log-normal models} \\
+  -\ln \Phi \left(\frac{\beta_2^\top x_{2i}}{\sigma}\right)
   & \mbox{for truncated-normal models}
 \end{array}
 \right.
 \end{array}
 $$
 
-\item when the good selection mechanism and the desired
-consumption equation are uncorrelated ($\rho=0$), implying:
+\item when the good selection mechanism and the desired consumption
+  equation are uncorrelated ($\rho=0$), implying:
 $$
 \begin{array}{ll}
 \ln L_i^+ &=  -\ln \sigma + \ln \phi \left( \frac{e_i}{\sigma}
-\right)+ \ln \Phi(\beta_1^\top x_1)+\ln \Phi (\beta_3^\top x_3)\\
+\right)+ \ln \Phi(\beta_1^\top x_{1i})+\ln \Phi (\beta_3^\top x_{3i})\\
  & + \left\{
 \begin{array}{ll}
-  \ln \Phi (\beta_3^\top x_3\ ) & \mbox{for normal models} \\
-  -\ln y & \mbox{for log-normal models} \\
-  -\ln \Phi \left(\frac{\beta_2^\top x_2}{\sigma}\right)+\ln \Phi (\beta_3^\top x_3\ )
+  \ln \Phi (\beta_3^\top x_{3i}\ ) & \mbox{for normal models} \\
+  -\ln y_i & \mbox{for log-normal models} \\
+  -\ln \Phi \left(\frac{\beta_2^\top x_{2i}}{\sigma}\right)+\ln \Phi (\beta_3^\top x_{3i}\ )
   & \mbox{for truncated-normal models}
 \end{array}
 \right.
@@ -504,14 +501,14 @@ $$
 $$
 
 \item when both the good selection and the frequency of purchase
-mechanisms are inoperative, implying:
+  mechanisms are inoperative, implying:
 
 $$
 e_i  = \left\{
 \begin{array}{lll}
-\ln y_i  - \beta_2^\top x_2 &
+\ln y_i  - \beta_2^\top x_{2i} &
 \mbox{for log-normal models} \\
-  y_i  - \beta_2^\top x_2 &  \mbox{otherwise}
+  y_i  - \beta_2^\top x_{2i} &  \mbox{otherwise}
 \end{array}
 \right.
 $$
@@ -523,8 +520,8 @@ $$
 \ln L_i^+ &=  -\ln \sigma + \ln \phi \left( \frac{e_i}{\sigma}
 \right)\\ & + \left\{
 \begin{array}{ll}
-   -\ln y & \mbox{for log-normal models} \\
-  -\ln \Phi \left(\frac{\beta_2^\top x_2}{\sigma}\right)
+   -\ln y_i & \mbox{for log-normal models} \\
+  -\ln \Phi \left(\frac{\beta_2^\top x_{2i}}{\sigma}\right)
   & \mbox{for truncated-normal models}
 \end{array}
 \right.
@@ -533,19 +530,19 @@ $$
 
 \end{itemize}
 
-
 Combining these log-likelihood function for zero and positive
 expenditure observations, the sample log-likelihood function is
 written as :
 
 $$
-  \ln L = \sum_{i \mid y_i = 0} \ln L_i^- + \sum_{i \mid y_i > 0} \ln L_i^+
+\ln L = \sum_{i \mid y_i = 0} \ln L_i^- + \sum_{i \mid y_i > 0} \ln L_i^+
 $$
 
-Note that for uncorrelated single-hurdle good selection models,
-$\ln L_i^-$ depends only on $\beta_1$ and $\ln L_i^+$ depends only
-on $\beta_2$ and $\sigma$, allowing to separate the model
-estimation according to two independent models :
+Note that for uncorrelated single-hurdle good selection models, $\ln
+L_i^-$ depends only on $\beta_1$ and $\ln L_i^+$ depends only on
+$\beta_2$ and $\sigma$, allowing to separate the model estimation
+according to two independent models :
+
 
 
 \begin{itemize}
@@ -555,11 +552,521 @@ estimation according to two independent models :
   estimate $\beta_2$ and $\sigma$ independently of $\beta_1$.
 \end{itemize}
 
+\section{Model estimation, evaluation and selection}
+\label{sec:estevalsel}
 
+The econometric framework described in the previous section provides a
+theoretical framework for tackling the problems of model estimation,
+evaluation and selection within the statistical theory of classical
+inference.
+
+\subsection{Model estimation}
+
+The full parametric specification of our multiple hurdle models allows
+to efficiently estimate their parameters by means of the maximum
+likelihood principle. Indeed, it is well known from classical
+estimation theory that, under the assumption of correct model
+specification and for a likelihood function sufficiently well behaved,
+the maximum likelihood estimator is asymptotically efficient within
+the class of consistent and asymptotically normal
+estimators\footnote{See \citet{AMEM/85} chapter 4, for a more rigorous
+statement of this property.}.
+
+
+More precisely, the asymptotic distribution of the maximum likelihood
+estimator $\hat{\theta}$ of a mhurdle model parameter vector $\theta$,
+is written as:
+
+$$
+\hat{\theta} \overset{A}{\sim} N(\theta,\frac{1}{n} I_A (\theta)^{-1})
+$$
+
+where $\overset{A}{\sim}$ stands for "asymptotically distributed as" and
+
+$$
+I_A(\theta)=\mbox{plim} \frac{1}{n} \sum_{i=1}^n E(\frac{\partial^2
+  \ln L_i (\theta)}{\partial \theta \partial \theta^\top})
+=\mbox{plim} \frac{1}{n} \sum_{i=1}^n E(\frac{\partial\ln
+  L_i(\theta)}{\partial\theta} \frac{\partial\ln L_i
+  (\theta)}{\partial\theta^\top})
+$$
+
+for the asymptotic R.A. Fisher information matrix of a sample of $n$
+independent observations.
+
+More generally, any inference about a differentiable vector function
+of $\theta$, denoted by $\gamma=h(\theta)$, can be based on the
+asymptotic distribution of its implied maximum likelihood estimator
+$\hat{\gamma}=h(\hat{\theta})$.  This distribution can be derived from
+the asymptotic distribution of $\hat{\theta}$ according to the so
+called delta method:
+
+$$
+\hat{\gamma} \overset{A}{\sim} h(\theta)+\frac{\partial
+  h}{\partial\theta^\top} (\hat\theta-\theta) \overset{A}{\sim}
+N(\gamma,\frac{1}{n} \frac{\partial h}{\partial\theta^\top}I_A
+(\theta)^{-1}\frac{\partial h^\top}{\partial\theta}).
+$$
+
+The practical use of these asymptotic distributions requires to
+replace the theoretical variance-covariance matrix of these asymptotic
+distributions with consistent estimators, which can be obtained by
+using $\frac{\partial h (\hat{\theta})}{\partial\theta^\top}$ as a
+consistent estimator for $\frac{\partial h
+  (\theta)}{\partial\theta^\top}$ and either $\frac{1}{n} \sum_{i=1}^n
+\frac{\partial^2\ln L_i
+  (\hat{\theta})}{\partial\theta\partial\theta^\top}$ or $\frac{1}{n}
+\sum_{i=1}^n \frac{\partial\ln L_i(\hat{\theta})}{\partial\theta}
+\frac{\partial\ln L_i (\hat{\theta})}{\partial\theta^\top}$ as a
+consistent estimator for $I_A(\theta)$. The last two estimators are
+directly provided by two standard iterative methods used to compute
+the maximum likelihood parameter's estimate, namely the Newton-Raphson
+method and the Berndt, Hall, Hall, Hausman or BHHH method,
+respectively, mentioned in section 4.3.
+
+\subsection{Model evaluation}
+
+Two fundamental principles should be used to appraise the results of a
+model estimation, namely its economic relevance and its statistical
+and predictive adequacy. The first principle deals with the issues of
+accordance of model estimate with the economic rationale underlying
+the model specification and of its relevance for answering the
+questions for which the model has been built. These issues are
+essentially context specific and, therefore, cannot be dealt with
+generic criteria.  The second principle refers to the issues of
+empirical soundness of model estimate and of its ability to predict
+sample or out-of-sample observations.  These issues can be tackled by
+means of formal tests of significance, based on the previously
+presented asymptotic distributions of model estimates, and by measures
+of goodness of fit/prediction, respectively.
+
+To assess the goodness of fit of mhurdle estimates, two pseudo $R^2$
+coefficients are provided. The first one is an extension of the
+classical coefficient of determination, used to explain the fraction
+of variation of the dependent variable explained by the covariates
+included in a linear regression model with intercept. The second one
+is an extension of the likelihood ratio index introduced
+\citet{MCFA/74} to measure the relative gain in the maximized
+log-likelihood function due to the covariates included in a
+qualitative response model.
+
+To define a pseudo coefficient of determination, we rely on the non
+linear regression model explaining the dependent variable of a mhurdle
+model.  This model is written as:
+
+$$
+y_i=E(y_i)+\varepsilon_i, i=1,...,n
+$$
+
+where $\varepsilon_i$ stands for a zero expectation, heteroskedastic random disturbance and
+$E(y_i)=Prob\{y_i>0\}E(y_i|y_i>0)$, with $Prob\{y_i>0\}=1-L_i^-$ and
+
+$$
+E(y_i|y_i>0) = \left\{
+  \begin{array}{ll}
+    \frac{\beta_2^\top x_{2i}}{\Phi(\beta_3^\top x_{3i})} + \sigma 
+    \frac{\psi_n (\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};\rho)}
+    {\Phi(\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};\rho)\Phi(\beta_3^\top x_{3i})}
+     & \mbox{for normal and truncated-normal models} \\
+    \frac{\exp\left\{\beta_2^\top x_{2i}+0.5\sigma^2\left(1-\rho^2\right)\right\}\psi_l (\beta_1^\top x_{1i};\rho\sigma)}
+    {\Phi(\beta_1^\top x_{1i})\Phi(\beta_3^\top x_{3i})} & \mbox{for log-normal models} \\    
+\end{array}
+\right.
+$$
+
+where
+
+$$
+\psi_n (\beta_1^\top x_{1i}, \frac{\beta_2^\top
+  x_{2i}}{\sigma};\rho)=\int_{-\beta_1^\top x_{1i}} ^\infty
+\left[\rho\varepsilon_1\Phi\left(\frac{\frac{\beta_2^\top
+        x_{2i}}{\sigma}+\rho\epsilon_1}
+    {\sqrt{1-\rho^2}}\right)+\sqrt{1-\rho^2}\phi\left(\frac{\frac{\beta_2^\top
+        x_{2i}}{\sigma}+\rho\epsilon_1}
+    {\sqrt{1-\rho^2}}\right)\right]\phi(\varepsilon_1)d\epsilon_1
+$$
+
+and
+
+$$
+\psi_l (\beta_1^\top x_{1i};\rho\sigma)=\int_{-\beta_1^\top x_{1i}}^\infty 
+\exp\{\rho\sigma\varepsilon_1\}\phi(\varepsilon_1)d\epsilon_1
+$$
+
+Notice that these two last integrals can be computed using the first
+terms of a Taylor series expansion around $\rho=0$ and $\rho\sigma=0$,
+respectively, as detailed for the first integral in
+\citet{CARL/CROI/HOAR/08}. Moreover, the above general expressions of
+$E(y_i|y_i>0)$ become simpler in the following special cases:
+
+\begin{itemize}
+
+\item when the good selection mechanism is inoperative ($\Phi(\beta_1^\top x_{1i})=1$),
+leading to:
+
+$$
+E(y_i|y_i>0) = \left\{
+  \begin{array}{ll}
+    \frac{\beta_2^\top x_{2i}}{\Phi(\beta_3^\top x_{3i})} + \sigma 
+    \frac{\phi (\frac{\beta_2^\top x_{2i}}{\sigma}}
+    {\Phi(\frac{\beta_2^\top x_{2i}}{\sigma})\Phi(\beta_3^\top x_{3i})}
+     & \mbox{for normal and truncated-normal models} \\
+    \frac{\exp\left\{\beta_2^\top x_{2i} + 0.5\sigma^2\right\}}
+    {\Phi(\beta_3^\top x_{3i})} & \mbox{for log-normal models} \\    
+\end{array}
+\right.
+$$
+
+\item when the purchase frequency mechanism is inoperative
+  ($\Phi(\beta_3^\top x_{3i})=1$), leading to:
+
+$$
+E(y_i|y_i>0) = \left\{
+  \begin{array}{ll}
+    \beta_2^\top x_{2i} + \sigma 
+    \frac{\psi_n (\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};\rho)}
+    {\Phi(\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};\rho)}
+     & \mbox{for normal and truncated-normal models} \\
+    \exp\left\{\beta_2^\top x_{2i} + 0.5 \sigma^2\left(1-\rho^2\right)\right\}
+    \frac{\psi_l (\beta_1^\top x_{1i};\rho\sigma)}{\Phi(\beta_1^\top x_{1i})}
+    & \mbox{for log-normal models} \\    
+\end{array}
+\right.
+$$
+
+\item when the good selection mechanism and the desired consumption
+  equation are uncorrelated ($\rho=0$), implying:
+
+$$
+\Phi\left(\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};0
+\right)=\Phi(\beta_1^\top x_{1i})\Phi\left(\frac{\beta_2^\top
+x_{2i}}{\sigma}\right)
+$$
+
+as well as:
+
+$$
+\psi_n\left(\beta_1^\top x_{1i},\frac{\beta_2^\top x_{2i}}{\sigma};0\right)=
+\psi_l\left(\beta_1^\top x_{1i};0\right)=\Phi(\beta_1^\top x_{1i})
+$$
+
+and consequently:
+
+$$
+E(y_i|y_i>0) = \left\{
+  \begin{array}{ll}
+    \frac{\beta_2^\top x_{2i}}{\Phi(\beta_3^\top x_{3i})} + \sigma 
+    \frac{\phi \left(\frac{\beta_2^\top x_{2i}}{\sigma}\right)}
+    {\Phi(\frac{\beta_2^\top x_{2i}}{\sigma})\Phi(\beta_3^\top x_{3i})}
+     & \mbox{for normal and truncated-normal models} \\
+    \frac{\exp\left\{\beta_2^\top x_{2i} + 0.5 \sigma^2\right\}}
+    {\Phi(\beta_3^\top x_{3i})} & \mbox{for log-normal models} \\    
+\end{array}
+\right.
+$$
+
+namely the same formulas of $E(y_i|y_i>0)$ as when the good selection
+mechanism is inoperative;
+
+\item when both the good selection and the frequency of purchase
+  mechanisms are inoperative, leading to:
+
+$$
+E(y_i|y_i>0) = \left\{
+  \begin{array}{ll}
+    \beta_2^\top x_{2i} + \sigma 
+    \frac{\phi \left(\frac{\beta_2^\top x_{2i}}{\sigma}\right)}
+    {\Phi(\frac{\beta_2^\top x_{2i}}{\sigma})}
+     & \mbox{for normal and truncated-normal models} \\
+    \exp\left\{\beta_2^\top x_{2i} + 0.5 \sigma^2\right\}
+     & \mbox{for log-normal models} \\    
+\end{array}
+\right.
+$$
+
+\end{itemize}
+
+
+
+Denoting by $\hat{y}_i$ the fitted values of $y_i$ obtained by
+computing predictor $E(y_i)$ for $y_i$ with the maximum likelihood
+estimate of model parameters, we define a pseudo coefficient of
+determination for a mhurdle model according to the following formula:
+
+$$
+R^2=1-\frac{RSS}{TSS}
+$$
+
+with $RSS=\sum (y_i - \hat{y}_i)^2$ the residual sum of squares and
+$TSS=\sum (y_i - \hat{y}_0)^2$ the total sum of squares, where
+$\hat{y}_0$ denotes the maximum likelihood estimate of $E(y_i)$ in the
+mhurdle model without covariates (intercept-only model). Notice that
+this goodness of fit measure cannot exceed one but can be negative, as
+a consequence of the non linearity of $E(y_i)$ with respect to the
+parameters.
+
+Two other formulas, which are equivalent to compute $R^2$ in the
+linear regression model with intercept, could have been used to define
+a pseudo coefficient of determination, namely: the ratio of the
+explained sum of square to the total sum of squares or the squared
+correlation between actual and fitted values. We disregarded these
+alternatives because the former measure can exceed one in a non linear
+regression model, while the latter, although providing values always
+within zero and one, cannot be adjusted for degrees of freedom for a
+use as a model selection criterion. A more promising approach consists
+in computing $RSS$ and $TSS$ with standardized residuals, to correct
+for the heteroskedasticity of row residuals. This Pearson goodness of
+fit measure, requiring to write down analytically the variance of
+$\varepsilon_i$, is not currently implemented.
+
+The extension of the McFadden likelihood ratio index for qualitative
+response models to mhurdle models is straightforwardly obtained by
+substituting in this index formula:
+
+$$
+\rho^2=1-\frac{\ln L(\hat{\theta})}{\ln L(\hat{\alpha})}=\frac{\ln
+  L(\hat{\alpha})-\ln L(\hat{\theta})}{\ln L(\hat{\alpha})}
+$$
+
+the maximized log-likelihood function of a qualitative response model
+with covariates and the log-likelihood function of the corresponding
+model without covariates or intercept-only model, with the maximized
+log-likelihood functions of a mhurdle model with covariates, $\ln
+L(\hat{\theta})$, and without covariates, $\ln L(\hat{\alpha})$,
+respectively.  This goodness of fit measure takes values within zero
+and one and, as it can be easily inferred from the above second
+expression of $\rho^2$, it measures the relative increase of the
+maximized log-likelihood function due to the use of explanatory
+variables with respect to the maximized log-likelihood function of a
+naive intercept-only model.
+
+\subsection{Model selection}
+
+Model selection deals with the problem of discriminating between
+alternative model specifications used to explain the same dependent
+variable, with the view of finding the one best suited to explain the
+sample of observations at hand.  This decision problem can be tackled
+from two point of view, namely that of the model specification
+achieving the best in-sample fit, on one hand, and that of the model
+specification that is favored in a formal test comparing two model
+alternatives, on the other hand.
+
+
+
+The first selection criterion is easy to apply as it consists in
+comparing one of the above defined measures of fit, computed for the
+competing model specifications, after adjusting them for the loss of
+sample degrees of freedom due to model parametrization.  Indeed, the
+value of these measures of fit can be improved by increasing model
+parametrization, in particular when the parameter estimates are
+obtained by optimizing a criteria functionally related to the selected
+measure of fit, as it is the case when using the $\rho^2$ fit measure
+with a maximum likelihood estimate. Consequently, a penalty that
+increases with the number of model parameters should be added to the
+$R^2$ and $\rho^2$ fit measures to trade off goodness of fit
+improvements with parameter parsimony losses.
+
+
+
+To define an adjusted pseudo coefficient of determination, we rely on
+\citet{THEIL/73}'s correction of $R^2$ in a linear regression model,
+defined by
+
+$$
+\bar{R}^2=1-\frac{n-K_0}{n-K}\frac{RSS}{TSS}
+$$
+
+where $K$ and $K_0$ stand for the number of parameters of the mhurdle
+model with covariates and without covariates, respectively. Therefore,
+choosing the model specification with the largest $\bar{R}^2$ is
+equivalent to choosing the model specification with the smallest model
+residual variance estimate: $s^2=\frac{RSS}{n-K}$.
+
+To define an adjusted likelihood ratio index, we replace in this
+goodness of fit measure $\rho^2$ the log-likelihood criterion with the
+Akaike information criterion $AIC=-2\ln
+L(\hat{\theta})+2K$. Therefore, choosing the model specification with
+the largest
+
+$$
+\bar{\rho}^2=1-\frac{\ln L(\hat{\theta})-K}{\ln L(\hat{\alpha})-K_0}
+$$
+
+is equivalent to choosing the model specification that minimizes the
+\citet{AKAIKE/73} predictor of the Kullback-Liebler Information
+Criterion (KLIC). This criterion measures the distance between the
+conditional density function $f(y|x;\theta)$ of a possibly
+misspecified parametric model and that of the true unknown model,
+denoted by $h(y|x)$. It is defined by the following formula:
+
+$$
+KLIC=E\left[\ln \left(\frac{h(y|x)}{f(y|x;\theta_\ast)}\right)\right]=\int \ln
+\left(\frac{h(y|x)}{f(y|x;\theta_\ast)}\right)dH(y,x)
+$$
+
+where $H(y,x)$ denotes the distribution function of the true joint
+distribution of $(y,x)$ and $\theta_\ast$ the probability limit, with
+respect to $H(y,x)$, of $\hat{\theta}$ the so called quasi-maximum
+likelihood estimator obtained by applying the maximum likelihood when
+$f(y|x;\theta)$ is misspecified.
+
+Our second model selection criterion relies on the use of a test
+proposed by \citet{VUONG/89}. According to the rationale of this test,
+the "best" parametric model specification among a collection of
+competing specifications is the one that minimizes the $KLIC$
+criterion or, equivalently, the specification for which the quantity:
+
+$$
+E[\ln f(y|x;\theta_\ast)]=\int \ln f(y|x;\theta_\ast)dH(y,x)
+$$
+
+is the largest. Therefore, given two competing conditional models with
+density functions $f(y|x;\theta)$ and $g(y|x;\pi)$ and parameter
+vectors $\theta$ and $\pi$ of size $K$ and $L$, respectively, Vuong
+suggests to discriminate between these models by testing the null
+hypothesis:
+
+$$
+H_0 : E[\ln f(y|x;\theta_\ast)]=E[\ln g(y|x;\pi_\ast)]
+\Longleftrightarrow E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]=0
+$$
+
+meaning that the two models are equivalent, against:
+
+$$
+H_f : E[\ln f(y|x;\theta_\ast)]>E[\ln g(y|x;\pi_\ast)]
+\Longleftrightarrow
+E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]>0
+$$
+
+meaning that specification $f(y|x;\theta)$ is better than
+$g(y|x;\pi)$, or against:
+
+$$
+H_g : E[\ln f(y|x;\theta_\ast)]<E[\ln g(y|x;\theta_\ast)]
+\Longleftrightarrow
+E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]<0
+$$
+
+meaning that specification $g(y|x;\pi)$ is better than $f(y|x;\theta)$.
+
+The quantity $E[\ln f(y|x;\theta_\ast)]$ is unknown but it can be
+consistently estimated, under some regularity conditions, by $1/n$
+times the log-likelihood evaluated at the quasi-maximum likelihood
+estimator. Hence $1/n$ times the log-likelihood ratio (LR) statistic
+
+$$
+LR(\hat{\theta},\hat{\pi})=\sum_{i=1}^n
+\ln\frac{f(y_i|x_i;\hat{\theta})}{g(y_i|x_i;\hat{\pi})}
+$$
+
+is a consistent estimator of
+$E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]$. Therefore,
+an obvious test of $H_0$ consists in verifying whether the LR
+statistic differs from zero.  The distribution of this statistic can
+be work out even when the true model is unknown, as the quasi-maximum
+likelihood estimators $\hat{\theta}$ and $\hat{\pi}$ converge in
+probability to the pseudo-true values $\hat{\theta_\ast}$ and
+$\hat{\pi_\ast}$, respectively, and have asymptotic normal
+distributions centered on these pseudo-true values.
+
+The resulting distribution of $LR(\hat{\theta},\hat{\pi})$ depends on
+the relation linking the two competing models. To this purpose, Vuong
+differentiates among three types of competing models, namely: nested,
+strictly non nested and overlapping. However, for model comparisons
+within the set of mhurdle special models presented in FIG. 1, only the
+first two cases are really relevant, at least as long as we compare
+model specifications with identical covariates.
+
+A parametric model $G_\pi$ defined by the conditional density function
+(cdf) $g(y|x;\pi)$ is said to be nested in parametric model $F_\theta$
+with cdf $f(y|x;\theta)$, if and only if any cdf of $G_\pi$ is equal
+to a cdf of $F_\theta$, for almost all $x$. Within our mhurdle special
+models this is the case when comparing two specifications differing
+only with respect to the presence or the absence of correlated
+disturbances.  For these models, it is necessarily the case that
+$f(y|x;\theta_\ast)\equiv g(y|x;\pi_\ast)$. Therefore $H_0$ is tested
+against $H_f$.
+
+If model $F_\theta$ is misspecified, it has been shown by Vuong that:
+
+\begin{itemize}
+\item under $H_0$, the quantity $2LR(\hat{\theta},\hat{\pi})$
+  converges in distribution towards a weighted sum of $K+L$ iid
+  $\chi^2(1)$ random variables, where the weights are the $K+L$
+  possibly negative eigenvalues of a theoretical symmetric matrix,
+  that can be consistently estimated by a sample analogue.
+  Notice that the density function of this random variable has not
+  been worked out analytically. Therefore, we compute it by simulation.
+\item under $H_f$, the same statistic converge almost surely towards
+  $+\infty$.
+\end{itemize}
+
+As a consequence, for a test with critical value $c$, $H_0$ is
+rejected in favor of $H_f$ if $2LR(\hat{\theta},\hat{\pi})>c$ or if
+the p-value associated to the observed value of
+$2LR(\hat{\theta},\hat{\pi})$ is less than the significance level of
+the test. Notice that, if model $F_\theta$ is correctly specified, the
+asymptotic distribution of the LR statistic is, as expected, a
+$\chi^2$ random variable with $K-L$ degrees of freedom.
+
+Two parametric models $F_\theta$ and $G_\pi$ defined by cdf
+$f(y|x;\theta)$ and $g(y|x;\pi)$ are said to be strictly non-nested,
+if and only if no cdf of model $F_\theta$ is equal to a cdf of
+$G_\pi$, for almost all $x$, and conversely. Within mhurdle special
+models this is the case when comparing two specifications differing
+with respect either to the effective censoring mechanisms or to the
+functional form of the desired consumption equation. For these models,
+it is necessarily the case that $f(y|x;\theta_\ast)\neq
+g(y|x;\pi_\ast)$ implying that both models are misspecified under
+$H_0$.
+
+For such strictly non-nested models, Vuong has shown that:
+
+\begin{itemize}
+\item under $H_0$, the quantity $n^{-1/2}LR(\hat{\theta},\hat{\pi})$
+  converges in distribution towards a normal random variable with zero
+  expectation and variance:
+ $$
+ \omega^2=V\left(\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right)
+ $$
+ computed with respect to the distribution function of the true joint
+ distribution of $(y,x)$.
+\item under $H_f$, the same statistic converge almost surely towards
+  $+\infty$.
+\item under $H_g$, the same statistic converge almost surely towards
+  $-\infty$.
+\end{itemize}
+
+Hence, $H_0$ is tested against $H_f$ or $H_g$ using the standardized
+LR statistic:
+
+$$
+T_{LR}=\frac{LR(\hat{\theta},\hat{\pi})}{\sqrt{n}\hat{\omega}}
+$$
+
+where $\hat{\omega}^2$ denotes the following consistent estimator for
+$\omega^2$:
+
+$$
+\hat{\omega}^2=\frac{1}{n}\sum_{i=1}^n
+\left(\ln\frac{f(y_i|x_i;\hat{\theta})}{g(y_i|x_i;\hat{\pi})}\right)^2
+-\left(\frac{1}{n}\sum_{i=1}^n
+  \ln\frac{f(y_i|x_i;\hat{\theta})}{g(y_i|x_i;\hat{\pi})}\right)^2
+$$
+
+As a consequence, for a test with critical value $c$, $H_0$ is
+rejected in favor of $H_f$ if $T_{LR}>c$ or if the p-value associated
+to the observed value of $T_{LR}$ in less than the significance level
+of the test. Conversely, $H_0$ is rejected in favor of $H_g$ if
+$T_{LR}<-c$ or if the p-value associated to the observed value of
+$|T_{LR}|$ in less than the significance level of the test.  Notice
+that, if one of models $F_\theta$ or $G_\pi$ is assumed to be
+correctly specified, the \citet{COX/61,COX/62} LR test of non nested
+models needs to be used.
 
 \section{Software rationale}
 \label{sec:software}
-
 
 There are three important issues to be addressed to correctly
 implement in \proglang{R} the econometric framework described in the
@@ -568,7 +1075,6 @@ describe the model to be estimated. The second one is the problem of
 finding good starting values for computing model estimates. The third
 one is to offer flexible optimization tools for likelihood
 maximization.
-
 
 \subsection{Model syntax}
 \label{sec:modeldesc}
@@ -582,53 +1088,50 @@ objects, the left-hand side denoting the censored dependent variable
 \texttt{x1},\texttt{x2},\texttt{x3} and on the interaction term
 \texttt{x2} times \texttt{x3}.
 
-For the models implemented in \pkg{mhurdle}, three kinds of
-covariates should be specified: the ones of the consumption
-equation (denoted $x_2$), the ones of the selection equation
-(denoted $x_1$) and those of the infrequency equation (denoted
-$x_3$). To define a model with three kinds of covariates, a
-general solution is given by the \pkg{Formula} package developed
-by \cite{FORMUL/09}, which provides extended formula objects. To
-define a model where \texttt{y} is the censored dependent
-variable, \texttt{x21} and \texttt{x22} two covariates for the
-desired consumption equation, \texttt{x11} and \texttt{x12} two
-covariates for the selection and \texttt{x31} and \texttt{x32} two
-covariates for the infrequency of purchase equation, we use the
-following commands :
+For the models implemented in \pkg{mhurdle}, three kinds of covariates
+should be specified: the ones of the consumption equation (denoted
+$x_2$), the ones of the selection equation (denoted $x_1$) and those
+of the infrequency equation (denoted $x_3$). To define a model with
+three kinds of covariates, a general solution is given by the
+\pkg{Formula} package developed by \citet{ZEIL/CROI/10}, which provides
+extended formula objects. To define a model where \texttt{y} is the
+censored dependent variable, \texttt{x21} and \texttt{x22} two
+covariates for the desired consumption equation, \texttt{x11} and
+\texttt{x12} two covariates for the selection and \texttt{x31} and
+\texttt{x32} two covariates for the infrequency of purchase equation,
+we use the following commands :
 
 <<>>=
 library("Formula")
 f <- Formula(y ~ x11 + x12  | x21 + x22 | x31 + x32)
-@ 
+@
 
 To illustrate the use of \pkg{Formula}, let's use the \code{tobin}
-data.frame from the \pkg{survival} package.
-
-This data.frame is a subset of the data used by Tobin.
+data.frame from the \pkg{survival} package.  This data.frame is a
+sub-sample of 20 observations of the original data used by
+\citet{TOBIN/58} in his seminal paper.
 
 <<>>=
 data("tobin", package = "survival")
 head(tobin, 3)
-@ 
+@
 
 The variables of this data.frame are :
 
-
 \begin{description}
-\item[durable:] Durable goods purchase,
-\item[age:] Age in years
-\item[quant:] Liquidity ratio (x 1000)
+\item[durable:] the durable good expenditures in thousands of US\$;
+\item[age:] the age of the head of the family in years;
+\item[quant:] the liquidity ratio in per thousands.
 \end{description}
 
-
-To estimate a model for durable using \code{age} and \code{quant} as
-covariates for the desired consumption equation, \code{age} for the
-selection equation, and \code{quant} for the infrequency we use the
-following syntax:
+To estimate a model for durable good expenditures using \code{age} and
+\code{quant} as covariates for the desired consumption equation,
+\code{age} for the selection equation, and \code{quant} for the
+purchase infrequency equation, we use the following syntax:
 
 <<>>=
 f <- Formula(durable ~ age | age + quant | quant)
-@ 
+@
 
 Several methods are provided to deal with these extended formulas. In
 particular, the model covariate matrices for the three equations are
@@ -641,17 +1144,15 @@ P <- model.matrix(f, data = tobin, rhs = 3)
 head(X,3)
 head(S,3)
 head(P,3)
-@ 
+@
 
 For the end user, all these manipulations are internal to
-\code{mhurdle} function. All he should do is enter a formula of the
+\code{mhurdle} function. All he should do is entering a formula of the
 type \texttt{y \~{} x11 + x12 | x21 + x22 | x31 + x32} as first
 argument of the function.
 
-
 \subsection{Starting values}
 \label{sec:startvalues}
-
 
 For the models we consider, the log-likelihood function will be, in
 general, not concave. Moreover, this kind of models are highly non
@@ -661,49 +1162,43 @@ values for the iterative computation of parameter estimates is
 crucial.
 
 As a less computer intensive alternative to maximum likelihood
-estimation, \cite{HECKM/76} has suggested a two step estimation
+estimation, \citet{HECKM/76} has suggested a two step estimation
 procedure based on a respecification of the censored variable linear
 regression model, sometimes called ``Heckit'' model, avoiding
 inconsistency of ordinary least-squares estimator.  This two step
 estimator is consistent but inefficient. It is implemented in package
 \pkg{sampleSelection}.
 
-According to \cite{CARL/CROI/HOAR/08} experience in applying this
-estimation procedure to two-hurdle models, this approach doesn't
-seem to work well with our correlated hurdle-models. Indeed,
-except for the very special case of model 3 (log-normal correlated
-single-hurdle selection model), the probability of observing a
-censored purchase is not that of a simple probit model (see the
-formula of $\ln L_i^-$).
+According to \citet{CARL/CROI/HOAR/08} experience in applying this
+estimation procedure to two-hurdle models, this approach doesn't seem
+to work well with our correlated hurdle-models. Indeed, except for the
+very special case of model 3 (log-normal correlated single-hurdle
+selection model), the probability of observing a censored purchase is
+not that of a simple probit model (see the formula of $\ln L_i^-$).
 
 As noted previously, for uncorrelated single-hurdle good selection
-models, the estimation may be performed in a sequence of two
-simple estimations, namely the maximum likelihood estimation of a
-standard dichotomous probit model, followed by the ordinary
-least-squares estimation of a linear, log-linear or
-linear-truncated regression model. In the last case, package
-\pkg{truncreg} \cite{TRUNCR/09} is used.
+models, the estimation may be performed in a sequence of two simple
+estimations, namely the maximum likelihood estimation of a standard
+dichotomous probit model, followed by the ordinary least-squares
+estimation of a linear, log-linear or linear-truncated regression
+model. In the last case, package \pkg{truncreg} \citep{TRUNCR/09} is
+used.
 
 In case of correlated single-hurdle good selection models, the
 coefficient maximum likelihood estimate of the corresponding
 uncorrelated model ($\rho=0$) is used as starting values.
 
-For purchase infrequency models (P-Tobit models), the
-starting values are computed using an Heckman-like two step
-procedure. In the first step, parameters $\beta_3$ are estimated
-using a simple probit. In the second step, a linear, log-linear or
-linear-truncated model is estimated on the sub-sample of
-uncensored observations using $y_i\Phi(\beta_3^{'}x_3)$ or $\ln
-y_i +\ln \Phi(\beta_3^{'}x_3)$ (in the case of a log-normal
-specification) as the dependent variable of the regression model
-estimated by ordinary least squares. Correlated P-Tobit models are
-not currently implemented.
-
-
+For purchase infrequency models (P-Tobit models), the starting values
+are computed using an Heckman-like two step procedure. In the first
+step, parameters $\beta_3$ are estimated using a simple probit. In the
+second step, a linear, log-linear or linear-truncated model is
+estimated on the sub-sample of uncensored observations using
+$y_i\Phi(\beta_3^{'}x_3)$ or $\ln y_i +\ln \Phi(\beta_3^{'}x_3)$ (in
+the case of a log-normal specification) as the dependent variable of
+the regression model estimated by ordinary least squares.
 
 \subsection{Optimisation}
 \label{sec:optimisation}
-
 
 Two kinds of routines are currently used for maximum likelihood
 estimation. The first one can be called ``Newton-like'' methods. With
@@ -720,151 +1215,164 @@ hessian matrix. It is often more robust and may perform better in
 cases where the former doesn't work.
 
 Two optimization functions are included in core \proglang{R}:
-\code{nlm}, which uses the Newton-Raphson method, and \code{optim}
-, which uses the BFGS method (among others). The recently
-developed \pkg{maxLik} package  by \cite{MAXLIK/08} provides a
-unified framework. With a unique interface, all the previously
-described methods are available.
+\code{nlm}, which uses the Newton-Raphson method, and \code{optim} ,
+which uses the BFGS method (among others). The recently developed
+\pkg{maxLik} package by \citet{MAXLIK/08} provides a unified
+framework. With a unique interface, all the previously described
+methods are available.
 
 The behavior of \code{maxLik} can be controlled by the user using
-\code{mhurdle} arguments like \texttt{print.level} (from 0-silent
-to 2-verbal), \texttt{iterlim} (the maximum number of iterations),
+\code{mhurdle} arguments like \texttt{print.level} (from 0-silent to
+2-verbal), \texttt{iterlim} (the maximum number of iterations),
 \texttt{methods} (the method used, one of \texttt{"nr"},
-\texttt{"bhhh"} or \texttt{"bfgs"}) that are passed to
-\code{maxLik}.
-
+\texttt{"bhhh"} or \texttt{"bfgs"}) that are passed to \code{maxLik}.
 
 \section{Examples}
 \label{sec:examples}
-
 
 The package is loaded using:
 
 <<>>=
 library("mhurdle")
-@ 
+@
 
 \subsection{Estimation}
 
 The estimation is performed using the \code{mhurdle} function, which
 has the following arguments:
 
-
 \begin{description}
 \item[formula:] a formula describing the model to estimate. It should
   have three parts on the right-hand side specifying, in the first
-  part, the desired consumption equation covariates, in the second part, the
-  good selection equation covariates and, in the third part, the purchase frequency
-  equation covariates.
-\item[data:] a data.frame containing the observations of the
-  variables present in the formula.
-\item[subset, weights, na.action:] these are arguments passed on
-to
-  the model.frame function in order to extract the data suitable for the
-  model. These arguments are present in the \code{lm} function and
+  part, the desired consumption equation covariates, in the second
+  part, the good selection equation covariates and, in the third part,
+  the purchase frequency equation covariates.
+\item[data:] a data.frame containing the observations of the variables
+  present in the formula.
+\item[subset, weights, na.action:] these are arguments passed on to
+  the model.frame function in order to extract the data suitable for
+  the model. These arguments are present in the \code{lm} function and
   most of the estimation functions.
-\item[start:] the starting values. If \code{NULL}, the starting
-  values are computed as described in the previous section.
+\item[start:] the starting values. If \code{NULL}, the starting values
+  are computed as described in the previous section.
 \item[dist:] this argument indicates the functional form of the
   desired consumption equation, which may be: either log-normal
-  \code{"l"} (the default), normal \code{"n"} or truncated normal \code{"t"}.
+  \code{"l"} (the default), normal \code{"n"} or truncated normal
+  \code{"t"}.
 \item[corr:] a logical argument indicating whether the disturbances of
   the selection equation and the consumption equation are correlated
-  or not.
+  or not. The default is \code{FALSE}.
 \item[...] further arguments that are passed to the optimization
   function \code{maxLik}.
 \end{description}
 
-Different combinations of these arguments lead to a large variety
-of models. Note that some of them are logically inconsistent and
+Different combinations of these arguments lead to a large variety of
+models. Note that some of them are logically inconsistent and
 therefore irrelevant. For example, a model with no good selection
-equation and \code{corr = TRUE} is logically inconsistent because
-only good selection and desired consumption equations can be
-correlated.
+equation and \code{corr = TRUE} is logically inconsistent because only
+good selection and desired consumption equations can be correlated.
 
-To illustrate the use of \code{mhurdle} package, we first estimate
-an independent triple-hurdle model, which we call \code{model12i} :
 
-<<>>=
-model12i <- mhurdle(durable~age+quant|age+quant|age+quant, tobin, dist="n", method="bfgs")
-@ 
-
-Note that a Lagrange multiplier test is performed in order to test the
-hypothesis of no correlation. In the previous example, this hypothesis
-is not rejected.
-
-In applied work, the issue may be to select the relevant hurdles. In
-the previous example, we estimated a three hurdle model. We can now
-estimate alternative models when only one or two hurdle are
-relevant. Quality measures of fit will provide criteria to select
-the best model. To estimate a model where only lack of ressources is
-relevant to explain zero tobacco budget shares, we use :
+To illustrate the use of \code{mhurdle} package, we first estimate an
+independent triple-hurdle model, which we call \code{model12i} :
 
 <<>>=
-model5 <- mhurdle(durable~0|age+quant|age+quant, tobin, dist="n", method="bfgs")
-@ 
+model12i <- mhurdle(durable~age+quant|age+quant|age+quant, tobin, dist="n", method="nr")
+@
 
-To estimate a single-hurdle good selection model with a log-normal
-distribution, we use:
+In applied work, the issue may be to select the relevant hurdles.  As
+an alternative to the previously estimated three hurdle model we can
+now estimate more a priori restricted models where only one or two
+hurdles are relevant.
+
+To estimate a model where only lack of resources is relevant to
+explain censored durable good expenditures, we use :
+
+<<>>=
+model5 <- mhurdle(durable~0|age+quant|0, tobin, dist="n", method="nr")
+@
+
+To estimate
+an independent log-normal single-hurdle good rejection model, we use:
 
 <<>>=
 model3i <- mhurdle(durable~age+quant|age+quant|0, tobin, dist="l")
 @
 
-To estimate a single-hurdle frequency of purchase model with a
-log-normal distribution, we use:
+To estimate a log-normal single-hurdle purchase infrequency model, we
+use:
 
 <<>>=
-model6i <- mhurdle(durable~0|age+quant|age+quant, tobin, dist="l")
+model6 <- mhurdle(durable~0|age+quant|age+quant, tobin, dist="l")
 @
 
-To estimate a model where zero may be explained by lack of ressources
-or good selection, we use :
+To estimate an independent model where censured durable good
+expenditures may be explained by lack of resources or good rejection,
+we use :
 
 <<>>=
 model8i <- mhurdle(durable~age+quant|age+quant|0, tobin, dist="n")
 @
 
-We then update the model in order to estimate a dependent
-double-hurdle selection model:
-
+We then update this model in order to estimate a dependent
+double-hurdle (lack of resources or good rejection) model:
 
 <<>>=
 model8d <- update(model8i, corr = TRUE)
-@ 
+@
 
-To remove the \code{age} variable from the selection equation and to
-add the square of the \code{age} to the regression equation, one can
-update the model the following way:
+% To add the \code{region} to the infrequency equation and to remove the
+% variable \code{nadults} from the selection equation, one can update the
+% formula the following way:
 
-<<>>=
-model8ibus <- update(model8i, . ~ . - age | . + I(age^2)| .)
-@ 
+% \begin{verbatim}
+% model8i <- update(model8i, . - nadults  | . ~ . | . + region )
+% \end{verbatim}
 
 \subsection{Methods}
 
+A \code{summary} method is provided for \code{mhurdle} objects :
 
-\code{coef}, \code{vcov}, \code{logL}, \code{predict} methods are
+<<>>=
+summary(model8i)
+@ 
+
+This method displays the percentage of 0 in the sample, the
+coefficient table, several measures of goodness of fit and, for
+independent models, a score test of correlation.
+
+\code{coef}, \code{vcov}, \code{logLik}, \code{predict} methods are
 provided in order to extract part of the results.
 
-
-Coefficients and the estimated asymptotic variance
-matrix of maximum likelihood estimators are extracted using the
-usual \code{coef} and \code{vcov} functions. \code{mhurdle} object
-methods have a second argument indicating which subset has to be
-returned (the default is to return all).
+Coefficients and the estimated asymptotic variance matrix of maximum
+likelihood estimators are extracted using the usual \code{coef} and
+\code{vcov} functions. \code{mhurdle} object methods have a second
+argument indicating which subset has to be returned (the default is to
+return all).
 
 <<>>=
 coef(model12i, "reg")
 coef(model12i, "sel")
-coef(model12i, "ifr")
 coef(model12i, "sigma")
+coef(summary(model12i), "ifr")
 vcov(model12i, "reg")
+@
+
+Log-likelihood may be obtained for the estimated model or for a
+``naive'' model, \emph{i.e.} a model without covariates. Moreover, the
+component of the likelihood for null and for positive observations may
+be obtained separately :
+
+<<>>=
+logLik(model12i)
+logLik(model12i, which = "positive")
+logLik(model12i, naive = TRUE, which = "zero")
 @ 
 
-Fitted values are obtained using the \code{fitted} function. The output is a matrix whose two columns are the estimated probability
-of censoring and the estimated expected value of an uncensored
-dependent variable observation, respectively:
+Fitted values are obtained using the \code{fitted} function.  The
+output is a matrix whose two columns are the estimated probability of
+censoring $Prob \{ y_i=0 \}$ and the estimated expected value of an
+uncensored dependent variable observation $E(y_i | y_i>0)$.
 
 <<>>=
 head(fitted(model12i))
@@ -880,42 +1388,97 @@ pr <- predict(model12i,newdata = data.frame(durable = c(0,1,0),
 head(pr)
 @
 
-In order to select the best model, two measures of quality of
-fit are provided. 
-% The first measure is an extended R-squared
-%for limited dependant variable models.
 
-% \begin{verbatim}
-% R2model12i <- r.squared(model12i,which = "all",type = "linear")
-% \end{verbatim}
+For model evaluation and selection purposes, goodness of fit measures
+and Vuong tests described in section 3 are provided. These criteria
+allow to select the most empirically appropriate model specification.
 
-The second measure is an extended pseudo R-squared for limited
-dependant variable models.
-
-<<>>=
-PsR2model12i <- r.squared(model12i, which = "all")
-@ 
-
-In the previous example, the double hurdle model is the model which
-offers the better sample fit.
-
-
-A \cite{VUONG/89} test is also provided as a criteria for model
-selection.
+Two goodness of fit measures are provided. The first measure is an
+extention to limited dependent variable models of the classical
+coefficient of determination for linear regression models. This pseudo
+coefficient of determination is computed both without ($R^2$) and with
+($\bar{R}^2$) adjustment for the loss of sample degrees of freedom due
+to model parametrization.  The unadjusted coefficient of determination
+allows to compare the goodness of fit of model specifications having
+the same number of parameters, whereas the adjusted version of this
+coefficient is suited for comparing model specifications with a
+different number of parameters.
 
 <<>>=
-vuongtest(model6i, model8d) 
+r.squared(model12i,which = "all",type = "regression")
 @ 
 
-In the previous example, the Vuong test is unable to discriminate
-between two non-nested models. 
+The second measure is an extension to limited dependent variable
+models of the likelihood ratio index for qualitative response
+models. This pseudo coefficient of determination is also computed both
+without ($\rho^2$) and with ($\bar{\rho}^2$) adjustment for the loss
+of sample degrees of freedom due to model parametrization, in order to
+allow model comparisons with the same or with a different number of
+parameters.
+
+<<>>=
+r.squared(model12i, type = "mcfadden", which = "all", dfcor = TRUE)
+@
+
+% In the previous example, the double hurdle model is the model which
+% offers the better sample fit.
+
+
+The Vuong test based on the $T_{LR}$ statistic, as presented in
+section 3.3, is also provided as a criteria for model selection within
+the family of 12 strictly non nested models of FIG. 1.
+
+<<>>=
+vuongtest(model6, model8d)
+@
+
+% In the previous example, the Vuong test also suggest that the double
+% hurdle dependent model is the best suited model within the family of
+% mhurdle models.
+
+Testing the hypothesis of no correlation between the good selection
+mechanism and the desired consumption equation can be performed by
+means of a Wald test, a Lagrange multiplier (LM) test or a
+log-likelihood ratio (LR) statistic. 
+
+
+Likelihood ratio tests are performed using a Vuong test, and more
+precisely the nested version of this test. As explained in section
+3.3, the critical value or the p-value to be used to perform this test
+is not the same depending on the model builder believes or not that
+his model is correctly specified. In the first case, the p-value is
+computed using the standard chi square distribution, in the second
+case a weighted chis square distribution is used.
+
+
+<<>>=
+vuongtest(model8d, model8i, type='nested', hyp=TRUE)
+vuongtest(model8d, model8i, type='nested', hyp=FALSE)
+@ 
+
+
+The LM test is performed using the independent model
+(\code{model8i}). The \code{summary} performs the test, as seen
+previously, the p-value for this test is 0.494.  The Wald test is
+simply obtained in the coefficient table of the dependent model
+(\code{model8d})
+
+<<>>=
+coef(summary(model8d), "rho")
+@ 
+
+In the previous example, all the tests don't reject the hypothesis of
+no correlation.
+
+
+
 
 \section{Conclusion}
 \label{sec:conclusion}
 
 \pkg{mhurdle} aims at providing a unified framework allowing to
 estimate and assess a variety of extensions of the standard
-\emph{Tobit} model particurlary suitable for single-equation demand
+\emph{Tobit} model particularly suitable for single-equation demand
 analysis not currently implemented in \proglang{R} .
 
 \bibliography{bibliomhurdle}

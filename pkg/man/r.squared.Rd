@@ -8,7 +8,9 @@
   or the whole model.
 }
 \usage{
-r.squared(object, which = c("all", "zero", "positive"))
+r.squared(object, which = c("all", "zero", "positive"),
+          type = c("regression", "mcfadden"), dfcor = FALSE,
+          r2pos = c("rss", "ess", "cor"))
 }
 \arguments{
   \item{object}{an object of class \code{"mhurdle"},}
@@ -16,24 +18,39 @@ r.squared(object, which = c("all", "zero", "positive"))
     computed, one of \code{"all"} (the whole model), \code{"zero"} (null
     versus positive values), \code{"positive"} (values for the truncated
     sample of positive values),}
+  \item{type}{one of \code{"regression"} or \code{"mcfadden"} to select a
+    linear measure of the R squared or a Mc Fadden like measure based on
+    the likelihood function,}
+  \item{dfcor}{if \code{TRUE} a correction for the degrees of freedom is
+    performed,}
+  \item{r2pos}{only for linear R squared, should the positive part of
+    the R squared be computed using the residual sum of squares
+    (\code{"rss"}), the explained sum of squares (\code{"ess"}) or the
+    coefficient of correlation between the fitted values and the
+    response (\code{cor}).
+    }
 }
 \value{
   a numerical value
 }
-\details{
-  When \code{type="linear"}, a linear $R^2$ is computed, when
-  \code{type="mcfadden"}, a pseudo-R$^2$ based on the likelihood of the
-  ``naive'' model is computed.
-}
-\seealso{
+%\details{
+%}
+% \seealso{
+% }
+
+\references{
+  
+ McFadden D (1974). The Measurement of Urban Travel Demand. Journal of
+ Public Economics, 3, 303-328.
+ 
 }
 \examples{
 data("tobin", package = "survival")
 dhi <- mhurdle(durable ~ age + quant | age + quant | 0, tobin, 
             dist = "n", corr = FALSE)
-r.squared(dhi)
+r.squared(dhi, type = "mcfadden")
 r.squared(dhi, "zero")
-r.squared(dhi, "positive")
+r.squared(dhi, "positive", dfcor = TRUE, r2pos = "ess")
 
 }
-\keyword{}
+\keyword{htest}
