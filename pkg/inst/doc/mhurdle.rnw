@@ -1277,7 +1277,7 @@ To illustrate the use of \code{mhurdle} package, we first estimate an
 independent triple-hurdle model, which we call \code{model12i} :
 
 <<>>=
-model12i <- mhurdle(durable~age+quant|age+quant|age+quant, tobin, dist="n", method="nr")
+model12i <- mhurdle(durable~age+quant|age+quant|age+quant, tobin, dist="n", method="bfgs")
 @
 
 In applied work, the issue may be to select the relevant hurdles.  As
