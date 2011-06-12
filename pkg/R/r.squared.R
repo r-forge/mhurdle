@@ -39,8 +39,8 @@ r.squared <- function(object,
                )
   
   if (type == "mcfadden"){
-    if (!dfcor) R2 <- 1 - logLik(object, which)/logLik(object, which, naive = TRUE)
-    else R2 <- 1 - (logLik(object, which)- K)/(logLik(object, which, naive = TRUE) - Ko)
+    if (!dfcor) R2 <- 1 - logLik(object, which, naive = TRUE)/logLik(object, which)
+    else R2 <- 1 - (logLik(object, which, naive = TRUE)- K)/(logLik(object, which) - Ko)
   }
   if (type == "regression"){
     if (which != "positive"){
