@@ -15,12 +15,10 @@
   variable is 0 for a part of the sample. 
 }
 \usage{
- 
 mhurdle(formula, data, subset, weights, na.action,
      start = NULL,
      dist = c("l","t","n"),
-     corr = FALSE, ...)
-
+     corr = NULL, ...)
 \method{coef}{mhurdle}(object,
    which = c("all", "sel", "ifr", "reg", "other", "sigma", "rho"), ...)
 \method{vcov}{mhurdle}(object,
@@ -150,7 +148,7 @@ or a double hurdle model if \code{dist="n"}.
 # A dependent double hurdle example
 data("tobin", package = "survival")
 x <- mhurdle(durable ~ age+quant | age+quant | 0, data = tobin, dist = "n",
-          corr = TRUE, method = "bfgs")
+          corr = 'sel', method = "bfgs")
 # A p-tobit with a log-normal distribution
 x <- mhurdle(durable ~ 0 | age+quant | age+quant, data = tobin, dist = "l",
           method = "bfgs")

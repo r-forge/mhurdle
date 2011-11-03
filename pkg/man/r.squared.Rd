@@ -3,9 +3,9 @@
 \title{R squared and pseudo R squared}
 \description{
   This function computes the R squared for multiple hurdle models. The
-  measure is linear or may be based on the likelihood and may measure
-  the goodness of fit for the zero part, the positive part of the model
-  or the whole model.
+  measure is an extension of the R squared of linear model or may be based on
+  the likelihood and may measure the goodness of fit for the zero part,
+  the positive part of the model or the whole model.
 }
 \usage{
 r.squared(object, which = c("all", "zero", "positive"),
@@ -47,7 +47,7 @@ r.squared(object, which = c("all", "zero", "positive"),
 \examples{
 data("tobin", package = "survival")
 dhi <- mhurdle(durable ~ age + quant | age + quant | 0, tobin, 
-            dist = "n", corr = FALSE)
+            dist = "n")
 r.squared(dhi, type = "mcfadden")
 r.squared(dhi, "zero")
 r.squared(dhi, "positive", dfcor = TRUE, r2pos = "ess")

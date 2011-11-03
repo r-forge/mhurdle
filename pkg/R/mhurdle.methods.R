@@ -55,7 +55,7 @@ sub.mhurdle <- function(object,
     if (describe(object,"corr")) sub <- (K[[1]]+K[[2]]+K[[3]]+1):(K[[1]]+K[[2]]+K[[3]]+2)
     else sub <- (K[[1]]+K[[2]]+K[[3]]+1) 
   if (which == "rho"){
-    if (!describe(object, "corr")) stop("no corr coefficient estimated")
+    if (is.null(describe(object, "corr"))) stop("no corr coefficient estimated")
     else sub <- K[[1]]+K[[2]]+K[[3]]+2
   }
   if (which == "sigma") sub <- K[[1]]+K[[2]]+K[[3]]+1
@@ -196,22 +196,6 @@ print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
   invisible(x)
 }
 
-print.est.stat <- function(x, ...){
-  et <- x$elaps.time[3]
-  i <- x$nb.iter[1]
-  eps <- as.numeric(x$eps)
-  s <- round(et,0)
-  h <- s%/%3600
-  s <- s-3600*h
-  m <- s%/%60
-  s <- s-60*m
-  tstr <- paste(h,"h:",m,"m:",s,"s",sep="")
-  cat(paste(x$method,"\n"))
-  cat(paste(x$message,"\n"))
-  cat(paste(i,"iterations,",tstr,"\n"))
-  cat(paste("g'(-H)^-1g =",sprintf("%5.3G",eps),"\n"))
-}
-
 ## a simple copy from mlogit. update with formula doesn't work
 ## otherwise ????
 
@@ -241,67 +225,78 @@ update.mhurdle <- function (object, new, ...){
 
 compute.fitted.mhurdle <- function(param, X, S, P, dist, corr){
 
-  KS <- ifelse(is.null(S), 0, ncol(S))
-  KP <- ifelse(is.null(P), 0, ncol(P))  
+
+  sel <- !is.null(S) ;  KS <- ifelse(is.null(S), 0, ncol(S))
+  ifr <- !is.null(P) ;  KP <- ifelse(is.null(P), 0, ncol(P))
+  
   KX <- ncol(X)
-  sel <- KS > 0
-  ifr <- KP > 0
-  if (sel) betaS <- param[1:KS] else betaS <- NULL
   betaX <- param[(KS+1):(KS+KX)]
-  if (ifr) betaP <- param[(KX+KS+1):(KX+KS+KP)] else betaP <- NULL
-  sigma <- param[KX+KS+KP+1]
-  if (corr) rho <- param[KX+KS+KP+2] else rho <- 0
-  bX <- as.numeric(crossprod(t(X),betaX))
-  PhiX <- pnorm(bX/sigma)
-  phiX <- dnorm(bX/sigma)
 
   if (sel){
-    bS <- as.numeric(crossprod(t(S),betaS))
-    PhiS <- pnorm(bS)
-    phiS <- dnorm(bS)
-    Phib <- pbivnorm(bS,bX/sigma,rho)
-    psi <- psy(bS,bX/sigma,rho)
-    millsG <- psi/Phib
-    Phib.grad <- attr(Phib,"gradient")
-    attr(Phib, "gradient") <- NULL
-    Phib.S <- Phib.grad$x1
-    Phib.X <- Phib.grad$x2
-    Phib.rho <- Phib.grad$rho
-    Phib.rho.rho <- Phib.grad$rho.rho
+    betaS <- param[1:KS]
+    bS <- as.numeric(crossprod(t(S), betaS))
+    PhiS <- pnorm(bS) ; phiS <- dnorm(bS)
   }
   else{
-    bS <- 0
-    Phib <- PhiX
-    PhiS <- 1
-    psi <- psy(bS,bX/sigma,rho)
-    millsG <- psi/Phib
+    bS <- betaS <- NULL
+    PhiS <- 1 ; phiS <- 0;
   }
-  if (ifr){
-    bP <- as.numeric(crossprod(t(P),betaP))
-    PhiP <- pnorm(bP)
-  }
-  else{
-    PhiP <- 1
-  }
- 
-  if (dist == "l" ) prob.null <- 1 - PhiS*PhiP
-  if (dist == "t" ) prob.null <- 1 - Phib*PhiP/PhiX
-  if (dist == "n" ) prob.null <- 1 - Phib*PhiP
 
- if ((dist == "l") && sel){
+  if (ifr){
+    betaP <- param[(KX + KS + 1):(KX + KS + KP)]
+    bP <- as.numeric(crossprod(t(P), betaP))
+    PhiP <- pnorm(bP) ; phiP <- dnorm(bP)
+  }
+  else{
+    bP <- betaP <- NULL
+    PhiP <- 1 ; phiP <- 0
+  }
+  
+  sigma <- param[KX + KS + KP + 1]
+  bX <- as.numeric(crossprod(t(X),betaX))
+  PhiX <- pnorm(bX / sigma)
+  phiX <- dnorm(bX / sigma)
+
+  rhoS <- rhoP <- 0
+  if (!is.null(corr)){
+    if (corr == 'sel') rhoS <- param[KX + KS + KP + 2]
+    if (corr == 'ifr') rhoP <- param[KX + KS + KP + 2]
+  }
+
+  PhiSX <- pbivnorm(bS, bX / sigma, rhoS)
+  PhiXP <- pbivnorm(bX / sigma, bP, rhoP)
+  
+  prob.null <- switch(dist,
+                      "t" = log(1 - PhiSX$f * PhiXP$f / PhiX^2),
+                      "n" = log(1 - PhiSX$f * PhiXP$f / PhiX),
+                      "l" = log(1 - PhiP * PhiS)
+                      )
+  
+  if ((dist == "l") && sel){
     phiS <- dnorm(bS)
     esp.cond <-
-      exp(bX+0.5*sigma^2*(1-rho^2))/PhiP*(PhiS+rho*sigma*phiS+
-                                      (rho*sigma)^2/2*(PhiS-bS*phiS)+
-                                      (rho*sigma)^3/6*(2+bS^2)*phiS+
-                                      (rho*sigma)^4/12*(3*PhiS-bS*(3+bS^2)*phiS))/PhiS}
-
-  if ((dist == "l") && !sel){
-    esp.cond <- exp(bX+0.5*sigma^2*(1-rho^2))/PhiP}
+      exp(bX + 0.5 * sigma^2*(1 - rhoS^2))/PhiP *
+        (PhiS + rhoS * sigma * phiS +
+         (rhoS * sigma)^2 / 2 * (PhiS - bS * phiS) +
+         (rhoS * sigma)^3/6 * (2 + bS^2) * phiS +
+         (rhoS * sigma)^4/12 * (3 * PhiS - bS * (3 + bS^2) * phiS)) / PhiS
+  }
   
-  if (dist !="l")
-    esp.cond <- bX/PhiP + sigma * millsG/PhiP
-  result <- cbind(zero = prob.null,
+  if ((dist == "l") && !sel){
+    esp.cond <- exp(bX + 0.5 * sigma^2 * (1 - rhoS^2)) / PhiP
+  }
+  
+  if (dist !="l" && sel){
+    psi <- psy(bS , bX / sigma, rhoS)
+    Phib <- pbivnorm(bS, bX/sigma, rhoS)
+    millsG <- psi / Phib$f
+    esp.cond <- bX / PhiP + sigma * millsG / PhiP
+  }
+  else{
+    esp.cond <- bX
+  }
+
+  result <- cbind(zero     = prob.null,
                   positive = esp.cond)
   result
 }
@@ -316,9 +311,9 @@ predict.mhurdle <- function(object, newdata = NULL, ...){
     dist <- ifelse(is.null(cl$dist), TRUE, cl$dist)
     corr <- ifelse(is.null(cl$corr), FALSE, cl$corr)
     m <- model.frame(formula(object), newdata)
-    X <- model.matrix(formula(object),m,rhs=1)
-    S <- model.matrix(formula(object),m,rhs=2)
-    P <- model.matrix(formula(object),m,rhs=3)
+    X <- model.matrix(formula(object), m, rhs = 1)
+    S <- model.matrix(formula(object), m, rhs = 2)
+    P <- model.matrix(formula(object), m, rhs = 3)
     result <- compute.fitted.mhurdle(coef(object), X, S, P,  dist, corr)
   }
   result
@@ -327,7 +322,7 @@ predict.mhurdle <- function(object, newdata = NULL, ...){
 fitted.mhurdle <- function(object, which = c("all", "zero", "positive"), ...){
   which <- match.arg(which)
   switch(which,
-         all = cbind(
+         all      = cbind(
            "zero" = object$fitted.values[,1],
            "positive" = object$fitted.values[,2]
            ),
@@ -335,11 +330,3 @@ fitted.mhurdle <- function(object, which = c("all", "zero", "positive"), ...){
          positive = object$fitted.values[,2]
          )
 }
-
-
-## r.squared <- function(object,
-##                       which = c("all", "zero", "positive")){
-##   lnL <- logLik(object, which = which, naive = FALSE)
-##   lnLo <- logLik(object, which = which, naive = TRUE)
-##   as.numeric(1 - lnL/lnLo)
-## }

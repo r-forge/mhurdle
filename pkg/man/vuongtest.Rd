@@ -34,9 +34,9 @@ vuongtest(x, y,
 
 data("tobin",package="survival")
 dhi <- mhurdle(durable ~ 0 | age + quant | age + quant, tobin, 
-             dist = "n", corr = FALSE)
+             dist = "n")
 dhs <- mhurdle(durable ~ 0 | age + quant | age + quant, tobin, 
-              dist = "l", corr = FALSE)
+              dist = "l")
 vuongtest(dhi, dhs)
 
 }
