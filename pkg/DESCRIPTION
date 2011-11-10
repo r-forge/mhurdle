@@ -1,6 +1,6 @@
 Package: mhurdle
-Version: 0.1-0
-Date: 2010-05-03
+Version: 0.1-1
+Date: 2011-11-10
 Title: Estimation of models with limited dependent variables
 Author: Fabrizio Carlevaro <fabrizio.carlevaro@unige.ch>, Yves Croissant <yves.croissant@univ-reunion.fr>, Stephane Hoareau <sjlhoaro@univ-reunion.fr>
 Maintainer: Yves Croissant <yves.croissant@univ-reunion.fr>
