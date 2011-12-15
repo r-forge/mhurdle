@@ -1,5 +1,6 @@
-export(mhurdle, r.squared, vuongtest)
+export(mhurdle, r.squared, vuongtest, simhurdle)
 import(Formula)
+import(pbivnorm)
 import(truncreg)
 S3method(coef, mhurdle)
 S3method(vcov, mhurdle)

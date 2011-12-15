@@ -32,12 +32,14 @@ vuongtest(x, y,
 ## dependent simple hurdle ptobit vs an
 ## independent double hurdle ptobit
 
-data("tobin",package="survival")
-dhi <- mhurdle(durable ~ 0 | age + quant | age + quant, tobin, 
-             dist = "n")
-dhs <- mhurdle(durable ~ 0 | age + quant | age + quant, tobin, 
-              dist = "l")
-vuongtest(dhi, dhs)
+data6 <- simhurdle(n = 1000, h3 = TRUE, h1 = FALSE,
+                   dist = "l", corr = "h3")
+
+z6d <- mhurdle(y ~ 0 | x2 | x3, data6, dist = "l", corr = "h3")
+
+z11i <- mhurdle(y ~ 0 | x2 | x3, data6, dist = "n", corr = NULL)
+
+vuongtest(z6d, z11i)
 
 }
 \keyword{htest}

@@ -20,11 +20,10 @@ mhurdle(formula, data, subset, weights, na.action,
      dist = c("l","t","n"),
      corr = NULL, ...)
 \method{coef}{mhurdle}(object,
-   which = c("all", "sel", "ifr", "reg", "other", "sigma", "rho"), ...)
+   which = c("all", "h1", "h2", "h3", "other", "sigma", "rho"), ...)
 \method{vcov}{mhurdle}(object,
-   which = c("all", "sel", "ifr", "reg", "other", "sigma", "rho"), ...)
-\method{logLik}{mhurdle}(object,
-   which = c("all", "zero", "positive"), naive = FALSE, ...)
+   which = c("all", "h1", "h2", "h3", "other", "sigma", "rho"), ...)
+\method{logLik}{mhurdle}(object, naive = FALSE, ...)
 \method{print}{mhurdle}(x, digits = max(3, getOption("digits") - 2),
                      width = getOption("width"), ...)
 \method{summary}{mhurdle}(object, ...)
@@ -56,10 +55,10 @@ mhurdle(formula, data, subset, weights, na.action,
   \item{digits}{see \code{\link{print}},}
   \item{width}{see \code{\link{print}},}
   \item{which}{which coefficients or covariances should be extracted ? Those of the
-    selection (\code{"sel"}), infrequency (\code{"ifr"}) or regression
-    (\code{"reg"}) equation, the other coefficients \code{"other"} (the
+    selection (\code{"h1"}), consumption (\code{"h2"}) or purchase
+    (\code{"h3"}) equation, the other coefficients \code{"other"} (the
     standard error and the coefficient of corr), the standard error
-    (\code{"sigma"}) or the coefficient of correlation (\code{rho}),}
+    (\code{"sigma"}) or the coefficient of correlation (\code{"rho"}),}
   \item{\dots}{further arguments.}
   
 }
@@ -115,16 +114,14 @@ Tobit model proposed by Tobin (1958).
 \code{y~w1+w2|x1+x2} and \code{dist="l"} or \code{dist="t"} is the
 single hurdle model proposed by Cragg (1971). With \code{dist="n"}, the
 double hurdle model also proposed by Cragg (1971) is obtained. With
-\code{corr=TRUE} we get the correlated version of this model described
+\code{corr="h1"} we get the correlated version of this model described
 by Blundell (1987). 
 
 \code{y~0|x1+x2|z1+z2} is the P-Tobit model of Deaton and Irish (1984),
 which can be a single hurdle model if \code{dist="t"} or \code{dist="l"}
 or a double hurdle model if \code{dist="n"}.
 
-
 }
- 
  
 \references{
   
@@ -146,13 +143,11 @@ or a double hurdle model if \code{dist="n"}.
 % }
 \examples{
 # A dependent double hurdle example
-data("tobin", package = "survival")
-x <- mhurdle(durable ~ age+quant | age+quant | 0, data = tobin, dist = "n",
-          corr = 'sel', method = "bfgs")
+data8d <- simhurdle(n = 1000, h3 = FALSE, h1 = TRUE, corr = "h1", dist = "n")
+z8d <- mhurdle(y ~ x1 | x2 | 0, data = data8d, dist = "n", corr = "h1", method = "bfgs")
 # A p-tobit with a log-normal distribution
-x <- mhurdle(durable ~ 0 | age+quant | age+quant, data = tobin, dist = "l",
-          method = "bfgs")
-
+data6 <- simhurdle(n = 1000, h3 = TRUE, h1 = FALSE, dist = "l")
+z6 <- mhurdle(y ~ 0 | x2 | x3, data = data6, dist = "l", method = "bfgs")
 }
 % \author{}
 \keyword{regression}

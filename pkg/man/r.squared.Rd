@@ -8,16 +8,11 @@
   the positive part of the model or the whole model.
 }
 \usage{
-r.squared(object, which = c("all", "zero", "positive"),
-          type = c("regression", "mcfadden"), dfcor = FALSE,
-          r2pos = c("rss", "ess", "cor"))
+r.squared(object, type = c("regression", "mcfadden"),
+          dfcor = FALSE, r2pos = c("rss", "ess", "cor"))
 }
 \arguments{
   \item{object}{an object of class \code{"mhurdle"},}
-  \item{which}{which part of the model the goodness of fit has to be
-    computed, one of \code{"all"} (the whole model), \code{"zero"} (null
-    versus positive values), \code{"positive"} (values for the truncated
-    sample of positive values),}
   \item{type}{one of \code{"regression"} or \code{"mcfadden"} to select a
     linear measure of the R squared or a Mc Fadden like measure based on
     the likelihood function,}
@@ -45,12 +40,13 @@ r.squared(object, which = c("all", "zero", "positive"),
  
 }
 \examples{
-data("tobin", package = "survival")
-dhi <- mhurdle(durable ~ age + quant | age + quant | 0, tobin, 
-            dist = "n")
-r.squared(dhi, type = "mcfadden")
-r.squared(dhi, "zero")
-r.squared(dhi, "positive", dfcor = TRUE, r2pos = "ess")
+
+# A dependent double hurdle example
+data8d <- simhurdle(n = 1000, h3 = FALSE, h1 = TRUE, corr = "h1", dist = "n")
+z8d <- mhurdle(y ~ x1 | x2 | 0, data = data8d, dist = "n", corr = "h1", method = "bfgs")
+
+r.squared(z8d, type = "mcfadden")
+r.squared(z8d, type = "regression", dfcor = TRUE, r2pos = "ess")
 
 }
 \keyword{htest}
