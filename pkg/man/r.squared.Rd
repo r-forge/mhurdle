@@ -9,7 +9,7 @@
 }
 \usage{
 r.squared(object, type = c("regression", "mcfadden"),
-          dfcor = FALSE, r2pos = c("rss", "ess", "cor"))
+          dfcor = FALSE, r2pos = c("ess", "rss", "cor"))
 }
 \arguments{
   \item{object}{an object of class \code{"mhurdle"},}
