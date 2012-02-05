@@ -7,17 +7,17 @@
 
 pwchisq <- function(q, weights, lower.tail = TRUE, n = 1000){
   K <- length(weights)
-  e <- matrix(rnorm(n*K)^2, n, K)
-  wcs <- apply(e, 1, function(x) sum(x*weights))
+  e <- matrix(rnorm(n * K) ^ 2, n, K)
+  wcs <- apply(e, 1, function(x) sum(x * weights))
   F <- ecdf(wcs)
-  ifelse(lower.tail, F(q), 1- F(q))
+  ifelse(lower.tail, F(q), 1 - F(q))
 }
 
 qwchisq <- function(p, weights, lower.tail = TRUE, n = 1000){
   K <- length(weights)
-  e <- matrix(rnorm(n*K)^2, n, K)
-  wcs <- apply(e, 1, function(x) sum(x*weights))
-  ifelse(lower.tail, quantile(wcs, p), quantile(wcs, 1-p))
+  e <- matrix(rnorm(n * K) ^ 2, n, K)
+  wcs <- apply(e, 1, function(x) sum(x * weights))
+  ifelse(lower.tail, quantile(wcs, p), quantile(wcs, 1 - p))
 }  
 
 ##########################################################
@@ -54,10 +54,10 @@ vuongtest <- function(x, y,
     stop("the number of observations of the two models differ")
   
   LR <- logLx - logLy
-  w2 <- 1/n*sum((lx-ly)^2)-(1/n*LR)^2
+  w2 <- 1 / n * sum((lx - ly) ^ 2) - (1 / n * LR) ^ 2
   
   if (type == "non.nested"){
-    statistic <- c(z = LR/sqrt(n*w2))
+    statistic <- c(z = LR / sqrt(n * w2))
     alternative <- ifelse(statistic > 0,
                           "The first model is better",
                           "The second model is better")
@@ -66,12 +66,12 @@ vuongtest <- function(x, y,
     parameter <- NULL
   }
   else{
-    gradx <- attr(x$logLik,"gradi")
-    grady <- attr(y$logLik,"gradi")
-    BF <- t(gradx)%*%gradx/n
-    BG <- t(grady)%*%grady/n
-    AF <- -solve(vcov(x))/n
-    AG <- -solve(vcov(y))/n
+    gradx <- attr(x$logLik, "gradi")
+    grady <- attr(y$logLik, "gradi")
+    BF <- t(gradx) %*% gradx / n
+    BG <- t(grady) %*% grady / n
+    AF <- -solve(vcov(x)) / n
+    AG <- -solve(vcov(y)) / n
   }
   if (type == "nested"){
     if (Kx == Ky) stop("the two models are not nested")
@@ -84,8 +84,8 @@ vuongtest <- function(x, y,
     if (! hyp){
       names(statistic) <- "wchisq"
       common.coef <- names(coef(x)) %in% names(coef(y))
-      trans <- diag(1,Kx)[common.coef, ]
-      W <- BF%*%(t(trans)%*%solve(AG)%*%trans-solve(AF))
+      trans <- diag(1, Kx)[common.coef, ]
+      W <- BF %*% (t(trans) %*% solve(AG) %*% trans - solve(AF))
       Z <- eigen(W)$values
       pval <- pwchisq(statistic, Z, lower.tail = FALSE)
     }
@@ -95,27 +95,26 @@ vuongtest <- function(x, y,
     }
   }
   if (type == "overlapping"){
-    BFG <- t(gradx)%*%grady/n
-    BGF <- t(grady)%*%gradx/n
-    W <- rbind(cbind(-BF%*%solve(AF),-BFG%*%solve(AG)),
-               cbind(-BGF%*%solve(AF),-BG%*%solve(AG))
+    BFG <- t(gradx) %*% grady / n
+    BGF <- t(grady) %*% gradx / n
+    W <- rbind(cbind(- BF %*% solve(AF), - BFG %*% solve(AG)),
+               cbind(- BGF %*% solve(AF), - BG %*% solve(AG))
                )
     method <- "Vuong Test (overlapping)"
     if (! hyp){
-      statistic <- c(wchisq = n*w2)
-      Z <- eigen(W)$values^2
+      statistic <- c(wchisq = n * w2)
+      Z <- eigen(W)$values ^ 2
       pval <- pwchisq(statistic, Z, lower.tail = FALSE)
       alternative <- c("two different models : use non-nested version of the Vuong test")
       parameter <- c(df = length(Z))
     }
     else{
-      statistic <- c(wchisq = 2*LR)
+      statistic <- c(wchisq = 2 * LR)
       Z <- eigen(W)$values
-      print(Z)
-      q1 <- qwchisq(0.95,Z)
-      q2 <- qwchisq(0.05,Z)
+      q1 <- qwchisq(0.95, Z)
+      q2 <- qwchisq(0.05, Z)
       pval <- pwchisq(statistic, Z)
-      alternative <- c("je sais pas")
+      alternative <- ""
       parameter <- c(df = length(Z))
     }
   }
@@ -123,7 +122,7 @@ vuongtest <- function(x, y,
                  method = method,
                  p.value = pval,
                  data.name = data.name,
-                 alternative = alternative,
+#                 alternative = alternative,
                  parameter = parameter)
   class(result) <- "htest"
   result
