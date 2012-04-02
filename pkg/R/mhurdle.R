@@ -55,6 +55,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
   }
 
   start.naive <- c(rep(0.1, 1 + h1 + h3), 1)
+  if (!is.null(corr)) start.naive <- c(start.naive, 0)
   moments <- c(Pnull, Ec, Vc)
   naive <- maxLik(lnl.naive, start = start.naive,
                   dist = dist, moments = moments,
@@ -66,14 +67,14 @@ mhurdle <- function(formula, data, subset, weights, na.action,
   #  Special cases where the models can be estimated directly, without
   #  relevant starting values
   
-  # model (1, 2), no censure, estimate the log-linear or truncated
+  # model (1l 1t), no censure, estimate the log-linear or truncated
   # model
   if (!h1 && !h3 && dist != "n"){
     if (dist == "l") result <- lm( log(y) ~ X2 - 1)
     if (dist == "t") result <- truncreg(y ~ X2 - 1)
     return(result)
   }
-  # models (3i, 4i) h1 without corr, can be estimated simply in two
+  # models (2li, 2ti) h1 without corr, can be estimated simply in two
   # parts using fit.simple.mhurdle() used as starting values for (3d,
   # 4d)
   if (h1 && !h3 &&  dist != "n" && is.null(corr)){
@@ -85,11 +86,11 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     return(result)
   }
 
-  #  Compute the starting values if not provided
+  # Compute the starting values if not provided
   if (is.null(start)) start <- start.mhurdle(X1, X2, X3, y, dist, corr)
   # Fit the model
   result <- mhurdle.fit(start, X1, X2, X3, y,
-                        gradient = TRUE, fit = FALSE, score = FALSE,
+                        gradient = TRUE, fit = FALSE,
                         dist = dist, corr = corr, ...)
   result$naive <- naive
   result$call <- cl.save
@@ -101,7 +102,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
 }
 
 mhurdle.fit <- function(start, X1, X2, X3, y, gradient = FALSE, fit = FALSE,
-                        score = FALSE, dist = c("l","n","t"), corr = FALSE, ...){
+                        dist = c("l","n","t"), corr = NULL, ...){
 
   start.time <- proc.time()
   if (!is.null(corr)) other.coef <- c("sigma", "rho")
@@ -112,12 +113,8 @@ mhurdle.fit <- function(start, X1, X2, X3, y, gradient = FALSE, fit = FALSE,
   h1 <- K1 > 0
   h3 <- K3 > 0
 
-  s <- function(param) attr(mhurdle.lnl(param, X1 = X1, X2 = X2, X3 = X3, y = y,
-                                   gradient = FALSE, fit = FALSE, score = TRUE,
-                                   dist = dist, corr = corr),
-                            "score")
   f <- function(param) mhurdle.lnl(param, X1 = X1, X2 = X2, X3 = X3, y = y,
-                              gradient = TRUE, fit = FALSE, score = FALSE,
+                              gradient = TRUE, fit = FALSE,
                               dist = dist, corr = corr)
 
   check.gradient <- FALSE
@@ -137,8 +134,10 @@ mhurdle.fit <- function(start, X1, X2, X3, y, gradient = FALSE, fit = FALSE,
   maxl <- maxLik(f, start = start,...)
   coefficients <- maxl$estimate
   logLik <- f(coefficients)
+  gradi <- attr(logLik, "gradi")
   attr(logLik,"df") <- length(coefficients)
   attr(logLik, "y") <- y
+  attr(logLik, "gradi") <- NULL
   hessian <- maxl$hessian
   fitted <- compute.fitted.mhurdle(coefficients, X1, X2, X3, dist, corr)
   convergence.OK <- maxl$code <= 2
@@ -146,14 +145,6 @@ mhurdle.fit <- function(start, X1, X2, X3, y, gradient = FALSE, fit = FALSE,
   elaps.time <- proc.time() - start.time
   nb.iter <- maxl$iterations
   eps <- grad.conv%*%solve(-maxl$hessian)%*%grad.conv
-  if (!is.null(corr) && h1){
-    rho <-attr(mhurdle.lnl(
-                           coefficients, X1 = X1, X2 = X2, X3 = X3, y = y,
-                           gradient = FALSE, fit = FALSE, score = TRUE,
-                           dist = dist, corr = corr),
-               "score")
-  }
-  else rho <- NULL
   est.stat <- list(elaps.time = elaps.time,
                    nb.iter = nb.iter,
                    eps = eps,
@@ -169,18 +160,16 @@ mhurdle.fit <- function(start, X1, X2, X3, y, gradient = FALSE, fit = FALSE,
                  vcov          = - solve(maxl$hessian),
                  fitted.values = fitted,
                  logLik        = logLik,
-                 gradient      = grad.conv,
+                 gradient      = gradi,
                  formula       = NULL,
                  model         = NULL,
                  coef.names    = coef.names,
-                 rho           = rho,
                  call          = NULL,
                  est.stat      = est.stat,
                  naive         = NULL
                  )
   if (ncol(X2) > 1) class(result) <- c("mhurdle","maxLik")
   result
-
 }
 
 describe <- function(x, which){
@@ -196,7 +185,7 @@ describe <- function(x, which){
 start.mhurdle <- function(X1, X2, X3, y, dist, corr){
   h1 <- !is.null(X1)
   h3 <- !is.null(X3)
-  # for models (3d, 4d), estimates of models (3i, 4i) which can be
+  # for models (2ld, 2td), estimates of models (2li, 2ti) which can be
   # estimated simply in two parts using fit.simple.mhurdle() are used
   # as starting values
   if (h1 && !h3 &&  dist != "n"){
@@ -204,16 +193,16 @@ start.mhurdle <- function(X1, X2, X3, y, dist, corr){
     start <- c(result$coefficients, 0.1)
   }
 
-  # model (5) tobit : use linear model as starting values
+  # model (3) tobit : use linear model as starting values
   if (!h1 && !h3 &&  dist == "n"){
     lin <- lm(y ~ X2 - 1)
     start <- c(coef(lin), summary(lin)$sigma)
   }
   
-  # model (6, 7, 11) h3 whithout h1
+  # model (4, 7) h3 whithout h1
   if (!h1 && h3){
-    probit <- glm( (y != 0) ~ X3 - 1, family = binomial(link='probit'))
-    bX3 <- as.numeric(crossprod(coef(probit),t(X3)))
+    probit <- glm( (y != 0) ~ X3 - 1, family = binomial(link = 'probit'))
+    bX3 <- as.numeric(crossprod(coef(probit), t(X3)))
     Phi3 <- pnorm(bX3)
     yPP <- y * Phi3
     lin <- switch(dist,
@@ -225,18 +214,15 @@ start.mhurdle <- function(X1, X2, X3, y, dist, corr){
     else start <- c(coef(lin)[- length(coef(lin))], coef(probit), coef(lin)[length(coef(lin))])
     if (!is.null(corr)) start <- c(start, 0.1)
   }
-  
-  # model (8), double hurdle use model (3i) as starting values
+
+  # model (5), double hurdle use model (3i) as starting values
   if (h1 && !h3 && dist == "n"){
-    ## beta1 <- coef(glm(y>0~S[, -1], family=binomial(link='probit')))
-    ## beta2 <- coef(truncreg(y~X[, -1], subset = y > 0))
-    ## start <- c(beta1, beta2)
     result <- fit.simple.mhurdle(X1, X2, y, dist = dist)
     start <- result$coefficients
     if (!is.null(corr)) start <- c(start, 0.1)
   }
   
-  # model (9, 10, 12)
+  # model (6 and 8)
   if (h1 && h3){
     probit.h3 <- glm( (y != 0) ~ X3 - 1, family = binomial(link = 'probit'))
     probit.h1 <- glm( (y != 0) ~ X1 - 1, family = binomial(link = 'probit'))
@@ -262,3 +248,12 @@ start.mhurdle <- function(X1, X2, X3, y, dist, corr){
   start
 }
 
+
+  ## V <- 1985.696
+  ## P1 <- 0.783
+  ## yb <- 19.553
+
+  ## za <- function(b2){
+  ##   s <- sqrt( V + (yb - b2)^2 + (yb - b2) )
+  ##   (yb-b2)/s - dnorm(b2/s) / pnorm(b2/s)
+  ## }

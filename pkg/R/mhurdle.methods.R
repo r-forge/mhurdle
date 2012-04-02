@@ -1,15 +1,3 @@
-sumrho <- function(x){
-  ScoreTest <- x['prime']/sqrt(-x['second'])
-  names(ScoreTest) <- "z"
-  ImpliedRho <- -x['prime']/x['second']
-  ScoreTest <- list(statistic = ScoreTest,
-                    p.value = 1 - pnorm(ScoreTest),
-                    method = "Score Test"
-                    )
-  class(ScoreTest) <- "htest"
-  list(test = ScoreTest, value = ImpliedRho)
-}
-
 nm.mhurdle <- function(object,
                        which = c("all", "h1", "h3", "h2", "other", "sigma", "rho"),
                        ...){
@@ -167,8 +155,8 @@ summary.mhurdle <- function (object,...){
   CoefTable <- cbind(b,std.err,z,p)
   colnames(CoefTable) <- c("Estimate","Std. Error","t-value","Pr(>|t|)")
   object$CoefTable <- CoefTable
-  object$r.squared <- c(regression = r.squared(object, type = "regression"),
-                        mcfadden = r.squared(object, type = "mcfadden"))
+  object$rsq <- c(coefdet = rsq(object, type = "coefdet"),
+                  lratio  = rsq(object, type = "lratio"))
   class(object) <- c("summary.mhurdle","mhurdle")
   return(object)
 }
@@ -196,19 +184,10 @@ print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
             signif(logLik(x),digits),
             " on ",df," Df\n",sep=""))
 
-  if (!is.null(x$rho)){
-    rhotest <- sumrho(x$rho)
-    cat("rho: ")
-#    cat(paste("implied value :", round(rhotest$value,3)," ",sep=""))
-    z <- 
-    cat(paste("score test : z = ", round(rhotest$test$statistic,3),
-              " (p.value = ",round(rhotest$test$p.value,3),")\n",sep=""))
-  }
-
   cat("\nR^2 :\n")
-  rs <- x$r.squared
-  cat(paste(" McFadden   :", signif(rs['mcfadden'], digits), "\n"))
-  cat(paste(" Regression :", signif(rs['regression'], digits), "\n"))
+  rs <- x$rsq
+  cat(paste(" Coefficient of determination :", signif(rs['coefdet'], digits), "\n"))
+  cat(paste(" Likelihood ratio index       :", signif(rs['lratio'], digits), "\n"))
   invisible(x)
 }
 
@@ -268,7 +247,7 @@ compute.fitted.mhurdle <- function(param, X1, X2, X3, dist, corr){
   }
   
   sigma <- param[K1 + K2 + K3 + 1]
-  bX2 <- as.numeric(crossprod(t(X2),beta2))
+  bX2 <- as.numeric(crossprod(t(X2), beta2))
   Phi2 <- pnorm(bX2 / sigma)
   phi2 <- dnorm(bX2 / sigma)
 
@@ -290,7 +269,6 @@ compute.fitted.mhurdle <- function(param, X1, X2, X3, dist, corr){
   }
   Phi12 <- mypbivnorm(bX1, bX2 / sigma, rho1)
   Phi23 <- mypbivnorm(bX2 / sigma, bX3, rho3)
-  
   prob.null <- switch(dist,
                       "t" = 1 - Phi12$f * Phi23$f / Phi2 ^ 2,
                       "n" = 1 - Phi12$f * Phi23$f / Phi2,
@@ -299,8 +277,8 @@ compute.fitted.mhurdle <- function(param, X1, X2, X3, dist, corr){
   
   # (2i) et (2d)
   if ( (dist == "l") && h1 && !h3){
-    if (is.null(corr)) esp.cond <- exp(bX2 + 0.5 * sigma^2 * (1 - rho1 ^ 2) )
-    else esp.cond <- exp(bX2 + 0.5 * sigma^2 * (1 - rho1 ^ 2) ) * psylog(bX1, rho1 * sigma) / Phi1
+    if (is.null(corr)) esp.cond <- exp(bX2 + 0.5 * sigma^2)
+    else esp.cond <- exp(bX2 + 0.5 * sigma^2) * pnorm(bX1 + sigma * rho1) / Phi1
   }
 
   # (2ti) et (2td)
@@ -315,8 +293,8 @@ compute.fitted.mhurdle <- function(param, X1, X2, X3, dist, corr){
   
   # (4)
   if ( (dist == "l") && !h1 && h3){
-    if (is.null(corr)) esp.cond <- exp(bX2 + 0.5 * sigma^2 * (1 - rho3 ^ 2) ) / Phi3
-    else esp.cond <- exp(bX2 + 0.5 * sigma^2 * (1 - rho3 ^ 2)) *  psylog(bX3, rho3 * sigma) / Phi3
+    if (is.null(corr)) esp.cond <- exp(bX2 + 0.5 * sigma^2) / Phi3
+    else esp.cond <- exp(bX2 + 0.5 * sigma^2) * pnorm(bX3 + sigma * rho3) / Phi3 ^ 2
   }
     
   # (4t)
@@ -327,16 +305,23 @@ compute.fitted.mhurdle <- function(param, X1, X2, X3, dist, corr){
   
   # (5i) et (5d)
   if ( (dist == "n") && h1 && !h3){
-    if (is.null(corr)) esp.cond <- bX2 + sigma * mills(bX2 / sigma)
-    else esp.cond <- bX2 + sigma * psy(bX1, bX2 / sigma, rho1) / Phi12$f
+
+    if (is.null(corr)){
+      esp.cond <- bX2 + sigma * mills(bX2 / sigma)
+    }
+    else{
+      esp.cond <- bX2 + sigma * (rho1 * phi1 * pnorm( (bX2 / sigma - rho1 * bX1) / sqrt(1 - rho1^2)) +
+                                 phi2 * pnorm((bX1 - rho1 * bX2 / sigma) / sqrt(1 - rho1^2))) /
+                                   Phi12$f
+    }
   }
-    
+
   # (6)
   if ( (dist == "l") && h1 && h3){
-    if (is.null(corr)) esp.cond <- exp(bX2 + 0.5 * sigma^2)
+    if (is.null(corr)) esp.cond <- exp(bX2 + 0.5 * sigma^2) / Phi3
     else{
-      if (corr == "h1") esp.cond <- exp(bX2 + 0.5 * sigma^2 * (1 - rho1 ^ 2)) * psylog(bX1, rho1 * sigma) / Phi1
-      if (corr == "h3") esp.cond <- exp(bX2 + 0.5 * sigma^2 * (1 - rho1 ^ 2)) * psylog(bX3, rho3 * sigma) / Phi3
+      if (corr == "h1") esp.cond <- exp(bX2 + 0.5 * sigma^2) * pnorm(bX1 + sigma * rho1) / pnorm(bX1) / pnorm(bX3)
+      if (corr == "h3") esp.cond <- exp(bX2 + 0.5 * sigma^2) * pnorm(bX3 + sigma * rho3) / pnorm(bX3) ^ 2
     }
   }
 
@@ -347,20 +332,28 @@ compute.fitted.mhurdle <- function(param, X1, X2, X3, dist, corr){
 
   # (7)
   if ( (dist == "n") && !h1 && h3){
-    if (is.null(corr)) esp.cond <- (bX2 + sigma * mills(bX2 / sigma)) / Phi3
-    else esp.cond <- (bX2 + sigma * psy(bX3, bX2 / sigma, rho3) / Phi23$f) / Phi3
+    if (is.null(corr)) esp.cond <- bX2 / Phi3  + sigma * mills(bX2 / sigma) / Phi3
+    else esp.cond <- bX2 / Phi3 + sigma * ( rho3 * sigma * pnorm( (bX2 / sigma - rho3 * bX3) / sqrt(1 - rho3^2)) +
+                                           phi2 * pnorm( (bX3 - rho3 * bX2 / sigma) / sqrt(1 - rho3^2))) /
+                                             Phi23$f
   }
   
   # (8)
   if ( (dist == "n") && h1 && h3){
-    if (is.null(corr)) esp.cond <- (bX2 + sigma * mills(bX2 / sigma)) / Phi3
+    if (is.null(corr)) esp.cond <- bX2 / Phi3 + sigma * mills(bX2 / sigma) / Phi3
     else{
-      if (corr == "h1") esp.cond <- (bX2 + sigma * psy(bX1, bX2 / sigma, rho1) / Phi12$f) / Phi3
-      if (corr == "h3") esp.cond <- (bX2 + sigma * psy(bX2 / sigma, bX3, rho3) / Phi23$f) / Phi3
+      if (corr == "h1") esp.cond <- bX2 / Phi3 + sigma * (rho1 * phi1 * pnorm( (bX2 / sigma - rho1 * bX1) / sqrt(1 - rho1^2)) +
+            phi2 * pnorm((bX1 - rho1 * bX2 / sigma) / sqrt(1 - rho1^2))) / Phi12$f / Phi3
+                                   
+        
+      
+      if (corr == "h3") esp.cond <- bX2 / Phi3 + sigma * ( rho3 * sigma * pnorm( (bX2 / sigma - rho3 * bX3) / sqrt(1 - rho3^2)) +
+            phi2 * pnorm( (bX3 - rho3 * bX2 / sigma) / sqrt(1 - rho3^2))) /
+              Phi23$f / Phi3
     }          
   }
-  result <- cbind(zero     = prob.null,
-                  positive = esp.cond)
+  result <- cbind("P(y=0)"     = prob.null,
+                  "E(y|y>0)"   = esp.cond)
   result
 }
 
@@ -426,8 +419,8 @@ fitted.mhurdle <- function(object, which = c("all", "zero", "positive"), ...){
   which <- match.arg(which)
   switch(which,
          all      = cbind(
-           "zero" = object$fitted.values[,1],
-           "positive" = object$fitted.values[,2]
+           "P(y=0)" = object$fitted.values[,1],
+           "E(y|y>0)" = object$fitted.values[,2]
            ),
          zero = object$fitted.values[,1],
          positive = object$fitted.values[,2]
@@ -464,4 +457,5 @@ print.est.stat <- function(x, ...){
   }
   else cat(paste(x$code, "\n"))
 }
+
 

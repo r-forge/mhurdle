@@ -1,11 +1,10 @@
-
-
 ############################################################
 ## les fonctions donnant les quantiles et les proba pour la
 ## loi des Khi Deux pondérés
 ############################################################
 
 pwchisq <- function(q, weights, lower.tail = TRUE, n = 1000){
+  set.seed(100)
   K <- length(weights)
   e <- matrix(rnorm(n * K) ^ 2, n, K)
   wcs <- apply(e, 1, function(x) sum(x * weights))
@@ -20,109 +19,133 @@ qwchisq <- function(p, weights, lower.tail = TRUE, n = 1000){
   ifelse(lower.tail, quantile(wcs, p), quantile(wcs, 1 - p))
 }  
 
-##########################################################
-## Fonction Vuong 2 qui permet l'ensemble des tests 
-## pour modèles emboîtés, non emboîtés et partiellement
-## emboîtés, avec ou sans hypothèse vraie a priori
-##########################################################
-
 vuongtest <- function(x, y,
-                      type = c("non.nested", "nested", "overlapping"),
-                      hyp = FALSE){
+                      type = c("non-nested", "nested", "overlapping"),
+                      hyp = FALSE,
+                      variance = c("centered", "uncentered"),
+                      matrix = c("large", "reduced")
+                      ){
   type <- match.arg(type)
+  variance <- match.arg(variance)
+  matrix <- match.arg(matrix)
+
+  if (matrix == "reduced" && type != "nested")
+    stop("the reduced matrix is only relevant for nested models")
+  
   data.name <- c(
                  paste(deparse(substitute(x))),
                  paste(deparse(substitute(y)))
                  )
   set.seed(100)
 
-  ## for convenience, call x the larger model
-  ##   if (length(coef(x)) < length(coef(y))){
-  ##     oldy <- y
-  ##     y <- x
-  ##     x <- oldy
-  ##   }  
-  lx <- as.numeric(x$logLik)
-  ly <- as.numeric(y$logLik)
-  logLx <- sum(lx)
-  logLy <- sum(ly)
-  Kx <- length(coef(x))
-  Ky <- length(coef(y))
-  n <- length(lx)
+  ###  for convenience, call f the larger model and g the other one if
+  ###  the models are nested, else call the first model f and g for
+  ###  consistency with vuong paper. Check also that the models are
+  ###  really nested, otherwise break
+  f <- x
+  g <- y
+  if (type == "nested"){
+    if (length(coef(x)) < length(coef(y))){
+      f <- y
+      g <- x
+    }
+    nestedOK <- prod(names(coef(g)) %in% names(coef(f)))
+    if (! nestedOK || (length(coef(f)) == length(coef(g)) ))
+        stop("the two models are not nested")
+  }
+
+  lf <- as.numeric(f$logLik) ; lg <- as.numeric(g$logLik)
+  logLf <- sum(lf)           ; logLg <- sum(lg)
+  Kf <- length(coef(f))      ;  Kg <- length(coef(g))
+  n <- length(lf)
   
-  if (length(ly) != length(lx))
-    stop("the number of observations of the two models differ")
+  if (length(lg) != length(lf)) stop("the number of observations of the two models differ")
+
+  gradf <- f$gradient
+  gradg <- g$gradient
+  Bf <- crossprod(gradf) / n
+  Bg <- crossprod(gradg) / n
+  Bfg <- t(gradf) %*% gradg / n
+  Af1 <- - vcov(f) * n
+  Ag1 <- - vcov(g) * n
   
-  LR <- logLx - logLy
-  w2 <- 1 / n * sum((lx - ly) ^ 2) - (1 / n * LR) ^ 2
+  ### compute the likelihood ratio
+  LR <- logLf - logLg
   
-  if (type == "non.nested"){
-    statistic <- c(z = LR / sqrt(n * w2))
-    alternative <- ifelse(statistic > 0,
-                          "The first model is better",
-                          "The second model is better")
-    method <- "Vuong Test (non-nested)"
-    pval <- pnorm(abs(statistic), lower.tail = FALSE)
-    parameter <- NULL
+  ### compute the variance
+  w2 <- ifelse(variance == "centered",
+               1 / n * sum( (lf - lg) ^ 2) - (1 / n * LR) ^ 2,
+               1 / n * sum( (lf - lg) ^ 2)
+               )
+               
+
+  #### construct the large or reduced matrix and its eigen values
+  if (matrix == "large"){
+    W <- rbind(cbind( -     Bf %*% Af1,  - Bfg %*% Ag1),
+               cbind(   t(Bfg) %*% Af1,   Bg  %*% Ag1)
+               )
+    Z <- eigen(W)$values
   }
   else{
-    gradx <- attr(x$logLik, "gradi")
-    grady <- attr(y$logLik, "gradi")
-    BF <- t(gradx) %*% gradx / n
-    BG <- t(grady) %*% grady / n
-    AF <- -solve(vcov(x)) / n
-    AG <- -solve(vcov(y)) / n
+    common.coef <- names(coef(f)) %in% names(coef(g))
+    D <- t(diag(1, Kf)[common.coef, ])
+    W <- Bf %*% (D %*% Ag1 %*% t(D) - Af1)
+    Z <- eigen(W)$values
   }
+
+  ### non nested test ; only the version with wrong specification
+  ### hypothesis is implemented
+  if (type == "non-nested"){
+    if (hyp) stop("this non-nested test is not implemented")
+    statistic <- c(z = LR / sqrt(n * w2))
+    method <- "Vuong Test (non-nested)"
+    # if the stat is negative, the p-value is the lower tail,
+    # otherwise it is the upper tail
+    lower.tail <- statistic < 0
+    pval <- pnorm(statistic, lower.tail = lower.tail)
+    parameter <- NULL
+  }
+
+  ### nested test
   if (type == "nested"){
-    if (Kx == Ky) stop("the two models are not nested")
-    nestedOK <- prod(names(coef(y)) %in% names(coef(x)))
-    if (! nestedOK || (Kx == Ky)) stop("the two models are not nested")
-    parameter <- c(df = Kx - Ky)
-    statistic <- 2 * LR
     method <- "Vuong Test (nested)"
-    alternative <- "The larger model is better"
+    statistic <- 2 * LR
     if (! hyp){
+      parameter <- c(df = sum(Z))
       names(statistic) <- "wchisq"
-      common.coef <- names(coef(x)) %in% names(coef(y))
-      trans <- diag(1, Kx)[common.coef, ]
-      W <- BF %*% (t(trans) %*% solve(AG) %*% trans - solve(AF))
-      Z <- eigen(W)$values
       pval <- pwchisq(statistic, Z, lower.tail = FALSE)
     }
     else{
+      parameter <- c(df = Kf - Kg)
       names(statistic) <- "chisq"
       pval <- pchisq(statistic, parameter, lower.tail = FALSE)
     }
   }
+
+  #### overlapping test
   if (type == "overlapping"){
-    BFG <- t(gradx) %*% grady / n
-    BGF <- t(grady) %*% gradx / n
-    W <- rbind(cbind(- BF %*% solve(AF), - BFG %*% solve(AG)),
-               cbind(- BGF %*% solve(AF), - BG %*% solve(AG))
-               )
     method <- "Vuong Test (overlapping)"
     if (! hyp){
+      ### test first the hypothesis that w^2=0
       statistic <- c(wchisq = n * w2)
-      Z <- eigen(W)$values ^ 2
-      pval <- pwchisq(statistic, Z, lower.tail = FALSE)
-      alternative <- c("two different models : use non-nested version of the Vuong test")
-      parameter <- c(df = length(Z))
+      pval <- pwchisq(statistic, Z ^ 2 , lower.tail = FALSE)
+      parameter <- c(df = sum(Z ^ 2))
     }
     else{
+      ### In this case, the LR statistic can be either positive or
+      ### negative, depending on the order of the models. The test is
+      ### two-sided so that the p-value is twice the lower tail if the
+      ### statistic is negative and twice the upper tail otherwise
       statistic <- c(wchisq = 2 * LR)
-      Z <- eigen(W)$values
-      q1 <- qwchisq(0.95, Z)
-      q2 <- qwchisq(0.05, Z)
-      pval <- pwchisq(statistic, Z)
-      alternative <- ""
-      parameter <- c(df = length(Z))
+      lower.tail <- statistic < 0
+      pval <- 2 * pwchisq(statistic, Z, lower.tail = lower.tail)
+      parameter <- c(df = sum(Z))
     }
   }
   result <- list(statistic = statistic,
                  method = method,
                  p.value = pval,
                  data.name = data.name,
-#                 alternative = alternative,
                  parameter = parameter)
   class(result) <- "htest"
   result

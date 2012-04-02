@@ -4,7 +4,7 @@ mills <- function(x) exp(dnorm(x, log = TRUE) - pnorm(x, log.p = TRUE))
 
 
 if (FALSE){
-  mypbivnorm <- function(x1, x2, rho){
+  mypbivnorm <- function(x1, x2, rho = 0){
     if (is.null(x1) &&  is.null(x2)) result <- list(f = 1, a = 0, b = 0, rho = 0, rho.rho = 0)
     if (is.null(x1) && !is.null(x2)) result <- list(f = pnorm(x2), a = 0, b = dnorm(x2), rho = 0, rho.rho = 0)
     if (is.null(x2) && !is.null(x1)) result <- list(f = pnorm(x1), a = dnorm(x1), b = 0, rho = 0, rho.rho = 0)
@@ -28,7 +28,7 @@ if (FALSE){
     result
   }
 } else {
-  mypbivnorm <- function(x1, x2, rho){
+  mypbivnorm <- function(x1, x2, rho = 0){
     if (is.null(x1) &&  is.null(x2)) result <- list(f = 1, a = 0, b = 0, rho = 0, rho.rho = 0)
     if (is.null(x1) && !is.null(x2)) result <- list(f = pnorm(x2), a = 0, b = dnorm(x2), rho = 0, rho.rho = 0)
     if (is.null(x2) && !is.null(x1)) result <- list(f = pnorm(x1), a = dnorm(x1), b = 0, rho = 0, rho.rho = 0)

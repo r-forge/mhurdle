@@ -1,4 +1,4 @@
-export(mhurdle, r.squared, vuongtest, simhurdle)
+export(mhurdle, rsq, vuongtest, simhurdle)
 import(Formula)
 import(pbivnorm)
 import(truncreg)

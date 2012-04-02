@@ -61,33 +61,33 @@ E-mail: \email{stephane.hoareau@univ-reunion.fr}
 %% need no \usepackage{Sweave.sty}
 
 \Abstract{ \pkg{mhurdle} is a package for \proglang{R} enabling the
-  estimation of a wide set of regression models were the dependent
+  estimation of a wide set of regression models where the dependent
   variable is left censored at zero, which is typically the case in
-  household expenditure surveys.  This kind of models are called
-  limited dependent or \emph{Tobit} models in the econometric
-  literature and are of particular interest to explain the presence of
-  a large proportion of zero observations for the dependent variable
-  by means of up to three economic mechanisms, namely: a good
-  selection mechanism (hurdle 1), a desired consumption
-  mechanism (hurdle 2) and a purchasing mechanism (hurdle 3).
-  TO BE COMPLETED}
+  household expenditure surveys.  These models are of particular
+  interest to explain the presence of a large proportion of zero
+  observations for the dependent variable by means of up to three
+  censoring mechanisms, called hurdles. For the analysis of censored
+  household expenditure data, these hurdles express a good
+  selection mechanism, a desired consumption mechanism and a purchasing
+  mechanism, respectively. \pkg{mhurdle} models are specified in a
+  fully parametric form and estimated using the maximum likelihood
+  method for random samples. Model evaluation and selection are tackled
+  by means of goodness of fit measures and Vuong tests. Software rationale
+  and user's guidelines are presented and illustrated with actual examples.}
 
-\Keywords{ limited dependent variable, Tobit models, household
-  expenditures models, maximum likelihood estimation, Vuong tests for
-  model selection \proglang{R}.}
+\Keywords{households' expenditure survey analysis, censored regression models,
+hurdle models, maximum likelihood estimation, nonlinear goodness of fit measures,
+Vuong tests for model selection, \proglang{R}}
 
-\Plainkeywords{limited dependent variable, maximum likelihood
-  estimation, goodness of fit measures, Vuong tests for model
-  selection, R}
+\Plainkeywords{households' expenditure survey analysis, censored regression models,
+hurdle models, maximum likelihood estimation, nonlinear goodness of fit measures,
+Vuong tests for model selection, R}
 
 \begin{document}
 
-<<echo=FALSE,results=hide>>=
-options(prompt= "R> ", useFancyQuotes = FALSE)
-@
-
 
 \maketitle
+
 
 
 
@@ -108,9 +108,9 @@ which are implemented in \proglang{R} with the \pkg{survival} package
 of \citet{SURVA/08}. It has also close links with the problem of
 selection bias, for which some methods are implemented in the
 \pkg{sampleSelection} package of \citet{TOOME/HENNI/08}. It is also
-worth mentioning that a convenient interface to survreg(), called
-tobit(), particularly aimed at econometric applications is available
-in the AER package of \citet{KLEI/ZEIL/08}.
+worth mentioning that a convenient interface to \code{survreg}, called
+\code{tobit}, particularly aimed at econometric applications is
+available in the AER package of \citet{KLEI/ZEIL/08}.
 
 In applied microeconometrics, different decision mechanisms have been
 put forward to explain the appearance of zero expenditure
@@ -130,21 +130,40 @@ following three zero expenditure generating mechanisms.
   because he dislikes them (like meet for vegetarians or wine for non
   drinker people) or he considers them harmful (like alcohol,
   cigarettes, inorganic food, holidays in dangerous countries), among
-  others.
+  others.\\
+  This censoring mechanism has been introduced in empirical demand
+  analysis by \citet{CRAGG/71}. It allows to account for the non
+  consumption of a good as a consequence of a fundamentally non
+  economic decision motivated by ethical, psychological or social
+  considerations altering the consumer preferences.
 
 \item[A desired consumption mechanism (hurdle 2)]. According to this
   mechanism, once a good has been selected, the consumer decides at
   which level he desires to consume it and, as a consequence of his
   preferences, resources and selected good prices, its rational
   decision can turn out to be a negative desired consumption level
-  leading to a nil consumption.
+  leading to a nil consumption.\\
+  The use of this mechanism to explain the presence of zero observations
+  in family expenditure surveys originates in Tobin (1958). Its theoretical
+  relevance has been later rationalized by the existence of corner
+  solutions to the microeconomic problem of rational choice of the
+  neoclassical consumer. See section 10.2 of \citet{AMEM/85}, for an
+  elementary presentation of this issue, and chapter 4 of \citet{PUDNEY/89},
+  for a more comprehensive one.
 
 \item[A purchasing mechanism (hurdle 3)]. According to this mechanism,
   once a consumption decision has been taken, the consumer set up the
   schedule at which to buy the good and, as a consequence of its
   purchasing strategy, zero expenditure may be observed if the survey
   by which these data are collected is carried out over a too short
-  period with respect to the frequency at which the good is bought.
+  period with respect to the frequency at which the good is bought.\\
+  This censoring mechanism has been introduced in empirical demand
+  analysis by \citet{DEATO/IRISH/84}. It allows to account for the non
+  purchase of a good not because the good is not consumed but because it is
+  a durable or a storable good infrequently bought. By the same token,
+  this mechanism allows to derive from observed expenditures, the rate
+  of use of a durable good or the rate of consumption of a stored
+  non durable good.
 \end{description}
 
 For each of these censoring mechanisms, a continuous latent variable
@@ -156,18 +175,42 @@ different latent variables.  By combining part or the whole set of
 these censoring mechanisms, we generate a set of non-nested parametric
 models that can be used to explain censored expenditure data depending
 on the structural censoring mechanisms that a priori information
-suggests to be at work. Estimation and inference of these models are
-tackled within a maximum likelihood framework and implemented in
-\proglang{R} .
+suggests to be at work.
 
-\begin{verbatim}
-******************************************************************************
-ADD SUGGESTIONS:
-REVIEW1-C2: about the danger of misspecification and recent
-progresses in nonparametric approaches.
-REVIEW2-GC4 & EDITOR-M5: About the scope of applications.
-******************************************************************************
-\end{verbatim}
+It is worth mentioning that, although this formal model has been primarily
+developed to deal with censored household expenditure data, its practical
+scope is not bound to empirical demand analysis. A quite natural other
+area of application is represented by the empirical analysis of individual's
+labour supply. Indeed, in this context hurdle 1 can be reinterpreted as a
+non economic mechanism of individual's labour market participation; hurdle 2
+as a desired working hours mechanism based on the neoclassical model of
+labour supply that can generate negative desired working hours leading to
+a nil labour supply; hurdle 3 as an unemployment mechanism explaining zero
+hours worked as a result of spells of unemployment. Note also that even
+within the realm of demand analysis, the economic interpretation of hurdles
+1, 2 and 3 may require to be adapted to the specific features of available
+data, as we illustrate by an empirical application presented at the
+end of the paper (see section~\ref{sec:examples}).
+
+Our hurdle models are specified as fully parametric models allowing
+estimation and inference within an efficient maximum likelihood
+framework. In order to identify a relevant model specification,
+goodness of fit measures for model evaluation and
+selection, as well as Vuong tests for discriminating between nested,
+strictly non nested and overlapping models have been implemented in
+\pkg{mhurdle} package. Vuong tests remarkably permit to
+compare two competing models when both, only one, or neither of them
+contain the true mechanism generating the sample of observations.
+More precisely, such tests allow assessing which of the two
+competing models is closest to the true unknown model according to
+the Kullback-Leibler information criterion. Therefore,
+such symmetric tests are not intended, as classical Neyman-Pearson
+tests, to pinpointing the chimeric true model, but to identifying
+a best parametric model specification (with respect to available
+observations) among a set of competing specifications. As a consequence,
+they can provide inconclusive results, preventing from disentangling
+some competing models, and when they are conclusive, they don't guarantee
+of identifying a relevant model specification.
 
 The paper is organized as follows: Section~\ref{sec:limdepvar}
 presents the rationale of our modeling strategy.
@@ -178,7 +221,7 @@ package. Section~\ref{sec:examples} illustrates the use of
 \pkg{mhurdle} with several examples. Section~\ref{sec:conclusion}
 concludes.
 
-\section{Modelling strategy}
+\section{Modeling strategy}
 \label{sec:limdepvar}
 
 \subsection{Model specification}
@@ -192,15 +235,15 @@ called hurdles, and a demand function.
 Each hurdle is represented by a probit model resting on one of the following three
 latent dependent variables relations:
 
-$$
+\begin{equation}\label{eq1}
 \left\{
-\begin{array}{rcl}
-  y_1^* = \beta_1^\top x_1 + \epsilon_1 \\
-  y_2^* = \beta_2^\top x_2 + \epsilon_2 \\
+\begin{array}{l}
+  y_1^* = \beta_1^\top x_1 + \epsilon_1 \\[4pt]
+  y_2^* = \beta_2^\top x_2 + \epsilon_2 \\[4pt]
   y_3^* = \beta_3^\top x_3 + \epsilon_3 \\
 \end{array}
 \right.
-$$
+\end{equation}
 
 where $x_1$, $x_2$, $x_3$ stand for column-vectors of explanatory
 variables (called covariates in the followings), $\beta_1$, $\beta_2$,
@@ -212,8 +255,9 @@ disturbances.
 \begin{itemize}
 
 \item Hurdle 1 models the household decision of selecting or not selecting the good
-  we consider as a relevant consumption good. This good selection mechanism
-  explains the outcome of a
+  we consider as a relevant consumption good, complying with household's ethical,
+  psychological and social convictions and habits.
+  This good selection mechanism explains the outcome of a
   binary choice that can be coded by a binary variable $I_1$ taking value 1
   if the household decides to enter the good on its basket of relevant consumption
   goods and 0 otherwise. The outcome of this binary choice is modeled by
@@ -226,33 +270,32 @@ disturbances.
   replaced by a singular probability choice model where $P(I_1=1)=1$ and
   $P(I_1=0)=0$.
 
-\item Hurdle 2 models the household decision of consuming or not
-  consuming the selected good, given its actual economic
-  conditions. This desired consumption mechanism explains the outcome
-  of a binary choice coded by a binary variable $I_2$ taking value 1
-  if the household decides to consume the good and 0 otherwise.  The
-  outcome of this binary choice is modeled by associating the decision
-  to consume the selected good to a positive value of its desired
-  consumption level, represented by latent variable $y_2^*$, and that
-  of not to consume the good to negative values of $y_2^*$. Therefore,
-  when this zero expenditure generating mechanism is operative, it
-  also model the level of desired consumption expenditures by means of
-  a Tobit model identifying the desired consumption expenditures to
-  the value of latent variable $y_2^*$, when it is positive,and to
-  zero, when it is negative.  Conversely, when the desired consumption
-  mechanism is inoperative, we must replace, not only the probit model
-  explaining variable $I_2$ by a singular probability choice model
-  where $P(I_2=1)=1$, but also the Tobit demand function by a demand
-  model enforcing non negative values to latent variable $y_2^*$.\ For
-  the time being, two functional forms of this demand model have been
-  programmed in \pkg{mhurdle}, namely a log-normal functional form :
+\item Hurdle 2 models the household decision of consuming or not consuming
+  the selected good, given its actual economic conditions. This desired consumption
+  mechanism explains the outcome of a binary choice coded by a binary variable $I_2$
+  taking value 1 if the household decides to consume the good and 0 otherwise.
+  The outcome of this binary choice is modeled by associating the decision
+  to consume the selected good to a positive value of its desired consumption level,
+  represented by latent variable $y_2^*$, and that of not to consume the good
+  to negative values of $y_2^*$. Therefore, when this zero expenditure generating
+  mechanism is operative, it also models the level of desired consumption expenditures
+  by means of a Tobit model identifying the desired consumption expenditures to the
+  value of latent variable $y_2^*$, when it is positive, and to zero, when it is negative.\\
+  Conversely, when the desired consumption mechanism is inoperative, implying that the
+  desired consumption cannot be a corner solution of a budget constrained problem of
+  utility maximization, we must replace not only the probit model explaining variable
+  $I_2$ by a singular probability choice model where $P(I_2=1)=1$, but also the Tobit
+  demand function by a demand model enforcing non negative values to latent variable $y_2^*$.
+  For the time being, two functional forms of this demand model have been programmed
+  in \pkg{mhurdle}, namely a log-normal functional form :
 
-  $$
+  \begin{equation}\label{eq2}
   \ln y_2^* = \beta_2^\top x_2+\epsilon_2
-  $$
+  \end{equation}
 
-  and a truncated Tobit model, defined by a linear functional form with $\epsilon_2$
-  distributed as a normal random disturbance left-truncated at $\epsilon_2 = -\beta_2^\top x_2$,
+  and a truncated Tobit model, defined by the second of the set of linear
+  relationships~(\ref{eq1}) with $\epsilon_2$ distributed as a normal random
+  disturbance left-truncated at $\epsilon_2 = -\beta_2^\top x_2$,
   as suggested by \citet{CRAGG/71}. Nevertheless, to avoid a cumbersome analytic
   presentation of our models, in the followings we consider only the log-normal
   model specification.
@@ -273,9 +316,9 @@ disturbances.
   level of expenditures $y$ to the unobserved level of consumption $y_2^*$ during
   the observation period, using the following identity:
 
-  $$
+  \begin{equation}\label{eq3}
   y = \frac{y_2^*}{P(I_3=1)} I_1 I_2 I_3 .
-  $$
+  \end{equation}
 
   When the purchasing mechanism is inoperative, the previous probit model must be
   replaced by a singular probability choice model where $P(I_3=1)=1$.
@@ -297,6 +340,11 @@ Figure 1 outlines the full set of special models that can be generated
 by selecting which of these three mechanisms are in effect and which are not.
 It shows that 8 different models can be dealt with the \pkg{mhurdle}
 package.
+
+\begin{sidewaysfigure}
+\caption{\label{arbre2} The full set of mhurdle special models.}
+  \includegraphics[width=20cm,height=17cm]{typo1.pdf}
+\end{sidewaysfigure}
 
 Among these models, one is not concerned by censored data, namely model 1.
 This model is relevant only for modeling uncensored samples. All the
@@ -330,11 +378,6 @@ This model explains censored purchases either as the result of good
 rejection (hurdle 1), negative desired consumption (hurdle 2) or
 infrequent purchases (hurdle 3).
 
-\begin{figure}[!h]
-  \hspace{-1cm} \includegraphics[width=20cm,height=17cm,angle=90]{mhurdle6.pdf}
-\caption{\label{arbre2} The full set of mhurdle special models.}
-\end{figure}
-
 To derive the form of the probability distribution of the observable
 dependent variable $y$, we must specify the joint distribution of the
 random disturbances entering into the structural relations of these models.
@@ -344,31 +387,35 @@ random disturbances entering into the structural relations of these models.
 \item Models 8 and 6 are trivariate hurdle models as they involve disturbances
   $\epsilon_1$, $\epsilon_2$ and $\epsilon_3$, distributed according to the
   trivariate normal density function:
-  $$
+
+  \begin{equation}\label{eq4}
   \frac{1}{\sigma}\phi\left(\epsilon_1,\frac{\epsilon_2}{\sigma},\epsilon_3;
-  \rho_{12},\rho_{13},\rho_{23}\right)
-  $$
+  \rho_{12},\rho_{13},\rho_{23}\right),
+  \end{equation}
+
   where
+
   $$
-  \begin{array}{rcl}
-  \phi(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23})&=& \\
-  &&\frac{
-    \exp\left\{-
-      \frac{
-        (1-\rho_{23}^2)z_1^2+(1-\rho_{13}^2)z_2^2+(1-\rho_{12}^2)z_3^2
-        -2[(\rho_{12}-\rho_{13}\rho_{23})z_1z_2+(\rho_{13}-\rho_{12}\rho_{23})z_1z_3
-        +(\rho_{23}-\rho_{12}\rho_{13})z_2z_3]
-      }
-      {2\mid R\mid}
-    \right\}
-  }
-  {\sqrt{(2\pi)^3}\mid R\mid}
-  \end{array}
+  \phi(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23})={\displaystyle
+  \frac{\exp\left\{-\frac{\rho^{11}z_1^2+\rho^{22}z_2^2+\rho^{33}z_3^2
+  -2[\rho^{12}z_1z_2+\rho^{13}z_1z_3+\rho^{23}z_2z_3]}{2}\right\}}
+  {\sqrt{(2\pi)^3}\mid R\mid}},
   $$
   with
   $$
-  |R|=1-\rho_{12}^2-\rho_{13}^2-\rho_{23}^2+2\rho_{12}\rho_{13}\rho_{23}
+  |R|=1-\rho_{12}^2-\rho_{13}^2-\rho_{23}^2+2\rho_{12}\rho_{13}\rho_{23},
   $$
+  $$
+  \rho^{11}=\frac{1-\rho_{23}^2}{\mid R\mid},\quad
+  \rho^{22}=\frac{1-\rho_{13}^2}{\mid R\mid},\quad
+  \rho^{33}=\frac{1-\rho_{12}^2}{\mid R\mid},
+  $$
+  $$
+  \rho^{12}=\frac{\rho_{12}-\rho_{13}\rho_{23}}{\mid R\mid},\quad
+  \rho^{13}=\frac{\rho_{13}-\rho_{12}\rho_{23}}{\mid R\mid},\quad
+  \rho^{23}=\frac{(\rho_{23}-\rho_{12}\rho_{13})}{\mid R\mid},
+  $$
+
   denotes the density
   function of a standard trivariate normal distribution and $\rho_{12}$, $\rho_{13}$,
   $\rho_{23}$ the correlation coefficients between the couples of normal standard
@@ -379,29 +426,37 @@ random disturbances entering into the structural relations of these models.
 \item Models 7 and 4 are bivariate hurdle models as they involve disturbances
   $\epsilon_2$ and $\epsilon_3$, distributed according to the bivariate normal
   density function:
-  $$
-  \frac{1}{\sigma}\phi\left(\frac{\epsilon_2}{\sigma},\epsilon_3;\rho_{23}\right)
-  $$
+
+  \begin{equation}\label{eq5}
+  \frac{1}{\sigma}\phi\left(\frac{\epsilon_2}{\sigma},\epsilon_3;\rho_{23}\right),
+  \end{equation}
+
   where
+
   $$
   \phi(z_1,z_2;\rho)=\frac{\exp\left\{-\frac{z_1^2+z_2^2-2\rho z_1z_2}{2(1-\rho^2)}\right\}}
   {2\pi\sqrt{1-\rho^2}}
   $$
+
   denotes the density function of a standard bivariate normal distribution with
   correlation coefficient $\rho$.
 
 \item Models 5 and 2 are also bivariate hurdle models but they involve disturbances
   $\epsilon_1$ and $\epsilon_2$ which density function is therefore written as:
-  $$
+
+  \begin{equation}\label{eq6}
   \frac{1}{\sigma}\phi\left(\epsilon_1,\frac{\epsilon_2}{\sigma};\rho_{12}\right).
-  $$
+  \end{equation}
 
 \item Finally, models 3 and 1 are univariate hurdle models involving only
   disturbance $\epsilon_2$, which density function writes therefore:
-  $$
-  \frac{1}{\sigma}\phi\left(\frac{\epsilon_2}{\sigma}\right)
-  $$
+
+  \begin{equation}\label{eq7}
+  \frac{1}{\sigma}\phi\left(\frac{\epsilon_2}{\sigma}\right),
+  \end{equation}
+
   where
+
   $$
   \phi(z_1)=\frac{\exp\left\{-\frac{z_1^2}{2}\right\}}{\sqrt{2\pi}}
   $$
@@ -414,8 +469,8 @@ A priori information may also suggest to set to zero some or all
 correlations between the random disturbances entering into these
 models, entailing a partial or total independence between the
 above defined censoring mechanisms. The use of this a priori
-information generates for each trivariate or bivariate hurdle model
-of Figure 1 a subset of special models all nested within the
+information generates, for each trivariate or bivariate hurdle model
+of Figure 1, a subset of special models all nested within the
 general model from which they are derived. For a trivariate
 hurdle model the number of special models so derived is equal
 to 7, but for a bivariate hurdle model only one special model is
@@ -423,71 +478,83 @@ generated, namely the model obtained by assuming the independence
 between the two random disturbances of the model.
 
 In the followings, we shall work out the distribution of our
-hurdle models in their general case, but for their implementation
-in \proglang{R} only the special cases of independence or dependence
-between two censoring mechanisms will be considered. For
-trivariate hurdle models this dependence will be restricted to
-the pair of hurdles 1 and 2 or hurdles 2 and 3.
+hurdle models in their general case, but considering the
+difficulties of implementing trivariate hurdle models
+in their full generality, for these models only the special
+cases of independence or dependence between one of hurdles 1
+or 3 and the desired consumption equation, which seem the most
+relevant for empirical applications, have been programmed in
+\pkg{mhurdle}. The extension of our package to more general
+model specifications is in progress.
 
 \subsection{Likelihood function}
 
 As for the standard Tobit model, the probability distribution of the
 observed censored variable $y$ of our hurdle models is a
-discrete-continuous mixture, which assign a probability mass $P(y=0)$
+discrete-continuous mixture, which assigns a probability mass $P(y=0)$
 to $y=0$ and a density function $f_+(y)$ to any $y>0$, with:
 
-$$
-P(y=0)+\int_0^\infty f_+(y)dy=1
-$$
+\begin{equation}\label{eq8}
+P(y=0)+\int_0^\infty f_+(y)dy=1.
+\end{equation}
 
 The probability mass $P(y=0)=1-P(y>0)$ may be computed by integrating
 the joint density function of the latent variables entering into the
 hurdle model over their positive values.
 
 \begin{itemize}
+
 \item For trivariate hurdle model 8, using the change of variables:
-  $$
+
+  \begin{equation}\label{eq9}
   \left\{
-  \begin{array}{rcl}
-   z_1 & = & y_1^* - \beta_1^\top x_1 \\
-   z_2 & = & \frac{y_2^* - \beta_2^\top x_2}{\sigma} \\
-   z_3 & = & y_3^* - \beta_3^\top x_3 \\
+  \begin{array}{l}
+   z_1  =  y_1^* - \beta_1^\top x_1 \\[4pt]
+   z_2  =  {\displaystyle\frac{y_2^* - \beta_2^\top x_2}{\sigma}} \\[8pt]
+   z_3  =  y_3^* - \beta_3^\top x_3 \\
   \end{array}
   \right.
-  $$
+  \end{equation}
+
   this approach leads to:
-  $$
-  \begin{array}{rcl}
-  P(y=0)&=1-\int_{-\beta_1^\top x_1}^\infty \int_{-\frac{\beta_2^\top x_2}{\sigma}}^\infty
+
+  \begin{equation}\label{eq10}
+  \begin{array}{l}
+  P(y=0) ={\displaystyle 1-\int_{-\beta_1^\top x_1}^\infty \int_{-\frac{\beta_2^\top x_2}{\sigma}}^\infty
   \int_{-\beta_3^\top x_3}^\infty \phi(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23})
-  dz_1 dz_2 dz_3\\
-  &=1-\Phi(\beta_1^\top x_1,\frac{\beta_2^\top x_2}{\sigma},
-  \beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23})
+  dz_1 dz_2 dz_3}\\[16pt]
+  \phantom{P(y=0)} ={\displaystyle 1-\Phi(\beta_1^\top x_1,\frac{\beta_2^\top x_2}{\sigma},
+  \beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23})},
   \end{array}
-  $$
+  \end{equation}
+
   where $\Phi(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23})$ denotes the distribution
   function of a standard trivariate normal distribution with correlation coefficients
-  $\rho_{12}$,$\rho_{13}$ and $\rho_{23}$.
+  $\rho_{12}$, $\rho_{13}$ and $\rho_{23}$.
 
 \item For trivariate hurdle model 6, using the change of variables:
-  $$
+
+  \begin{equation}\label{eq11}
   \left\{
-  \begin{array}{rcl}
-   z_1 & = & y_1^* - \beta_1^\top x_1 \\
-   z_2 & = & \frac{\ln y_2^* - \beta_2^\top x_2}{\sigma} \\
-   z_3 & = & y_3^* - \beta_3^\top x_3 \\
+  \begin{array}{l}
+   z_1 = y_1^* - \beta_1^\top x_1 \\[4pt]
+   z_2 = {\displaystyle\frac{\ln y_2^* - \beta_2^\top x_2}{\sigma}} \\[8pt]
+   z_3 = y_3^* - \beta_3^\top x_3 \\
   \end{array}
   \right.
-  $$
+  \end{equation}
+
   this approach leads to:
-  $$
-  \begin{array}{rcl}
-  P(y=0)&=1-\int_{-\beta_1^\top x_1}^{\infty} \int_{-\infty}^\infty
+
+  \begin{equation}\label{eq12}
+  \begin{array}{l}
+  P(y=0)={\displaystyle 1-\int_{-\beta_1^\top x_1}^{\infty} \int_{-\infty}^\infty
   \int_{-\beta_3^\top x_3}^{\infty} \phi(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23})
-  dz_1 dz_2 dz_3\\
-  &=1-\Phi(\beta_1^\top x_1,\beta_3^\top x_3;\rho_{13})
+  dz_1 dz_2 dz_3}\\[16pt]
+  \phantom{P(y=0)}={\displaystyle 1-\Phi(\beta_1^\top x_1,\beta_3^\top x_3;\rho_{13})},
   \end{array}
-  $$
+  \end{equation}
+
   where $\Phi(z_1,z_2;\rho)$ denotes the distribution function of a standard
   bivariate normal distribution with correlation coefficient $\rho$.
 
@@ -497,115 +564,140 @@ hurdle model over their positive values.
   Likewise, this probability for bivariate hurdle models 4 and 2 can be derived
   from that of trivariate hurdle model 6 by eliminating hurdles 1 and 3, respectively.
   Corresponding formulas of $P(y=0)$ for all this special cases implemented in
-  \proglang{R} are presented in Table \ref{tab:typo}.
+  \proglang{R} are presented in Table \ref{tab:typo}, using the following notations:
+  $$
+  \Phi_1=\Phi(\beta_1^\top x_1),\quad \Phi_2=\Phi\left(\frac{\beta_2^\top x_2}{\sigma}\right),
+  \quad \Phi_3=\Phi(\beta_3^\top x_3),
+  $$
+  $$
+  \Phi_{12}=\left(\beta_1^\top x_1,\frac{\beta_2^\top x_2}{\sigma};\rho_{12}\right),\quad
+  \Phi_{23}=\left(\frac{\beta_2^\top x_2}{\sigma},\beta_3^\top x_3;\rho_{23}\right),
+  $$
+  where $\Phi(z)$ denotes the distribution function of a standard
+  univariate normal distribution.
+
 \end{itemize}
 
 \begin{sidewaystable}
-  \caption{Typology of the models\label{tab:typo}}\vspace{.5cm}
+  \caption{Characteristics of mhurdle special models implemented in
+  \proglang{R}\label{tab:typo}}\vspace{.5cm}
 
   \begin{tabular}{|l|lll|lll|l|l|l|}\hline\hline
 id & $h_1$ & $h_2$ & $h_3$ & $\rho_{12}$ & $\rho_{13}$ & $\rho_{23}$  & $P(y=0)$ & $f_+(y)$ & $\mbox{E}(y \mid y > 0)$\\\hline\hline
-1 &\Square&\Square&\Square&\Square&\Square&\Square& $0$ & $\frac{1}{\sigma y}\phi\left(\frac{\ln y - \beta_2^{\top}x_2}{\sigma}\right)$ & $e^{\beta_2^{\top}x_2 + 0.5\sigma^2}$\\
-2i &\CheckedBox&\Square&\Square&\Square&\Square&\Square& $1 - \Phi_1$& $\frac{1}{\sigma y}\phi\left(\frac{\ln y -\beta_2^{\top}x_2}{\sigma}\right)\Phi_1$& $e^{\beta_2^{\top} x_2 + 0.5 \sigma^2}$\\
-2d &\CheckedBox&\Square&\Square&\CheckedBox&\Square&\Square & $1 - \Phi_1$& $\frac{1}{\sigma y}\phi\left(\frac{\ln y -\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_1^{\top}x_1+\rho_{12}\frac{\ln y - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{12}^2}}\right)$ & $e^{\beta_2^{\top} x_2 + 0.5 \sigma^2(1-\rho_{12}^2)}\frac{\Psi_1}{\Phi_1}$\\
-3 &\Square&\CheckedBox&\Square&\Square&\Square&\Square& $1 - \Phi_2$ & $\frac{1}{\sigma}\phi\left(\frac{y-\beta_2^{\top}x_2}{\sigma}\right)$ & $\beta_2^{\top}x_2+\sigma\frac{\phi_2}{\Phi_2}$\\
-4i &\Square&\Square&\CheckedBox&\Square&\Square&\Square& $1 - \Phi_3$ & $\frac{\Phi_3}{\sigma y}\phi\left(\frac{\ln(\Phi_3 y)-\beta_2^{\top}x_2}{\sigma}\right)$ & $e^{\beta_2^{\top} x_2 + 0.5 \sigma^2}\frac{1}{\Phi_3}$ \\
-4d &\Square&\Square&\CheckedBox&\Square&\Square &\CheckedBox& $1 - \Phi_3$ & $\frac{1}{\sigma y}\phi\left(\frac{\ln (\Phi_3 y)-\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_3^{\top}x_3 + \rho_{23}\frac{\ln (\Phi_3 y) - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{23}^2}}\right)$  & $e^{\beta_2^{\top} x_2 + 0.5 \sigma^2(1-\rho_{23}^2)}\frac{\Psi_1}{\Phi_1}$\\
-5i &\CheckedBox&\CheckedBox&\Square&\Square&\Square&\Square& $1 - \Phi_1\Phi_2$ & $\frac{1}{\sigma}\phi\left(\frac{y-\beta_2^{\top}x_2}{\sigma}\right)\Phi_1$ & $\beta_2^{\top} x_2 + \sigma\frac{\phi_2}{\Phi_2}$\\
-5d &\CheckedBox&\CheckedBox&\Square&\CheckedBox&\Square&\Square&$1 - \Phi_{12}$ &
-$\frac{1}{\sigma}\phi\left(\frac{y-\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_1^{\top}x_1 + \rho_{12}\frac{y-\beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{12}^2}}\right)$ & $\beta_2^{\top} x_2 + \sigma\frac{\Psi_{21}}{\Phi_{12}}$\\
-6i &\CheckedBox&\Square&\CheckedBox&\Square&\Square&\Square& $1 - \Phi_1 \Phi_3$ & $\frac{1}{\sigma y}\phi\left(\frac{\ln (\Phi_3 y) -\beta_2^{\top}x_2}{\sigma}\right)\Phi_1\Phi_3$ &$e^{\beta_2^{\top}x_2+0.5 \sigma^2}$ \\
-6d1 &\CheckedBox&\Square&\CheckedBox&\CheckedBox&\Square&\Square& $1 - \Phi_1 \Phi_3$ &  $\frac{1}{\sigma y}\phi\left(\frac{(\ln \Phi_3 y) -\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_1^{\top}x_1+\rho_{12}\frac{(\ln y \Phi_3) - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{12}^2}}\right)\Phi_3$& $e^{\beta_2^{\top} x_2 + 0.5 \sigma^2(1-\rho_{12}^2)}\frac{\Psi_1}{\Phi_1}$\\
-6d3 &\CheckedBox&\Square&\CheckedBox&\Square&\Square &\CheckedBox& $1 - \Phi_1 \Phi_3$ & $\frac{1}{\sigma y}\phi\left(\frac{\ln (\Phi_3 y)-\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_3^{\top}x_3 + \rho_{23}\frac{\ln (\Phi_3 y) - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{23}^2}}\right)\Phi_1$& $e^{\beta_2^{\top} x_2 + 0.5 \sigma^2(1-\rho_{23}^2)}\frac{\Psi_3}{\Phi_3}$\\
-7i &\Square&\CheckedBox&\CheckedBox&\Square&\Square&\Square& $1 - \Phi_2 \Phi_3$& $\frac{1}{\sigma}\phi\left(\frac{\Phi_3y-\beta_2^{\top}x_2}{\sigma}\right)\Phi_3^2$& $\frac{\beta_2^{\top} x_2}{\Phi_3} +\frac{\sigma}{\Phi_3}\frac{\phi_2}{\Phi_2}$\\
-7d &\Square&\CheckedBox&\CheckedBox&\Square&\Square &\CheckedBox& $1 - \Phi_{23}$& $\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_3^{\top}x_3 + \rho_{23}\frac{\Phi_3 y - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{23}^2}}\right)$& $\frac{\beta_2^{\top} x_2}{\Phi_3} + \frac{\sigma}{\Phi_3}\frac{\Psi_{23}}{\Phi_{23}}$ \\
-8i  &\CheckedBox&\CheckedBox&\CheckedBox&\Square&\Square&\Square& $1-\Phi_1\Phi_2\Phi_3$& $\frac{\Phi_3^2}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^{\top}x_2}{\sigma}\right)\Phi_1$& $\frac{\beta_2^{\top} x_2}{\Phi_3} + \frac{\sigma}{\Phi_1}\frac{\phi_2}{\Phi_2}$ \\
-8d1 &\CheckedBox&\CheckedBox&\CheckedBox&\CheckedBox&\Square&\Square&$1 - \Phi_{12}\Phi_3$& $\frac{\Phi_3^2}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_1^{\top}x_1 + \rho_{12}\frac{\Phi_3 y - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{12}^2}}\right)$& $\frac{\beta_2^{\top} x_2}{\Phi_3} + \frac{\sigma}{\Phi_3}\frac{\Psi_{21}}{\Phi_{12}}$ \\
-8d3 &\CheckedBox&\CheckedBox&\CheckedBox&\Square&\Square &\CheckedBox&$1 - \Phi_1\Phi_{23}$& $\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_3^{\top}x_3 + \rho_{23}\frac{\Phi_3 y - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{23}^2}}\right)\Phi_1$& $\frac{\beta_2^{\top} x_2}{\Phi_3} + \frac{\sigma}{\Phi_3}\frac{\Psi_{23}}{\Phi_{23}}$  \\ \hline\hline
+1 &$\square$&$\square$&$\square$&$\square$&$\square$&$\square$& $0$ & $\frac{1}{\sigma y}\phi\left(\frac{\ln y - \beta_2^{\top}x_2}{\sigma}\right)$ & $\exp\left\{\beta_2^{\top}x_2 + \frac{\sigma^2}{2}\right\}$\\
+2i &$\blacksquare$&$\square$&$\square$&$\square$&$\square$&$\square$& $1 - \Phi_1$& $\frac{1}{\sigma y}\phi\left(\frac{\ln y -\beta_2^{\top}x_2}{\sigma}\right)\Phi_1$& $\exp\left\{\beta_2^{\top} x_2 + \frac{\sigma^2}{2}\right\}$\\
+2d &$\blacksquare$&$\square$&$\square$&$\blacksquare$&$\square$&$\square$ & $1 - \Phi_1$& $\frac{1}{\sigma y}\phi\left(\frac{\ln y -\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_1^{\top}x_1+\rho_{12}\frac{\ln y - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{12}^2}}\right)$ & $\exp\left\{\beta_2^{\top} x_2 + \frac{\sigma^2}{2}\right\}\frac{\Phi\left(\beta_1^{\top}x_1+\sigma\rho_{12}\right)}{\Phi_1}$\\
+3 &$\square$&$\blacksquare$&$\square$&$\square$&$\square$&$\square$& $1 - \Phi_2$ & $\frac{1}{\sigma}\phi\left(\frac{y-\beta_2^{\top}x_2}{\sigma}\right)$ & $\beta_2^{\top}x_2+\sigma\frac{\phi_2}{\Phi_2}$\\
+4i &$\square$&$\square$&$\blacksquare$&$\square$&$\square$&$\square$& $1 - \Phi_3$ & $\frac{1}{\sigma y}\phi\left(\frac{\ln(\Phi_3 y)-\beta_2^{\top}x_2}{\sigma}\right)\Phi_3$ & $\exp\left\{\beta_2^{\top} x_2 + \frac{\sigma^2}{2}\right\}\frac{1}{\Phi_3}$ \\
+4d &$\square$&$\square$&$\blacksquare$&$\square$&$\square$ &$\blacksquare$& $1 - \Phi_3$ & $\frac{1}{\sigma y}\phi\left(\frac{\ln (\Phi_3 y)-\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_3^{\top}x_3 + \rho_{23}\frac{\ln (\Phi_3 y) - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{23}^2}}\right)$  & $\exp\left\{\beta_2^{\top} x_2
++ \frac{\sigma^2}{2}\right\}\frac{\Phi\left(\beta_3^{\top}x_3+\sigma\rho_{23}\right)}{\Phi_3^2}$\\
+5i &$\blacksquare$&$\blacksquare$&$\square$&$\square$&$\square$&$\square$& $1 - \Phi_1\Phi_2$ & $\frac{1}{\sigma}\phi\left(\frac{y-\beta_2^{\top}x_2}{\sigma}\right)\Phi_1$ & $\beta_2^{\top} x_2 + \sigma\frac{\phi_2}{\Phi_{2}}$\\
+5d &$\blacksquare$&$\blacksquare$&$\square$&$\blacksquare$&$\square$&$\square$&$1 - \Phi_{12}$ &
+$\frac{1}{\sigma}\phi\left(\frac{y-\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_1^{\top}x_1 + \rho_{12}\frac{y-\beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{12}^2}}\right)$ & $\beta_2^{\top} x_2 + \sigma \frac{\Psi_{2|1}}{\Phi_{12}}$\\
+6i &$\blacksquare$&$\square$&$\blacksquare$&$\square$&$\square$&$\square$& $1 - \Phi_1 \Phi_3$ & $\frac{1}{\sigma y}\phi\left(\frac{\ln (\Phi_3 y) -\beta_2^{\top}x_2}{\sigma}\right)\Phi_1\Phi_3$ &$\exp\left\{\beta_2^{\top}x_2+\frac{\sigma^2}{2}\right\}\frac{1}{\Phi_3}$ \\
+6d1 &$\blacksquare$&$\square$&$\blacksquare$&$\blacksquare$&$\square$&$\square$& $1 - \Phi_1 \Phi_3$ &  $\frac{1}{\sigma y}\phi\left(\frac{(\ln \Phi_3 y) -\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_1^{\top}x_1+\rho_{12}\frac{(\ln y \Phi_3) - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{12}^2}}\right)\Phi_3$&
+$\exp\left\{\beta_2^{\top} x_2 + \frac{\sigma^2}{2}\right\}\frac{\Phi\left(\beta_1^{\top}x_1+\sigma\rho_{12}\right)}{\Phi_1\Phi_3}$\\
+6d3 &$\blacksquare$&$\square$&$\blacksquare$&$\square$&$\square$ &$\blacksquare$& $1 - \Phi_1 \Phi_3$ & $\frac{1}{\sigma y}\phi\left(\frac{\ln (\Phi_3 y)-\beta_2^{\top}x_2}{\sigma}\right)\Phi_1\Phi\left(\frac{\beta_3^{\top}x_3 + \rho_{23}\frac{\ln (\Phi_3 y) - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{23}^2}}\right)$& $\exp\left\{\beta_2^{\top} x_2
++\frac{\sigma^2}{2}\right\}\frac{\Phi\left(\beta_3^{\top}x_3+\sigma\rho_{23}\right)}{\Phi_3^2}$\\
+7i &$\square$&$\blacksquare$&$\blacksquare$&$\square$&$\square$&$\square$& $1 - \Phi_2 \Phi_3$& $\frac{1}{\sigma}\phi\left(\frac{\Phi_3y-\beta_2^{\top}x_2}{\sigma}\right)\Phi_3^2$ & $\frac{\beta_2^{\top} x_2}{\Phi_3}
++\sigma \frac{\phi_2}{\Phi_2 \Phi_3}$\\
+7d &$\square$&$\blacksquare$&$\blacksquare$&$\square$&$\square$ &$\blacksquare$& $1 - \Phi_{23}$& $\frac{1}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_3^{\top}x_3 + \rho_{23}\frac{\Phi_3 y - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{23}^2}}\right)\Phi_3$ & $\frac{\beta_2^{\top} x_2}{\Phi_3}
++ \sigma \frac{\Psi_{2|3}}{\Phi_{23}\Phi_3}$ \\
+8i  &$\blacksquare$&$\blacksquare$&$\blacksquare$&$\square$&$\square$&$\square$& $1-\Phi_1\Phi_2\Phi_3$& $\frac{1}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^{\top}x_2}{\sigma}\right)\Phi_1\Phi_3^2$& $\frac{\beta_2^{\top} x_2}{\Phi_3} + \sigma \frac{\phi_2}{\Phi_2 \Phi_3}$ \\
+8d1 &$\blacksquare$&$\blacksquare$&$\blacksquare$&$\blacksquare$&$\square$&$\square$&$1 - \Phi_{12}\Phi_3$& $\frac{1}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^{\top}x_2}{\sigma}\right)\Phi\left(\frac{\beta_1^{\top}x_1 + \rho_{12}\frac{\Phi_3 y - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{12}^2}}\right)\Phi_3^2$ & $\frac{\beta_2^{\top} x_2}{\Phi_3}
++ \sigma \frac{\Psi_{2|1}}{\Phi_{12} \Phi_3}$ \\
+8d3 &$\blacksquare$&$\blacksquare$&$\blacksquare$&$\square$&$\square$ &$\blacksquare$&$1 - \Phi_1\Phi_{23}$& $\frac{1}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^{\top}x_2}{\sigma}\right)\Phi_1\Phi\left(\frac{\beta_3^{\top}x_3 + \rho_{23}\frac{\Phi_3 y - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{23}^2}}\right)\Phi_3$ & $\frac{\beta_2^{\top} x_2}{\Phi_3}
++ \sigma \frac{\Psi_{2|3}}{\Phi_{23} \Phi_3}$  \\ \hline\hline
 \end{tabular}
+
+\vspace{.5cm}
+
+A blackened square indicates which hurdle or correlation is assumed to be at work in the model.
 
 \end{sidewaystable}
 
 The density function $f_+(y)$ may be computed by performing: first the change of
-variables
-
-$$
-y_2^* = P(I_3=1)y = \Phi(\beta_3^\top x_3)y=\Phi_3y
-$$
-
-on the joint density function of the latent variables entering into the
-hurdle model; than by integrating this transformed density function over
-the positive values of latent variables $y_1^*$ and $y_3^*$.
+variables $y_2^* = P(I_3=1)y = \Phi_3y$ on the joint density function of the
+latent variables entering into the hurdle model; than by integrating this
+transformed density function over the positive values of latent variables $y_1^*$ and $y_3^*$.
 
 \begin{itemize}
 \item For trivariate hurdle model 8 this transformed density function
   is written as:
-  $$
+
+  \begin{equation}\label{eq13}
   \frac{\Phi_3}{\sigma}\phi\left(y_1^*-\beta_1^\top x_1,\frac{\Phi_3 y-\beta_2^\top x_2}
-  {\sigma},y_3^*-\beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right)
-  $$
+  {\sigma},y_3^*-\beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right).
+  \end{equation}
+
   To perform the analytical integration of this function, it is useful
   to rewrite it as the product of the marginal distribution of $y$, namely:
-  $$
+
+  \begin{equation}\label{eq14}
   \frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)
-  $$
+  \end{equation}
+
   and of the joint density function of $y_1^*$ and $y_3^*$ conditioned
   with respect to $y$, which can be written as follows:
-  $$
+
+  \begin{equation}\label{eq15}
   \frac{1}{\sigma_{1|2}\sigma_{3|2}}\phi\left(\frac{y_1^*-\mu_{1|2}}{\sigma_{1|2}},
-  \frac{y_3^*-\mu_{3|2}}{\sigma_{3|2}}; \rho_{13|2}\right)
-  $$
+  \frac{y_3^*-\mu_{3|2}}{\sigma_{3|2}}; \rho_{13|2}\right),
+  \end{equation}
+
   with:
   $$
   \mu_{1|2}=\beta_1^\top x_1+\rho_{12}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma}, \quad
   \mu_{3|2}=\beta_3^\top x_3+\rho_{23}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma},
   $$
   $$
-  \sigma_{1|2}^2=1-\rho_{12}^2, \quad \sigma_{3|2}^2=1-\rho_{23}^2,
-  \quad
+  \sigma_{1|2}^2=1-\rho_{12}^2, \quad \sigma_{3|2}^2=1-\rho_{23}^2, \quad
   \rho_{13|2}=\frac{\rho_{13}-\rho_{12}\rho_{23}}{\sqrt{1-\rho_{12}^2}\sqrt{1-\rho_{23}^2}}.
   $$
 
   Using this factorization of the density function of $y_1^*$, $y$ and $y_3^*$,
   we obtain:
-  $$
-  \begin{array}{rcl}
-    f_+(y)&=\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)
-    \int_0^\infty\int_0^\infty \frac{1}{\sigma_{1|2}\sigma_{3|2}}\phi\left(\frac{y_1^*-\mu_{1|2}}{\sigma_{1|2}},
-      \frac{y_3^*-\mu_{3|2}}{\sigma_{3|2}}; \rho_{13|2}\right)dy_1^*dy_3^* \\
-    &=\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)
+
+
+  \begin{equation}\label{eq16}
+  \begin{array}{l}
+    f_+(y)={\displaystyle\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)}\\[12pt]
+    \phantom{f_+(y)} \times {\displaystyle\int_0^\infty\int_0^\infty \frac{1}{\sigma_{1|2}\sigma_{3|2}}\phi\left(\frac{y_1^*-\mu_{1|2}}{\sigma_{1|2}},
+    \frac{y_3^*-\mu_{3|2}}{\sigma_{3|2}}; \rho_{13|2}\right)dy_1^*dy_3^*} \\[16pt]
+    \phantom{f_+(y)}= {\displaystyle\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)
     \int_{-\frac{\mu_{1|2}}{\sigma_{1|2}}}^\infty\int_{-\frac{\mu_{3|2}}{\sigma_{3|2}}}^\infty
-    \phi(z_1,z_3;\rho_{13|2})dz_1 dz_3 \\
-    &=\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)
-    \Phi\left(\frac{\beta_1^\top x_1+\rho_{12}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma}}
-      {\sqrt{1-\rho_{12}^2}},\frac{\beta_3^\top x_3+\rho_{23}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma}}
-      {\sqrt{1-\rho_{23}^2}};\frac{\rho_{13}-\rho_{12}\rho_{23}}{\sqrt{1-\rho_{12}^2}\sqrt{1-\rho_{23}^2}}\right). \\
-      \end{array}
-      $$
+    \phi(z_1,z_3;\rho_{13|2})dz_1 dz_3} \\[8pt]
+    \phantom{f_+(y)}={\displaystyle\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)}\\[12pt]
+    \phantom{f_+(y)} \times{\displaystyle \Phi\left(\frac{\beta_1^\top x_1+\rho_{12}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma}}
+    {\sqrt{1-\rho_{12}^2}},\frac{\beta_3^\top x_3+\rho_{23}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma}}
+    {\sqrt{1-\rho_{23}^2}};\rho_{13|2}\right)}.
+  \end{array}
+  \end{equation}
+
 
 \item For trivariate hurdle model 6, we proceed as for hurdle model 8 by
-  substituting the joint normal density function of $y_1^*$, $y$ and $y_2^*$,
+  substituting the joint normal density function~(\ref{eq13}),
   by the following joint normal/log-normal density function:
 
-  $$
+  \begin{equation}\label{eq17}
   \frac{1}{\sigma y}\phi\left(y_1^*-\beta_1^\top x_1,\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}
   {\sigma},y_3^*-\beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right).
-  $$
+  \end{equation}
 
   To integrate this density function with respect to the positive values of
   $y_1^*$ and $y_2^*$, we rewrite it as the product of the marginal distribution
   of $y$, which is log-normal:
 
-  $$
+  \begin{equation}\label{eq18}
   \frac{1}{\sigma y}\phi\left(\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}\right)
-  $$
+  \end{equation}
 
-  and of the joint density function of $y_1^|y*$ and $y_3^*|y$, which is bivariate normal:
+  and of the joint density function of $y_1^*|y$ and $y_3^*|y$, which is bivariate normal:
 
-  $$
+  \begin{equation}\label{eq19}
   \frac{1}{\sigma_{1|2}\sigma_{3|2}}\phi\left(\frac{y_1^*-\mu_{1|2}}{\sigma_{1|2}},
-  \frac{y_3^*-\mu_{3|2}}{\sigma_{3|2}}; \rho_{13|2}\right)
-  $$
+  \frac{y_3^*-\mu_{3|2}}{\sigma_{3|2}}; \rho_{13|2}\right),
+  \end{equation}
   with:
   $$
   \mu_{1|2}=\beta_1^\top x_1+\rho_{12}\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}, \quad
@@ -619,17 +711,17 @@ the positive values of latent variables $y_1^*$ and $y_3^*$.
   By integrating this factorization of the density function of $y_1^*$, $y$ and $y_3^*$,
   over the positive values of $y_1^*$ and $y_3^*$, we obtain:
 
-  $$
-  \begin{array}{rcl}
-    f_+(y)&=&\frac{1}{\sigma y}\phi\left(\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}\right)
+  \begin{equation}\label{eq20}
+  \begin{array}{l}
+    f_+(y)={\displaystyle\frac{\phi\left(\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}\right)}{\sigma y}
     \int_{-\frac{\mu_{1|2}}{\sigma_{1|2}}}^\infty\int_{-\frac{\mu_{3|2}}{\sigma_{3|2}}}^\infty
-    \phi(z_1,z_3;\rho_{13|2})dz_1 dz_3 \\
-    &=&\frac{1}{\sigma y}\phi\left(\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}\right)
-    \Phi\left(\frac{\beta_1^\top x_1+\rho_{12}\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}}
+    \phi(z_1,z_3;\rho_{13|2})dz_1 dz_3} \\[8pt]
+    \phantom{f_+(y)}={\displaystyle\frac{\phi\left(\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}\right)}{\sigma y}}\\[8pt]
+    \phantom{f_+(y)}\times{\displaystyle\Phi\left(\frac{\beta_1^\top x_1+\rho_{12}\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}}
     {\sqrt{1-\rho_{12}^2}},\frac{\beta_3^\top x_3+\rho_{23}\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}}
-    {\sqrt{1-\rho_{23}^2}};\frac{\rho_{13}-\rho_{12}\rho_{23}}{\sqrt{1-\rho_{12}^2}\sqrt{1-\rho_{23}^2}}\right) \\
-    \end{array}
-    $$
+    {\sqrt{1-\rho_{23}^2}};\rho_{13|2}\right)}.
+  \end{array}
+  \end{equation}
 
 \item The density function $f_+(y)$ for bivariate hurdle models 7 and 5 and
   univariate hurdle model 3 can be derived from that of trivariate model 8
@@ -643,24 +735,25 @@ the positive values of latent variables $y_1^*$ and $y_3^*$.
 From these results it is easy to derive the likelihood function of a
 random sample of $n$ observations of the censored dependent variable $y$.
 As these observations are all independently drawn from the same conditional
-(with respect to covariates $x_1$, $x_2$ and $x_3$) discrete-continuous distribution,
+(on covariates $x_1$, $x_2$ and $x_3$) discrete-continuous distribution,
 which assign a conditional probability mass $P(y=0)$ to the observed value $y=0$ and
 a conditional density function $f_+(y)$ to the observed values $y>0$,
 the log-likelihood function for an observation $y_i$ can be written as :
-$$
+
+\begin{equation}\label{eq21}
 \ln L_i = \left\{
-  \begin{array}{lll}
-    \ln P(y_i=0) & \mbox{if} & \quad y_i=0 \\
-    \ln f_+(y_i) & \mbox{if} & \quad y_i>0 \\
+  \begin{array}{ll}
+    \ln P(y_i=0) & \mbox{if} \quad y_i=0 \\
+    \ln f_+(y_i) & \mbox{if} \quad y_i>0
 \end{array}
 \right.
-$$
+\end{equation}
 
 and the log-likelihood for the entire random sample:
 
-$$
+\begin{equation}\label{eq22}
 \ln L = \sum_{i=1}^n \ln L_i= \sum_{i \mid y_i = 0} \ln P(y_i=0) + \sum_{i \mid y_i > 0} \ln f_+(y_i).
-$$
+\end{equation}
 
 
 
@@ -681,7 +774,7 @@ estimation theory that, under the assumption of correct model
 specification and for a likelihood function sufficiently well behaved,
 the maximum likelihood estimator is asymptotically efficient within
 the class of consistent and asymptotically normal
-estimators\footnote{See \citet{AMEM/85} chapter 4, for a more rigorous
+estimators \footnote{See \citet{AMEM/85} chapter 4, for a more rigorous
 statement of this property.}.
 
 
@@ -689,19 +782,19 @@ More precisely, the asymptotic distribution of the maximum likelihood
 estimator $\hat{\theta}$ for the parameter vector $\theta$ of a
 multiple hurdle model, is written as:
 
-$$
-\hat{\theta} \overset{A}{\sim} N(\theta,\frac{1}{n} I_A (\theta)^{-1})
-$$
+\begin{equation}\label{eq23}
+\hat{\theta} \overset{A}{\sim} N(\theta,\frac{1}{n} I_A (\theta)^{-1}),
+\end{equation}
 
-where $\overset{A}{\sim}$ stands for "asymptotically distributed as" and
+where $\overset{A}{\sim}$ stands for ``asymptotically distributed as'' and
 
-$$
+\begin{equation*}
 I_A(\theta)=\mbox{plim} \frac{1}{n} \sum_{i=1}^n E\left(\frac{\partial^2
   \ln L_i (\theta)}{\partial \theta \partial \theta^\top}\right)
 =\mbox{plim} \frac{1}{n} \sum_{i=1}^n E\left(\frac{\partial\ln
   L_i(\theta)}{\partial\theta} \frac{\partial\ln L_i
   (\theta)}{\partial\theta^\top}\right)
-$$
+\end{equation*}
 
 for the asymptotic Fisher information matrix of a sample of $n$
 independent observations.
@@ -713,12 +806,12 @@ $\hat{\gamma}=h(\hat{\theta})$.  This distribution can be derived from
 the asymptotic distribution of $\hat{\theta}$ according to the so
 called delta method:
 
-$$
+\begin{equation}\label{eq24}
 \hat{\gamma} \overset{A}{\sim} h(\theta)+\frac{\partial
   h}{\partial\theta^\top} (\hat\theta-\theta) \overset{A}{\sim}
 N\left(\gamma,\frac{1}{n} \frac{\partial h}{\partial\theta^\top}I_A
-(\theta)^{-1}\frac{\partial h^\top}{\partial\theta}\right)
-$$
+(\theta)^{-1}\frac{\partial h^\top}{\partial\theta}\right).
+\end{equation}
 
 The practical use of these asymptotic distributions requires to
 replace the theoretical variance-covariance matrix of these asymptotic
@@ -736,7 +829,7 @@ the maximum likelihood parameter's estimate, namely the Newton-Raphson
 method and the Berndt, Hall, Hall, Hausman or \textsc{bhhh} method,
 respectively, mentioned in section 4.3.
 
-\subsection{Model evaluation}
+\subsection{Model evaluation and selection using goodness of fit measures}
 
 Two fundamental principles should be used to appraise the results of a
 model estimation, namely its economic relevance and its statistical
@@ -757,8 +850,8 @@ coefficients are provided. The first one is an extension of the
 classical coefficient of determination, used to explain the fraction
 of variation of the dependent variable explained by the covariates
 included in a linear regression model with intercept. The second one
-is an extension of the likelihood ratio index introduced
-\citet{MCFA/74} to measure the relative gain in the maximized
+is an extension of the likelihood ratio index introduced by~\citet{MCFA/74}
+to measure the relative gain in the maximized
 log-likelihood function due to the covariates included in a
 qualitative response model.
 
@@ -766,61 +859,66 @@ To define a pseudo coefficient of determination, we rely on the non
 linear regression model explaining the dependent variable of a multiple hurdle
 model. This model is written as:
 
-$$
-y=E(y)+u
-$$
+\begin{equation}\label{eq25}
+y=E(y)+u,
+\end{equation}
 
 where $u$ stands for a zero expectation, heteroskedastic random disturbance and
 $E(y)$ for the expectation of the censored dependent variable $y$:
 
-$$
+\begin{equation}\label{eq26}
 E(y)=0 \times P(y=0)+\int_0^\infty yf_+(y)dy=\int_0^\infty yf_+(y)dy.
-$$
+\end{equation}
 
 To compute this expectation, we reformulate it as a multiple integral of the
 joint density function of $y_1^*$, $y$ and $y_3^*$ multiplied by $y$, over
 the positive values of these variables.
 
 \begin{itemize}
-\item For trivariate hurdle model 8, using the change of variables:
-  $$
+
+\item For trivariate hurdle model 8, using the density function ~(\ref{eq13})
+  and the change of variables:
+
+  \begin{equation}\label{eq27}
   \left\{
-  \begin{array}{rcl}
-   z_1 & = & y_1^* - \beta_1^\top x_1 \\
-   z_2 & = &\frac{\Phi_3 y - \beta_2^\top x_2}{\sigma} \\
-   z_3 &= &y_3^* - \beta_3^\top x_3 \\
+  \begin{array}{l}
+   z_1 = y_1^* - \beta_1^\top x_1 \\[4pt]
+   z_2 = {\displaystyle\frac{\Phi_3 y - \beta_2^\top x_2}{\sigma}} \\[8pt]
+   z_3 = y_3^* - \beta_3^\top x_3
   \end{array}
   \right.
-  $$
+  \end{equation}
+
   this reformulation of $E(y)$ is written as:
-  $$
-  \begin{array}{rcl}
-    E(y)&=&\int_{-\beta_1^\top x_1}^\infty \int_{\frac{-\beta_2^\top x_2}{\sigma}}^\infty
-    \int_{-\beta_3^\top x_3}^\infty \frac{\beta_2^\top x_2+\sigma z_2}{\Phi_3}
-    \phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right) dz_1 dz_2 dz_3 \\
-    &=&\frac{\beta_2^\top x_2}{\Phi_3}\Phi\left(\beta_1^\top x_1,\frac{-\beta_2^\top x_2}{\sigma},
-      \beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right)\\
-    &+&\frac{\sigma}{\Phi_3}
-    \int_{-\beta_1^\top x_1}^\infty \int_{\frac{-\beta_2^\top x_2}{\sigma}}^\infty
-    \int_{-\beta_3^\top x_3}^\infty z_2\phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right) dz_1 dz_2 dz_3
+
+  \begin{equation}\label{eq28}
+  \begin{array}{l}
+  E(y)={\displaystyle\int_{-\beta_1^\top x_1}^\infty \int_{-\frac{\beta_2^\top x_2}{\sigma}}^\infty
+   \int_{-\beta_3^\top x_3}^\infty \frac{\beta_2^\top x_2+\sigma z_2}{\Phi_3}
+   \phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right) dz_1 dz_2 dz_3} \\[16pt]
+ \phantom{E(y)} ={\displaystyle\frac{\beta_2^\top x_2}{\Phi_3}\Phi\left(\beta_1^\top x_1,\frac{\beta_2^\top x_2}{\sigma},
+   \beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right)} \\[12pt]
+  \phantom{E(y)}+{\displaystyle\frac{\sigma}{\Phi_3}
+   \int_{-\beta_1^\top x_1}^\infty \int_{-\frac{\beta_2^\top x_2}{\sigma}}^\infty
+   \int_{-\beta_3^\top x_3}^\infty z_2\phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right) dz_1 dz_2 dz_3}.
   \end{array}
-  $$
+  \end{equation}
+
   To perform the analytical integration of the second term of the right-hand side
   of this formula, it is useful to rewrite the density function of $z_1$, $z_2$
-  and $z_3$ as the product of the marginal density function of $z_1$ and $z_2$, namely:
-  $$
-  \phi\left(z_1,z_2;\rho_{13}\right)
-  $$
-  and of the density function of $z_2$ conditioned with respect to $z_1$ and $z_3$,
+  and $z_3$ as the product of the marginal density function of $z_1$ and $z_2$, namely
+  $\phi\left(z_1,z_2;\rho_{13}\right)$ and of the density function of $z_2|z_1,z_3$,
   which can be written as follows:
-  $$
-  \frac{1}{\sigma_{2|1,3}}\phi\left(\frac{z_2-\mu_{2|1,3}}{\sigma_{2|1,3}}\right)
-  $$
+
+  \begin{equation}\label{eq29}
+  \frac{\phi\left(\frac{z_2-\mu_{2|1,3}}{\sigma_{2|1,3}}\right)}{\sigma_{2|1,3}},
+  \end{equation}
+
   where:
   $$
   \mu_{2|1,3}=\varrho_1 z_1 + \varrho_3 z_3, \quad
-  \sigma_{2|1,3}=\frac{1-\rho_{12}^2-\rho_{13}^2-\rho_{23}^2+2\rho_{12}\rho_{13}\rho_{23}}
-  {1-\rho_{13}^2}.
+  \sigma_{2|1,3}^2=\frac{1-\rho_{12}^2-\rho_{13}^2-\rho_{23}^2+2\rho_{12}\rho_{13}\rho_{23}}
+  {1-\rho_{13}^2},
   $$
   with:
   $$
@@ -829,116 +927,136 @@ the positive values of these variables.
   $$
 
   Using this factorization of the density function of $z_1$, $z_2$ and $z_3$,
-  we get:
-  $$
+  we obtain:
+
+  \begin{equation}\label{eq30}
   \begin{array}{l}
-    \int_{-\beta_1^\top x_1}^\infty \int_{\frac{-\beta_2^\top x_2}{\sigma}}^\infty
-    \int_{-\beta_3^\top x_3}^\infty z_2\phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right)
-    dz_1 dz_2 dz_3\\
-    \int_{-\beta_1^\top x_1}^\infty \int_{-\beta_3^\top x_3}^\infty
-    \left(\int_{\frac{-\beta_2^\top x_2}{\sigma}}^\infty z_2\phi\left(\frac{z_2-\mu_{2|1,3}}
-        {\sigma_{2|1,3}}\right)\frac{dz_2}{\sigma_{2|1,3}}\right)\phi\left(z_1,z_2;\rho_{13}\right)dz_1 dz_3
+  {\displaystyle\int_{-\beta_1^\top x_1}^\infty \int_{-\frac{\beta_2^\top x_2}{\sigma}}^\infty
+  \int_{-\beta_3^\top x_3}^\infty z_2\phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right)
+  dz_1 dz_2 dz_3}\\[12pt]
+  ={\displaystyle\int_{-\beta_1^\top x_1}^\infty \int_{-\beta_3^\top x_3}^\infty
+  \left[\int_{-\frac{\beta_2^\top x_2}{\sigma}}^\infty z_2\phi\left(\frac{z_2-\mu_{2|1,3}}
+  {\sigma_{2|1,3}}\right)\frac{dz_2}{\sigma_{2|1,3}}\right]\phi\left(z_1,z_2;\rho_{13}\right)dz_1 dz_3}.
   \end{array}
-  $$
+  \end{equation}
 
   By performing the change of variable:
-  $$
-  z=\frac{z_2 - \mu_{2|1,3}}{\sigma_{2|1,3}}
-  $$
-  the integral with respect to $z_2$ simplifies to:
-  $$
-  \int_{\frac{-\beta_2^\top x_2}{\sigma}}^\infty z_2\phi\left(\frac{z_2-\mu_{2|1,3}}
-  {\sigma_{2|1,3}}\right)=
-  \mu_{2|1,3}\Phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}+\mu_{2|1,3}}{\sigma_{2|1,3}}\right)
-  +\sigma_{2|1,3}\phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}+\mu_{2|1,3}}{\sigma_{2|1,3}}\right)
-  $$
 
-  By inserting this result in the above formulas we finally obtain:
-  $$
-  E(y)=\frac{\beta_2^\top x_2}{\Phi_3}\Phi\left(\beta_1^\top x_1,\frac{-\beta_2^\top x_2}{\sigma},
-  \beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right)+\frac{\sigma}{\Phi_3}
-  \Psi\left(\beta_1^\top x_1,\frac{-\beta_2^\top x_2}{\sigma},
-  \beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right)
-  $$
-  with:
-  $$
+  \begin{equation}\label{eq31}
+  z=\frac{z_2 - \mu_{2|1,3}}{\sigma_{2|1,3}},
+  \end{equation}
+
+  the integral with respect to $z_2$ simplifies to:
+
+  \begin{equation}\label{eq32}
+  \mu_{2|1,3}\Phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}+\mu_{2|1,3}}{\sigma_{2|1,3}}\right)
+  +\sigma_{2|1,3}\phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}+\mu_{2|1,3}}{\sigma_{2|1,3}}\right).
+  \end{equation}
+
+  By inserting this result in formula~(\ref{eq30}), we finally obtain:
+
+  \begin{equation}\label{eq33}
   \begin{array}{l}
-  \Psi\left(\beta_1^\top x_1,\frac{-\beta_2^\top x_2}{\sigma},
-  \beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right)= \\
-  \int_{-\beta_1^\top x_1}^\infty \int_{-\beta_3^\top x_3}^\infty
-  \left[
-    \left(\varrho_1 z_1+\varrho_3 z_3 \right)
-    \Phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}
-        +\varrho_1 z_1+\varrho_3 z_3}{\sigma_{2|1,3}}+\sigma_{2|1,3}\right)
-    \phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}+\varrho_1 z_1+\varrho_3 z_3}{\sigma_{2|1,3}}\right)
-  \right]\phi\left(z_1,z_3;\rho_{13}\right) dz_1 dz_3
+  E(y)=\displaystyle\frac{\beta_2^\top x_2}{\Phi_3 }\Phi\left(\beta_1^\top x_1,\frac{\beta_2^\top x_2}{\sigma},
+  \beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right)\\[8pt]
+\displaystyle \phantom{E(y)} + \frac{\sigma}{\Phi_3}
+  \int_{-\beta_1^\top x_1}^\infty \int_{-\beta_3^\top x_3}^\infty \left[\left(\varrho_1 z_1+\varrho_3 z_3 \right)
+  \Phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}
+  +\varrho_1 z_1+\varrho_3 z_3}{\sigma_{2|1,3}}\right)\right.\\[16pt]
+\left.\phantom{E(y)}+\sigma_{2|1,3}
+  \phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}+\varrho_1 z_1+\varrho_3 z_3}{\sigma_{2|1,3}}\right)
+  \right]\phi\left(z_1,z_3;\rho_{13}\right) dz_1 dz_3.
   \end{array}
-  $$
+  \end{equation}
 
 \item For trivariate hurdle model 6, we proceed as for hurdle model 8 by first
-  substituting the joint normal density function of $y_1^*$, $y$ and $y_3^*$,
-  by the joint normal/log-normal density function introduced in section 2.2,
+  substituting the joint normal density function~(\ref{eq13})
+  by the joint normal/log-normal density function~(\ref{eq17}),
   than by performing the change of variables:
-  $$
+
+  \begin{equation}\label{eq34}
   \left\{
-  \begin{array}{rcl}
-   z_1 = y_1^* - \beta_1^\top x_1 \\
-   z_2 =\frac{\ln\left(\Phi_3 y\right) - \beta_2^\top x_2}{\sigma} \\
-   z_3 = y_3^* - \beta_3^\top x_3 \\
+  \begin{array}{l}
+   z_1 = y_1^* - \beta_1^\top x_1 \\[4pt]
+   z_2 = {\displaystyle\frac{\ln\left(\Phi_3 y\right) - \beta_2^\top x_2}{\sigma}} \\[12pt]
+   z_3 = y_3^* - \beta_3^\top x_3
   \end{array}
   \right.
-  $$
+  \end{equation}
+
   This leads to the following expression of the expected value of $y$:
-  $$
-\begin{array}{rcl}
-  E(y)&=&\int_{-\beta_1^\top x_1}^\infty \int_{-\infty}^\infty
-  \int_{-\beta_3^\top x_3}^\infty \frac{\exp\{\beta_2^\top x_2+\sigma z_2\}}{\Phi_3}
-  \phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right) dz_1 dz_2 dz_3 \\
-  &=&\frac{\exp\{\beta_2^\top x_2\}}{\Phi_3}\int_{-\beta_1^\top x_1}^\infty \int_{-\beta_3^\top x_3}^\infty
-  \left[\int_{-\infty}^\infty \exp(\sigma z_2)\phi\left(\frac{z_2-\mu_{2|1,3}}
-  {\sigma_{2|1,3}}\right)\frac{dz_2}{\sigma_{2|1,3}}\right]\phi\left(z_1,z_3;\rho_{13}\right)dz_1 dz_3
-\end{array}
-  $$
-  obtained by factorizing the density function of $z_1$, $z_2$ and
-  $z_3$ as the product of the marginal density function of $z_1$ and
-  $z_3$
-  times the density function of $z_2|z_1,z_3$.\\
-  By performing the change of variable:
-  $$
-  z=\frac{z_2 - \mu_{2|1,3}}{\sigma_{2|1,3}}
-  $$
-  the integral with respect to $z_2$ simplifies to:
-  $$
-  \begin{array}{rcl}
-    \int_{-\infty}^\infty \exp\{\sigma z_2\}\phi\left(\frac{z_2-\mu_{2|1,3}}
-      {\sigma_{2|1,3}}\frac{dz_2}{\sigma_{2|1,3}}\right)&=&\int_{-\infty}^\infty
-    \exp\{\sigma (\mu_{2|1,3}+\sigma_{2|1,3}z)\}\phi(z)dz \\
-    &=&\exp\left\{\sigma\mu_{2|1,3}+\frac{\sigma^2\sigma_{2|1,3}^2}{2}\right\}
-    \frac{1}{\sqrt{2\pi}}\int_{-\infty}^\infty
-    \exp\left\{-\frac{(z-\sigma\sigma_{2|1,3})^2}{2}\right\}dz \\
-    &=&\exp\left\{\sigma\mu_{2|1,3}+\frac{\sigma^2\sigma_{2|1,3}^2}{2}\right\}
+
+  \begin{equation}\label{eq35}
+  \begin{array}{l}
+  E(y)=\displaystyle\int_{-\beta_1^\top x_1}^\infty \int_{-\infty}^\infty
+  \int_{-\beta_3^\top x_3}^\infty \frac{\exp\{\beta_2^\top x_2+\sigma z_2\}}{\Phi_3} \\
+\displaystyle  \times   \phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right) dz_1 dz_2 dz_3
+  \displaystyle =\frac{\exp\{\beta_2^\top x_2\}}{\Phi_3}\\[12pt]
+\displaystyle \times \int_{-\beta_1^\top x_1}^\infty \int_{-\beta_3^\top x_3}^\infty \left[\int_{-\infty}^\infty \exp\{\sigma z_2\}\phi\left(\frac{z_2-\mu_{2|1,3}}  {\sigma_{2|1,3}}\right)\frac{dz_2}{\sigma_{2|1,3}} \right] \phi\left(z_1,z_3;\rho_{13}\right)dz_1 dz_3
   \end{array}
+  \end{equation}
+
+  obtained by factorizing the density function of $z_1$, $z_2$ and $z_3$
+  as the product of the marginal density function of $z_1$ and $z_3$
+  times the density function of $z_2|z_1,z_3$.\\
+  By performing the change of variable~(\ref{eq31}),
+  the integral with respect to $z_2$ simplifies to:
+
+  \begin{equation}\label{eq36}
+  \int_{-\infty}^\infty \exp\{\sigma (\mu_{2|1,3}+\sigma_{2|1,3}z)\}\phi(z)dz
+  =\exp\left\{\sigma\mu_{2|1,3}+\frac{\sigma^2\sigma_{2|1,3}^2}{2}\right\}.
+    \end{equation}
+
+  By inserting this result in formula~(\ref{eq35}), we finally obtain:
+
+  \begin{equation}\label{eq37}
+ \begin{array}{l}
+\displaystyle  E(y)=\frac{\exp\left\{\beta_2^\top x_2+\frac{\sigma^2\sigma_{2|1,3}^2}{2}\right\}}
+  {\Phi_3}\\[12pt]
+\displaystyle \phantom{E(y)} \times \int_{-\beta_1^\top x_1}^\infty \int_{-\beta_3^\top x_3}^\infty
+  \exp\{\sigma\left(\varrho_1 z_1+\varrho_3 z_3 \right)\}
+  \phi\left(z_1,z_3;\rho_{13}\right)dz_1dz_3.
+\end{array}
+  \end{equation}
+
+\item $E(y)$ for bivariate hurdle models 7 and 5 and
+  univariate hurdle model 3 can be derived from that of trivariate model 8
+  by eliminating hurdles 1, 3, 1 and 3, respectively.
+  Likewise, the expectation of $y$ for bivariate hurdle models 4 and 2 can be derived
+  from that of trivariate hurdle model 6 by eliminating hurdles 1 and 3, respectively.
+  Corresponding formulas of $E(y|y>0)= E(y)/P(y>0)$ for all this special cases implemented in
+  \proglang{R} are presented in Table~\ref{tab:typo}, using the following notations:
   $$
-  By inserting this result in the above formulas we finally obtain:
+  \Psi_{2|1}=\rho_{12}\phi_1\Phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}
+  -\rho_{12}\beta_1^\top x_1}{\sqrt{1-\rho_{12}^2}}\right)+\phi_2\Phi\left(\frac{\beta_1^\top x_1
+  -\rho_{12}\frac{\beta_2^\top x_2}{\sigma}}{\sqrt{1-\rho_{12}^2}}\right),
   $$
-  E(y)=\frac{\exp\left\{\beta_2^\top x_2+\frac{\sigma^2\sigma_{2|1,3}^2}{2}\right\}}
-  {\Phi_3}\psi(\beta_1^\top x_1,\beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23})
   $$
-  with:
+  \Psi_{2|3}=\rho_{23}\phi_3\Phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}
+  -\rho_{23}\beta_3^\top x_3}{\sqrt{1-\rho_{23}^2}}\right)+\phi_2\Phi\left(\frac{\beta_3^\top x_3
+  -\rho_{23}\frac{\beta_2^\top x_2}{\sigma}}{\sqrt{1-\rho_{23}^2}}\right),
   $$
-  \psi\left(\beta_1^\top x_1,\beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right)=
-  \int_{-\beta_1^\top x_1}^\infty \int_{-\beta_3^\top x_3}^\infty
-  \exp\{\sigma\left(\varrho_1 z_1+\varrho_3 z_3 \right)\}\phi\left(z_1,z_3;\rho_{13}\right)dz_1dz_3.
+  where $\phi_1=\phi(\beta_1^\top x_1)$, $\phi_2\left(\frac{\beta_2^\top x_2}{\sigma}\right)$ and
+  $\phi_3=\phi(\beta_3^\top x_3)$.
+
+  Note that formulas of $E(y|y>0)$ for dependent trivariate hurdle models presented
+  in Table~\ref{tab:typo} are obtained by using closed forms of the
+  following integrals :
+  $$
+  \int_{-\beta^\top x}^\infty\left[\rho z\Phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}+\rho z}
+  {\sqrt{1-\rho^2}}\right)+\sqrt{1-\rho^2}\phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}+\rho z}
+  {\sqrt{1-\rho^2}}\right)\right]\phi(z)dz
+  $$
+  $$
+  =\rho\phi\left(\beta^\top x\right)\Phi\left(\frac{\frac{\beta_2^\top x_2}{\sigma}
+  -\rho\beta^\top x}{\sqrt{1-\rho^2}}\right)+\phi\left(\frac{\beta_2^\top x_2}{\sigma}\right)
+  \Phi\left(\frac{\beta^\top x-\rho\frac{\beta_2^\top x_2}{\sigma}}{\sqrt{1-\rho^2}}\right),
+  $$
+  $$
+  \int_{-\beta^\top x}^\infty \exp\left\{\sigma\rho z\right\}\phi(z)dz=
+  \exp\left\{\frac{\sigma^2\rho^2}{2}\right\}\Phi\left(\beta^\top x+\sigma\rho\right).
   $$
 
-\item The expectation of $y$ for bivariate hurdle models 7 and 5 and
-  univariate hurdle model 3 can be derived from that of trivariate
-  model 8 by eliminating hurdles 1, 3, 1 and 3, respectively.
-  Likewise, the expectation of $y$ for bivariate hurdle models 4 and 2
-  can be derived from that of trivariate hurdle model 6 by eliminating
-  hurdles 1 and 3, respectively.  Corresponding formulas of $E(y|y>0)=
-  E(y)/P(y>0)$ for all this special cases implemented in \proglang{R}
-  are presented in Table~\ref{tab:typo}.
 \end{itemize}
 
 Denoting by $\hat{y}_i$ the fitted values of $y_i$ obtained by
@@ -947,34 +1065,42 @@ maximum likelihood estimate of model parameters, we define a pseudo
 coefficient of determination for a multiple hurdle model using the
 following formula:
 
-$$
-R^2=1-\frac{RSS}{TSS}
-$$
+\begin{equation}\label{eq38}
+R^2=1-\frac{RSS}{TSS},
+\end{equation}
 
 with $RSS=\sum (y_i - \hat{y}_i)^2$ the residual sum of squares and
 $TSS=\sum (y_i - \hat{y}_0)^2$ the total sum of squares, where
 $\hat{y}_0$ denotes the maximum likelihood estimate of $E(y_i)$ in the
-multiple hurdle model without covariates (intercept-only model). Notice that
+multiple hurdle model without covariates (intercept-only model
+\footnote{For multiple hurdle models involving many intercepts, the
+estimation of a specification without covariates may face serious
+numerical problems. If the mhurdle software fails to provide such an
+estimate, the total sum of squares $TSS$ is computed by substituting
+the sample average of $y$ for $\hat{y}_0$.}). Note that
 this goodness of fit measure cannot exceed one but can be negative, as
 a consequence of the non linearity of $E(y_i)$ with respect to the
 parameters.
 
 Two other formulas, which are equivalent to compute $R^2$ in the
-linear regression model with intercept, could have been used to define
+linear regression model with intercept, have been used to define
 a pseudo coefficient of determination, namely: the ratio of the
-explained sum of square to the total sum of squares or the squared
-correlation between actual and fitted values. We disregarded these
-alternatives because the former measure can exceed one in a non linear
-regression model, while the latter, although providing values always
+explained sum of square to the total sum of squares and the squared
+correlation between actual and fitted values. The first of these two
+alternative formulas can provide values exceeding one in a non linear
+regression model, while the second, although providing values always
 within zero and one, cannot be adjusted for degrees of freedom for a
-use as a model selection criterion. A more promising approach consists
+use as a model selection criterion, as we shall see later on. For these
+reasons, we give preference to the use of formula~(\ref{eq38}) .
+
+A more promising approach consists
 in computing $RSS$ and $TSS$ with standardized residuals, to correct
 for the heteroskedasticity of raw residuals. This standardized pseudo
 coefficient of determination is written as:
 
-$$
-R_S^2=1-\frac{SRSS}{STSS}
-$$
+\begin{equation}\label{eq39}
+R_S^2=1-\frac{SRSS}{STSS},
+\end{equation}
 
 with $SRSS=\sum (y_i - \hat{y}_i)^2/\hat{\sigma}_i^2$ the standardized
 residual sum of squares and $STSS=\sum
@@ -984,16 +1110,16 @@ estimate of $V(y_i)$ in the multiple hurdle model with covariates and
 $\hat{\sigma}_0^2$ that in the corresponding multiple hurdle model
 without covariates (intercept-only model). This Pearson goodness of
 fit measure, that requires to write down analytically $V(y_i)$, will
-be implemented in a next version of \pkg{mhurdle}.
+be implemented in a next version of \pkg{mhurdle} package.
 
 The extension of the McFadden likelihood ratio index for qualitative
 response models to multiple hurdle models is straightforwardly obtained by
 substituting in this index formula:
 
-$$
+\begin{equation}\label{eq40}
 \rho^2=1-\frac{\ln L(\hat{\theta})}{\ln L(\hat{\alpha})}=\frac{\ln
-  L(\hat{\alpha})-\ln L(\hat{\theta})}{\ln L(\hat{\alpha})}
-$$
+L(\hat{\alpha})-\ln L(\hat{\theta})}{\ln L(\hat{\alpha})},
+\end{equation}
 
 the maximized log-likelihood function of a qualitative response model
 with covariates and the log-likelihood function of the corresponding
@@ -1007,20 +1133,14 @@ maximized log-likelihood function due to the use of explanatory
 variables with respect to the maximized log-likelihood function of a
 naive intercept-only model.
 
-\subsection{Model selection}
-
 Model selection deals with the problem of discriminating between
 alternative model specifications used to explain the same dependent
 variable, with the view of finding the one best suited to explain the
 sample of observations at hand.  This decision problem can be tackled
-from two point of view, namely that of the model specification
-achieving the best in-sample fit, on one hand, and that of the model
-specification that is favored in a formal test comparing two model
-alternatives, on the other hand.
+from the point of view of the model specification achieving the best
+in-sample fit.
 
-
-
-The first selection criterion is easy to apply as it consists in
+This selection criterion is easy to apply as it consists in
 comparing one of the above defined measures of fit, computed for the
 competing model specifications, after adjusting them for the loss of
 sample degrees of freedom due to model parametrization.  Indeed, the
@@ -1033,22 +1153,23 @@ increases with the number of model parameters should be added to the
 $R^2$ and $\rho^2$ fit measures to trade off goodness of fit
 improvements with parameter parsimony losses.
 
-
-
 To define an adjusted pseudo coefficient of determination, we rely on
 \citet{THEIL/73}'s correction of $R^2$ in a linear regression model,
 defined by
 
-$$
-\bar{R}^2=1-\frac{n-K_0}{n-K}\frac{RSS}{TSS}
-$$
+\begin{equation}\label{eq41}
+\bar{R}^2=1-\frac{n-K_0}{n-K}\frac{RSS}{TSS},
+\end{equation}
 
 where $K$ and $K_0$ stand for the number of parameters of the multiple
-hurdle model with covariates and without covariates,
-respectively. Therefore, choosing the model specification with the
-largest $\bar{R}^2$ is equivalent to choosing the model specification
-with the smallest model residual variance estimate:
-$s^2=\frac{RSS}{n-K}$.
+hurdle model with covariates and without covariates, respectively
+\footnote{When the mhurdle software fails to provide the parameter 
+estimates of the intercept-only model and the total sum of squares 
+$TSS$ is computed by substituting the sample average of $y$ for 
+$\hat{y}_0$, $K_0$ is set equal to 1.}. Therefore, choosing the 
+model specification with the largest $\bar{R}^2$ is equivalent to 
+choosing the model specification with the smallest model residual 
+variance estimate: $s^2=\frac{RSS}{n-K}$.
 
 To define an adjusted likelihood ratio index, we replace in this
 goodness of fit measure $\rho^2$ the log-likelihood criterion with the
@@ -1056,9 +1177,9 @@ Akaike information criterion $AIC=-2\ln
 L(\hat{\theta})+2K$. Therefore, choosing the model specification with
 the largest
 
-$$
+\begin{equation}\label{eq42}
 \bar{\rho}^2=1-\frac{\ln L(\hat{\theta})-K}{\ln L(\hat{\alpha})-K_0}
-$$
+\end{equation}
 
 is equivalent to choosing the model specification that minimizes the
 \citet{AKAIKE/73} predictor of the Kullback-Leibler Information
@@ -1067,11 +1188,11 @@ conditional density function $f(y|x;\theta)$ of a possibly
 misspecified parametric model and that of the true unknown model,
 denoted by $h(y|x)$. It is defined by the following formula:
 
-$$
+\begin{equation}\label{eq43}
 KLIC=E\left[\ln
   \left(\frac{h(y|x)}{f(y|x;\theta_\ast)}\right)\right]=\int \ln
-\left(\frac{h(y|x)}{f(y|x;\theta_\ast)}\right)dH(y,x)
-$$
+\left(\frac{h(y|x)}{f(y|x;\theta_\ast)}\right)dH(y,x),
+\end{equation}
 
 where $H(y,x)$ denotes the distribution function of the true joint
 distribution of $(y,x)$ and $\theta_\ast$ the probability limit, with
@@ -1079,15 +1200,22 @@ respect to $H(y,x)$, of $\hat{\theta}$ the so called quasi-maximum
 likelihood estimator obtained by applying the maximum likelihood when
 $f(y|x;\theta)$ is misspecified.
 
-Our second model selection criterion relies on the use of a test
+
+\subsection{Model selection using Vuong tests}
+
+Model selection can also be tackled from the point of view of the model
+specification that is favored in a formal test comparing two model
+alternatives.
+
+This second model selection criterion relies on the use of a test
 proposed by \citet{VUONG/89}. According to the rationale of this test,
 the "best" parametric model specification among a collection of
 competing specifications is the one that minimizes the $KLIC$
 criterion or, equivalently, the specification for which the quantity:
 
-$$
+\begin{equation}\label{eq44}
 E[\ln f(y|x;\theta_\ast)]=\int \ln f(y|x;\theta_\ast)dH(y,x)
-$$
+\end{equation}
 
 is the largest. Therefore, given two competing conditional models with
 density functions $f(y|x;\theta)$ and $g(y|x;\pi)$ and parameter
@@ -1097,7 +1225,7 @@ hypothesis:
 
 $$
 H_0 : E[\ln f(y|x;\theta_\ast)]=E[\ln g(y|x;\pi_\ast)]
-\Longleftrightarrow E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]=0
+\Longleftrightarrow E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]=0,
 $$
 
 meaning that the two models are equivalent, against:
@@ -1105,7 +1233,7 @@ meaning that the two models are equivalent, against:
 $$
 H_f : E[\ln f(y|x;\theta_\ast)]>E[\ln g(y|x;\pi_\ast)]
 \Longleftrightarrow
-E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]>0
+E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]>0,
 $$
 
 meaning that specification $f(y|x;\theta)$ is better than
@@ -1114,7 +1242,7 @@ $g(y|x;\pi)$, or against:
 $$
 H_g : E[\ln f(y|x;\theta_\ast)]<E[\ln g(y|x;\pi_\ast)]
 \Longleftrightarrow
-E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]<0
+E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]<0,
 $$
 
 meaning that specification $g(y|x;\pi)$ is better than $f(y|x;\theta)$.
@@ -1124,16 +1252,16 @@ consistently estimated, under some regularity conditions, by $1/n$
 times the log-likelihood evaluated at the quasi-maximum likelihood
 estimator. Hence $1/n$ times the log-likelihood ratio (LR) statistic
 
-$$
+\begin{equation}\label{eq45}
 LR(\hat{\theta},\hat{\pi})=\sum_{i=1}^n
 \ln\frac{f(y_i|x_i;\hat{\theta})}{g(y_i|x_i;\hat{\pi})}
-$$
+\end{equation}
 
 is a consistent estimator of
 $E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]$. Therefore,
 an obvious test of $H_0$ consists in verifying whether the LR
 statistic differs from zero.  The distribution of this statistic can
-be work out even when the true model is unknown, as the quasi-maximum
+be worked out even when the true model is unknown, as the quasi-maximum
 likelihood estimators $\hat{\theta}$ and $\hat{\pi}$ converge in
 probability to the pseudo-true values $\theta_\ast$ and $\pi_\ast$,
 respectively, and have asymptotic normal distributions centered on
@@ -1159,17 +1287,20 @@ absence of correlated disturbances.  For these models, it is
 necessarily the case that $f(y|x;\theta_\ast)\equiv
 g(y|x;\pi_\ast)$. Therefore $H_0$ is tested against $H_f$.
 
-If model $F_\theta$ is misspecified, it has been shown by Kent(1982) that:
+If model $F_\theta$ is misspecified, it has been shown by Vuong that:
 
 \begin{itemize}
-\item under $H_0$, the quantity $2LR(\hat{\theta},\hat{\pi})$
-  converges in distribution towards a weighted sum of $K$ iid
-  $\chi^2(1)$ random variables, where the weights are the $K$
-  almost surely real and non negative eigenvalues of the following
-  $K \times K$ matrix:
+\item under $H_0$, the quantity $2LR(\hat{\theta},\hat{\pi})$ converges
+  in distribution towards a weighted sum of $K+L$ iid $\chi^2(1)$
+  random variables, where the weights are the $K+L$ almost surely real
+  and non negative eigenvalues of the following $(K+L) \times (K+L)$
+  matrix:
 
   $$
-  \underline{W}=B_f\left[DA_g^{-1}D^\top -A_f^{-1}\right]
+  W=\left[ \begin{array}{c}
+  -B_f A_f^{-1}\quad \  \quad -B_{fg} A_g^{-1} \\
+  B_{fg}^\top A_f^{-1}\quad \ \quad\quad B_g A_g^{-1}
+  \end{array} \right],
   $$
 
   where
@@ -1184,18 +1315,37 @@ If model $F_\theta$ is misspecified, it has been shown by Kent(1982) that:
   B_f=E\left(\frac{\partial\ln
       f(y|x;\theta_\ast)}{\partial\theta}\frac{\partial\ln
       f(y|x;\theta_\ast)}{\partial\theta^\top}\right),\quad
-  D=\frac{\partial T(\pi_\ast)}{\partial\pi^\top}.
+  B_g=E\left(\frac{\partial\ln
+      g(y|x;\pi_\ast)}{\partial\pi}\frac{\partial\ln
+      g(y|x;\pi_\ast)}{\partial\pi^\top}\right),
   $$
+  $$
+  B_{fg}=E\left(\frac{\partial\ln
+      f(y|x;\theta_\ast)}{\partial\theta}\frac{\partial\ln
+      g(y|x;\pi_\ast)}{\partial\pi^\top}\right).
+  $$
+
+  To simplify the computation of this limiting distribution,
+  one can alternatively use the weighted sum of $K$ iid
+  $\chi^2(1)$ random variables, where the weights are the $K$
+  almost surely real and non negative eigenvalues of the following
+  smaller $K \times K$ matrix:
+
+  $$
+  \underline{W}=B_f\left[DA_g^{-1}D^\top -A_f^{-1}\right],
+  $$
+
+  where $D=\frac{\partial T(\pi_\ast)}{\partial\pi^\top}$.
 
 \item under $H_f$, the same statistic converge almost surely towards
   $+\infty$.
 
 \end{itemize}
 
-Performing this robustified version of the standard LR test for nested models,
-requires to replace the theoretical matrix $\underline{W}$ by a consistent
-estimator. Such an estimator is obtained by substituting matrices $A_f$, $A_g$,
-$B_f$ for their sample analogue:
+Performing this standard LR test for nested models,
+requires to replace the theoretical matrices $W$ and $\underline{W}$ by a consistent
+estimators. Such estimators are obtained by substituting matrices $A_f$, $A_g$,
+$B_f$, $B_g$ and $B_{fg}$ for their sample analogue:
 
 $$
 \hat{A}_f=\frac{1}{n}\sum_{i=1}^n\frac{\partial^2\ln
@@ -1206,6 +1356,14 @@ $$
 $$
 \hat{B}_f=\frac{1}{n}\sum_{i=1}^n\frac{\partial\ln
   f(y_i|x_i;\hat{\theta})}{\partial\theta}\frac{\partial\ln f(y_i|x_i;
+  \hat{\theta})}{\partial\theta^\top},\quad
+\hat{B}_g=\frac{1}{n}\sum_{i=1}^n\frac{\partial\ln
+  g(y_i|x_i;\hat{\theta})}{\partial\theta}\frac{\partial\ln g(y_i|x_i;
+  \hat{\theta})}{\partial\theta^\top},
+$$
+$$
+\hat{B}_{fg}=\frac{1}{n}\sum_{i=1}^n\frac{\partial\ln
+  f(y_i|x_i;\hat{\theta})}{\partial\theta}\frac{\partial\ln g(y_i|x_i;
   \hat{\theta})}{\partial\theta^\top}
 $$
 
@@ -1219,7 +1377,7 @@ of $H_f$ if $2LR(\hat{\theta},\hat{\pi})>c$ or if the p-value
 associated to the observed value of $2LR(\hat{\theta},\hat{\pi})$ is
 less than the significance level of the test.
 
-Notice that, if model $F_\theta$ is correctly specified, the
+Note that, if model $F_\theta$ is correctly specified, the
 asymptotic distribution of the LR statistic is, as expected, a
 $\chi^2$ random variable with $K-L$ degrees of freedom.
 
@@ -1255,9 +1413,9 @@ For such strictly non-nested models, Vuong has shown that:
 Hence, $H_0$ is tested against $H_f$ or $H_g$ using the standardized
 LR statistic:
 
-$$
-T_{LR}=\frac{LR(\hat{\theta},\hat{\pi})}{\sqrt{n}\hat{\omega}}
-$$
+\begin{equation}\label{eq46}
+T_{LR}=\frac{LR(\hat{\theta},\hat{\pi})}{\sqrt{n}\hat{\omega}},
+\end{equation}
 
 where $\hat{\omega}^2$ denotes the following strongly consistent
 estimator for $\omega^2$:
@@ -1276,7 +1434,7 @@ of the test. Conversely, $H_0$ is rejected in favor of $H_g$ if
 $T_{LR}<-c$ or if the p-value associated to the observed value of
 $|T_{LR}|$ in less than the significance level of the test.
 
-Notice that, if one of models $F_\theta$ or $G_\pi$ is assumed to be
+Note that, if one of models $F_\theta$ or $G_\pi$ is assumed to be
 correctly specified, the \citet{COX/61,COX/62} LR test of non nested
 models needs to be used. Because this test is computationally awkward
 to implement and not really one of model selection, as it can lead to
@@ -1299,7 +1457,7 @@ of $LR(\hat{\theta},\hat{\pi})$ under $H_0$ is unknown, which prevents
 from performing a model selection test based on this statistic.
 
 In the general case where both competing models are wrongly specified,
-Vuong suggest a sequential procedure which consists in testing first
+Vuong suggests a sequential procedure which consists in testing first
 whether or not the variance $\omega^{2}$ equals zero (since
 $f(y|x;\theta_\ast)= g(y|x;\pi_\ast)$ almost everywhere if and only if
 $\omega^{2}=0$) and then, according to the outcome of this test, in
@@ -1313,44 +1471,30 @@ proves that:
 
 \begin{itemize}
 \item under $H_0^{\omega}$, the quantity $n\hat{\omega}^2$ converges
-  in distribution towards a weighted sum of $K+L$ iid $\chi^2(1)$
-  random variables, where the weights are the $K+L$ almost surely real
-  and non negative eigenvalues of the following $(K+L) \times (K+L)$
-  matrix:
+  in distribution towards the same limiting distribution like that
+  of statistic $2LR(\hat{\theta},\hat{\pi})$ when used for discriminating
+  two misspecified nested models.
 
-  $$
-  W=\left[ \begin{array}{c}
-  -B_f A_f^{-1}\quad \  \quad -B_{fg} A_g^{-1} \\
-  -B_{fg}^\top A_f^{-1} \ \quad -B_g A_g^{-1}
-  \end{array} \right]
-  $$
-
-  where $A_f$, $A_g$ and $B_f$ are defined as in matrix
-  $\underline{W}$ whereas
-
-  $$
-  B_g=E\left(\frac{\partial\ln
-      g(y|x;\pi_\ast)}{\partial\pi}\frac{\partial\ln
-      g(y|x;\pi_\ast)}{\partial\pi^\top}\right),\quad
-  B_{fg}=E\left(\frac{\partial\ln
-      f(y|x;\theta_\ast)}{\partial\theta}\frac{\partial\ln
-      g(y|x;\pi_\ast)}{\partial\pi^\top}\right).
-  $$
-
-\item under $H_A^{\omega}$, the same statistic converge almost surely
-  towards $+\infty$.
+\item under $H_A^{\omega}$, the same statistic converge almost surely towards
+  $+\infty$.
 \end{itemize}
 
-Performing this variance test, requires to replace the theoretical
-matrix $W$ by a consistent estimator obtained by substituting matrices
-$A_f$, $A_g$, $B_f$, $B_g$ and $B_{fg}$ for their sample analogue. The
-density function of this asymptotic test statistic has not been worked
-out analytically.  Therefore, we compute it by simulation.
+Therefore, performing this variance test requires to compute the
+eigenvalues of a consistent estimate of matrix $W$ or $\underline{W}$,
+and derive by simulation the density function of the corresponding
+weighted sum of iid $\chi^2(1)$ random variables.
 
 Hence, for a test with critical value $c$, $H_0^\omega$ is rejected in
 favor of $H_A^\omega$ if $n\hat{\omega}^2>c$ or if the p-value
 associated to the observed value of $n\hat{\omega}^2$ is less than the
 significance level of the test.
+
+Note, that an asymptotically equivalent test is obtained by replacing
+in statistics $n\hat{\omega}^2$, $\hat{\omega}^2$ by:
+$$
+\tilde{\omega}^2=\frac{1}{n}\sum_{i=1}^n
+\left(\ln\frac{f(y_i|x_i;\hat{\theta})}{g(y_i|x_i;\hat{\pi})}\right)^2.
+$$
 
 The second step in discriminating two overlapping models depends on
 the outcome of the variance test.
@@ -1362,7 +1506,7 @@ the outcome of the variance test.
   equivalent.
 \item If $H_0^\omega$ is rejected, the test of $H_0$ against $H_f$ or
   $H_g$ must be carried out using the standardized LR statistic
-  $T_{LR}$, as for discriminating between two strictly non nested
+  $T_{LR}$, as for discriminating between two strictly non-nested
   models. Indeed, $H_0$ is still possible when $\omega^2\neq0$. Note,
   that this sequential procedure of testing $H_0$ against $H_f$ or
   $H_g$ has a significance level bounded above by the maximum of the
@@ -1371,12 +1515,12 @@ the outcome of the variance test.
 \end{itemize}
 
 Finally, if one of the two competing models is supposed to be
-correctly specified, then the two models are equivalents if and only
-if the other model is correctly specified and if and only the
+correctly specified, then the two models are equivalent if and only
+if the other model is correctly specified and if and only if the
 conditional density functions of the two models are identical almost
 everywhere. In this case we can bypass the variance test and directly
 construct a model selection test based on the
-$2LR(\hat{\theta},\hat{\pi})$ test statistic as for discriminating
+$2LR(\hat{\theta},\hat{\pi})$ test statistic used for discriminating
 between two nested models.
 
 
@@ -1384,11 +1528,11 @@ between two nested models.
 \label{sec:software}
 
 There are three important issues to be addressed to correctly
-implement in \proglang{R} the econometric framework described in the
-previous section. The first one is to provide a good interface to
-describe the model to be estimated. The second one is the problem of
-finding good starting values for computing model estimates. The third
-one is to offer flexible optimization tools for likelihood
+implement in \proglang{R} the modeling strategy described in the
+previous sections. The first one is to provide a good interface to
+describe the model to be estimated. The second one is to find
+good starting values for computing model estimates. The third
+one is to have flexible optimization tools for likelihood
 maximization.
 
 \subsection{Model syntax}
@@ -1399,28 +1543,29 @@ In \proglang{R}, the model to be estimated is usually described using
 formula objects, the left-hand side denoting the censored dependent
 variable \texttt{y} and the right-hand side the functional relation
 explaining \texttt{y} as a function of covariates. For example,
-\texttt{y \~{} x1 + x2*x3} indicates that \texttt{y} linearly depends
+\texttt{y \~{} x1 + x2 * x3} indicates that \texttt{y} linearly depends
 on variables \texttt{x1}, \texttt{x2}, \texttt{x3} and on the
 interaction term \texttt{x2} times \texttt{x3}.
 
 For the models implemented in \pkg{mhurdle}, three kinds of covariates
-should be specified: the ones of the selection equation (denoted
-$x_1$), the ones of the consumption equation (denoted $x_2$), and
-those of the infrequency equation (denoted $x_3$). To define a model
-with three kinds of covariates, a general solution is given by the
-\pkg{Formula} package developed by \citet{ZEIL/CROI/10}, which
-provides extended formula objects. To define a model where \texttt{y}
-is the censored dependent variable, \texttt{x21} and \texttt{x22} two
-covariates for the desired consumption equation, \texttt{x11} and
-\texttt{x12} two covariates for the selection and \texttt{x31} and
-\texttt{x32} two covariates for the infrequency of purchase equation,
-we use the following commands :
+should be specified: those of the good selection equation (hurdle 1)
+denoted $x_1$, those of the desired consumption equation (hurdle 2),
+denoted $x_2$, and those of the purchasing equation (hurdle 3),
+denoted $x_3$.
+
+To define a model with three kinds of covariates, a general solution
+is given by the \pkg{Formula} package developed by \citet{ZEIL/CROI/10},
+which provides extended formula objects. To define a model where \texttt{y}
+is the censored dependent variable, \texttt{x11} and \texttt{x12}
+two covariates for the good selection equation, \texttt{x21} and \texttt{x22}
+two covariates for the desired consumption equation, and \texttt{x31} and
+\texttt{x32} two covariates for the purchasing equation, we use the
+following commands :
 
 <<>>=
 library("Formula")
 f <- Formula(y ~ x11 + x12  | x21 + x22 | x31 + x32)
 @
-
 
 \subsection{Starting values}
 \label{sec:startvalues}
@@ -1436,18 +1581,18 @@ As a less computer intensive alternative to maximum likelihood
 estimation, \citet{HECKM/76} has suggested a two step estimation
 procedure based on a respecification of the censored variable linear
 regression model, sometimes called ``Heckit'' model, avoiding
-inconsistency of ordinary least-squares estimator.  This two step
+inconsistency of the ordinary least-squares estimator.  This two step
 estimator is consistent but inefficient. It is implemented in package
 \pkg{sampleSelection} \citep{TOOME/HENNI/08}.
 
-According to \citet{CARL/CROI/HOAR/08} experience in applying this
-estimation procedure to two-hurdle models, this approach doesn't seem
-to work well with our correlated hurdle-models. Indeed, except for the
-very special case of model 3 (log-normal correlated single-hurdle
-selection model), the probability of observing a censored purchase is
-not that of a simple probit model (see the formula of $\ln L_i^-$).
+According to~\citet{CARL/CROI/HOAR/08} experience in applying this
+estimation procedure to double hurdle models, this approach doesn't seem
+to work well with correlated hurdle models. Indeed, except for the
+very special case of models 2, 3 and 4, the probability of observing
+a censored purchase is not that of a simple probit model
+(see Table \ref{tab:typo}).
 
-As noted previously, for uncorrelated single-hurdle good selection
+As noted previously, for uncorrelated single hurdle
 models, the estimation may be performed in a sequence of two simple
 estimations, namely the maximum likelihood estimation of a standard
 dichotomous probit model, followed by the ordinary least-squares
@@ -1455,35 +1600,53 @@ estimation of a linear, log-linear or linear-truncated regression
 model. In the last case, package \pkg{truncreg} \citep{TRUNCR/09} is
 used.
 
-In case of correlated single-hurdle good selection models, the
-coefficient maximum likelihood estimate of the corresponding
-uncorrelated model ($\rho=0$) is used as starting values.
+For correlated single hurdle 1 model 2, the maximum likelihood
+estimate of the parameters of the corresponding uncorrelated model
+($\rho_{12}=0$) is used as starting values.
 
-For purchase infrequency models (P-Tobit models), the starting values
-are computed using an Heckman-like two step procedure. In the first
-step, parameters $\beta_3$ are estimated using a simple probit. In the
-second step, a linear, log-linear or linear-truncated model is
-estimated on the sub-sample of uncensored observations using
-$y_i\Phi(\beta_3^{'}x_3)$ or $\ln y_i +\ln \Phi(\beta_3^{'}x_3)$ (in
-the case of a log-normal specification) as the dependent variable of
-the regression model estimated by ordinary least squares.
+For P-Tobit models (4 and 7), the starting values are computed using
+an Heckman-like two step procedure. In the first step, parameters
+$\beta_3$ are estimated using a simple probit. In the second step, a
+linear regression model is estimated by ordinary
+least squares using the sub-sample of uncensored observations and
+$y_i\Phi(\hat{\beta}_3^{\top}x_{3i})$ or $\ln y_i +\ln
+\Phi(\hat{\beta}_3^{\top}x_{3i})$ (in the case of a log-normal
+specification) as dependent variable.
+
+For Tobit model (3), the least squares estimate of the linear regression
+model is used as starting values.
+
+For double hurdle model (5), the starting values for $\beta_1$ are
+obtained by estimating a probit model and those for $\beta_2$ using
+a least squares estimate with the truncated sample of a linear regression
+model assuming $\rho_{12}=0$.
+
+Finally, for models involving hurdles 1 and 3 (models 6 and 8), we
+use two probit models to get starting values for $\beta_1$ and
+$\beta_2$. Then, we estimate a linear regression model
+by ordinary least squares with the sub-sample of uncensored observations
+using $y_i\Phi(\hat{\beta}_3^{\top}x_{3i})$ or $\ln y_i +\ln
+\Phi(\hat{\beta}_3^{\top}x_{3i})$ (in the case of a log-normal
+specification) as dependent variable and
+assuming no correlation between the desired consumption equation
+and these two hurdles.
 
 \subsection{Optimisation}
 \label{sec:optimisation}
 
-Two kinds of routines are currently used for maximum likelihood
-estimation. The first one can be called ``Newton-like'' methods. With
-these routines, at each iteration, an estimation of the log-likelihood
-hessian matrix is computed, using either the second derivatives of the
-criterion function (Newton-Raphson method) or the outer product of the
+Two kinds of algorithms are currently used for maximum likelihood
+estimation. The first kind of algorithms can be called ``Newton-like'' methods.
+With these algorithms, at each iteration, the hessian
+matrix of the log-likelihood is computed, using either the second derivatives
+of the log-likelihood (Newton-Raphson method) or the outer product of the
 gradient (Berndt, Hall, Hall, Hausman or \textsc{bhhh} method). This approach
-is very powerful if the criterion function is well-behaved, but it may
+is very powerful if the log-likelihood is well-behaved, but it may
 perform poorly otherwise and fail after a few iterations.
 
-The second one, called Broyden, Fletcher, Goldfarb, Shanno or
+The second algorithm, called Broyden, Fletcher, Goldfarb, Shanno or
 \textsc{bfgs} method, updates at each iteration an estimate of the
-log-likelihood hessian matrix. It is often more robust and may perform
-better in cases where the former doesn't work.
+hessian matrix of the log-likelihood. It is often more robust and may perform
+better in cases where the formers don't work.
 
 Two optimization functions are included in core \proglang{R}:
 \code{nlm}, which uses the Newton-Raphson method, and \code{optim} ,
@@ -1498,10 +1661,17 @@ The behavior of \code{maxLik} can be controlled by the user using
 \texttt{methods} (the method used, one of \texttt{"nr"},
 \texttt{"bhhh"} or \texttt{"bfgs"}) that are passed to \code{maxLik}.
 
+Some models require the computation of the bivariate normal
+cumulative density function. We use the \pkg{pbivnorm} package
+\citep{KENKE:11} which provides a vectorized (and therefore fast
+convenient) function to compute the bivariate normal cdf.
+
+
 \section{Examples}
 \label{sec:examples}
 
 The package is loaded using:
+
 
 <<>>=
 library("mhurdle")
@@ -1509,11 +1679,28 @@ library("mhurdle")
 
 To illustrate the use of \pkg{mhurdle}, we use the \code{Comics} data
 frame which contains data about the readings of comics. It is part of
-a survey conducted by the \textsc{insee} (the French public
+a survey conducted by the \textsc{insee} (the French national
 statistical institute) in 2003 about cultural and sportive
-practices. The explained variable is the number of comics read during
-the last 12 months by one (randomly chosen) member of the
-household. There are 5159 observations.
+practices\footnote{The data is available at
+  \url{http://insee.fr/fr/themes/detail.asp?reg_id=0&ref_id=fd-parcul03}. Main
+  results are presented in \citet{MULL/05}.}. The explained variable
+is the number of comics read during the last 12 months by one
+(randomly chosen) member of the household. There are 5159
+observations.
+
+
+We emphasize that the observed censored variable to explain is not an
+expenditure but a service derived from the use of a durable good,
+namely the comics' library to which the comics' reader have
+access. Therefore, hurdles 2 and 3 of our modeling paradigm must be
+reinterpreted as mechanisms describing the process of building up the
+comics' library and that of planning the intensity of use of the
+library, respectively.  Note also that \pkg{mhurdle} treats the
+dependent variable as a continuous quantitative variable, while it is
+in fact a discrete count variable.  However, the high number of
+readings during a year by a comics' reader fully justify this numerical
+approximation.
+
 
 <<>>=
 data("Comics", package = "mhurdle")
@@ -1522,24 +1709,22 @@ mean(Comics$comics == 0)
 max(Comics$comics)
 @
 
-The number of Comics read is zero for about 78\% of the sample and the
-maximum value is 520.
-
-The covariates of this data frame are :
+The number of comics read is zero for about 78\% of the sample and the
+maximum value is 520. The covariates of this data frame are :
 
 \begin{description}
 \item[area:] one of \code{rural}, \code{small}, \code{medium},
-  \code{large} and \code{paris},
+  \code{large} and \code{paris}
 \item[income:] the income of the household (in thousands of euros per
   month),
-\item[uc:] the number of consumption unit (one for the first two
+\item[cu:] the number of consumption units (one for the first two
   adults, one half for other members of the household),
 \item[size :] the number of persons in the household,
 \item[age : ] the age of the person,
-\item[empl : ] the kind of job, a factor with 9 levels,
+\item[empl : ] the kind of occupation, a qualitative factor with 9 levels,
 \item[gender: ] one of \code{male} and \code{female},
-\item[couple,] does the person live in couple ? a factor with levels
-  \code{yes} and \code{no},
+\item[couple,] "does the person live in couple ?", a qualitative factor with
+  levels \code{yes} and \code{no},
 \item[educ : ] the number of years of education.
 \end{description}
 
@@ -1554,24 +1739,24 @@ has the following arguments:
   have three parts on the right-hand side specifying, in the first
   part, the good selection equation covariates, in the second
   part, the desired consumption equation covariates and, in the third part,
-  the purchase frequency equation covariates.
+  the purchasing equation covariates.
 \item[data:] a data frame containing the observations of the variables
   present in the formula.
 \item[subset, weights, na.action:] these are arguments passed on to
   the model.frame function in order to extract the data suitable for
   the model. These arguments are present in the \code{lm} function and
-  most of the estimation functions.
+  in most of the estimation functions.
 \item[start:] the starting values. If \code{NULL}, the starting values
-  are computed as described in the previous section.
+  are computed as described in section 4.2.
 \item[dist:] this argument indicates the functional form of the
-  desired consumption equation, which may be: either log-normal
+  desired consumption equation, which may be either log-normal
   \code{"l"} (the default), normal \code{"n"} or truncated normal
   \code{"t"}.
-\item[corr:] a logical argument indicating whether the disturbances of
-  the selection equation or of the purchase mechanism equation is
-  correlated with the one of the consumption. This argument is in this
-  case respectively equal to \code{"h1"} or \code{"h3"}, or
-  \code{NULL} (the default) in case of no correlation,
+\item[corr:] a logical argument indicating whether the disturbance of
+  the good selection equation (hurdle 1) or that of the purchasing equation
+  (hurdle 3) is correlated with that of the desired consumption equation.
+  This argument is in this case respectively equal to \code{"h1"} or \code{"h3"},
+  or \code{NULL} (the default) in case of no correlation,
 \item[...] further arguments that are passed to the optimization
   function \code{maxLik}.
 \end{description}
@@ -1582,90 +1767,88 @@ therefore irrelevant. For example, a model with no good selection
 equation and \code{corr = "h1"} is logically inconsistent.
 
 To illustrate the use of \pkg{mhurdle} package, we first estimate a
-simple tobit model, which we call \code{model3} ; the income is
-divided by the number of consumption units and divided by its sample
+simple Tobit model, which we call \code{model3} ; the income is first
+divided by the number of consumption units and then by its sample
 mean. Powers up to three for the log of income are introduced.
 
 <<>>=
-Comics$incuc <- with(Comics, income / uc)
-Comics$incucm <- with(Comics, incuc / mean(incuc))
-model3 <- mhurdle(comics ~ 0 | log(incucm) + I(log(incucm)^2) + I(log(incucm)^3)
-                             + age  + gender + educ + empl | 0,
-                  Comics, dist = "n", method = 'bfgs')
+Comics$incu <- with(Comics, income / cu)
+Comics$incum <- with(Comics, incu / mean(incu))
+
+
+model3 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
+                  I(log(incum)^3) + age  + gender + educ +
+                  size| 0, Comics, dist = "n", method = 'bfgs')
 @
 
-Note that the first and the third part of the formula consist are 0,
-as there is no selection and no purchase mechanism equations.
+Note that the first and the third part of the formula are 0,
+as there is no good selection and no purchasing equations.
 
-Consider now that some covariates explains the fact that the good is
+Consider now that some covariates explain the fact that the good is
 selected, and not the level of consumption if the good is chosen. In
-this case, we estimate the following dependent two-hurdle model, which
+this case, we estimate the following dependent double hurdle model, which
 we call \code{model5d}. We keep the income and the size of the
-household as covariates for the consumption equation and move the
-other covariates on the first part of the formula.
+household as covariates for the desired consumption equation and move the
+other covariates to the first part of the formula.
 
 <<>>=
-model5d <- mhurdle(comics ~ gender + age + educ + empl |
-                   log(incucm) + I(log(incucm)^2) + I(log(incucm)^3) | 0,
+model5d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
+                   I(log(incum)^2) + I(log(incum)^3) + size | 0,
                    Comics, corr = "h1", dist = "n", method = 'bfgs')
 @
 
 The same model without correlation is called \code{model5i}, and can
-easily be obtained by updating \code{model5d}.
+easily be obtained by updating \code{model5d} :
+
 
 <<>>=
 model5i <- update(model5d, corr = NULL)
 @
 
-If one wants that the only source of 0 arise from the selection
-process, one has to switch the \code{dist} argument to \code{"l"}, so
+If one wants that zeros only arise from the selection mechanism,
+one has to switch the \code{dist} argument to \code{"l"}, so
 that a log-normal distribution is introduced. This can be done easily
 by updating the previous model and this leads to a model called
-\code{model2d}
+\code{model2d} :
 
 <<>>=
 model2d <- update(model5d, dist = "l")
 @
 
-The next model we estimate is a single hurdle dependent P-tobit model
-which we call \code{model4d} ; \code{size} is the covariate used in
-the purchase equation :
+The independent version is then easily obtained :
 
 <<>>=
-
-model4d <- mhurdle(comics ~ 0 | log(incucm) + I(log(incucm)^2) + I(log(incucm)^3)
-                             + age  + gender + educ + empl | size,
-                  Comics, dist = "n", method = 'bfgs')
+model2i <- update(model2d, corr = NULL)
 @
 
-The last model we estimate is a dependent three-hurdle model, with
-\code{size} used for the purchasing equation. This model, called
-\code{model8d1} is estimated by updating \code{model5d} and adding
-\code{size} in the third part of the formula. As it is a very
-parametrized and difficult to estimate model, we also provide starting
-values, using the coefficients of \code{model5d} and adding 3 and 0
-for the coefficients of the intercept and of \code{size} in the
-purchase equation.
+The last model we estimate is a dependent triple hurdle model ;
+compared to the double hurdle model previously estimated, we move the
+\code{age} covariate from the selection to the purchasing equation :
 
 <<>>=
-model8d1 <- update(model5d, . ~ . | . | . + size + 1, start = c(coef(model5d)[1:16], 2, 0, coef(model5d)[17:18]))
+model8d1 <- mhurdle(comics ~ gender + educ  |  log(incum) +
+                    I(log(incum)^2) + I(log(incum)^3) + size | age,
+                    Comics, corr = "h1", dist = "n", method = 'bfgs')
 @
+
 
 \subsection{Methods}
 
 A \code{summary} method is provided for \code{mhurdle} objects :
+
 
 <<>>=
 summary(model8d1)
 @
 
 This method displays the percentage of 0 in the sample, the
-coefficient table, and several measures of goodness of fit.
+table of parameter estimates, and two measures of goodness of fit.
 
-\code{coef}, \code{vcov}, \code{logLik}, \code{predict} methods are
-provided in order to extract part of the results.
+\code{coef}, \code{vcov}, \code{logLik}, \code{fitted} and
+\code{predict} methods are provided in order to extract part of the
+results.
 
-Coefficients and the estimated asymptotic variance matrix of maximum
+Parameter estimates and the estimated asymptotic variance matrix of maximum
 likelihood estimators are extracted using the usual \code{coef} and
 \code{vcov} functions. \code{mhurdle} object methods have a second
 argument indicating which subset has to be returned (the default is to
@@ -1675,22 +1858,24 @@ return all).
 coef(model8d1, "h2")
 coef(model5d, "h1")
 coef(model5d, "sigma")
-coef(summary(model8d1), "h2")
-vcov(model5d, "h2")
+coef(summary(model8d1), "h3")
+vcov(model8d1, "h3")
 @
 
 Log-likelihood may be obtained for the estimated model or for a
-``naive'' model, \emph{i.e.} a model without covariates :
+``naive'' model, defined as a model without covariates :
+
 
 <<>>=
 logLik(model5d)
 logLik(model5d, naive = TRUE)
 @
 
-Fitted values are obtained using the \code{fitted} method.  The
-output is a matrix whose two columns are the estimated probability of
-censoring $Prob \{ y_i=0 \}$ and the estimated expected value of an
-uncensored dependent variable observation $E(y_i | y_i>0)$.
+Fitted values are obtained using the \code{fitted} method.  The output
+is a matrix whose two columns are the estimated probability of
+censoring $\mbox{P}(y=0)$ and the estimated expected value of an
+uncensored dependent variable observation $\mbox{E}(y|y>0)$.
+
 
 <<>>=
 head(fitted(model5d))
@@ -1699,107 +1884,196 @@ head(fitted(model5d))
 A \code{predict} function is also provided, which returns the same
 two columns for given values of the covariates.
 
-<<>>=
-pr <- predict(model5d,
-              newdata = data.frame(
-                comics = c(0, 1, 2),
-                gender = c("female", "female", "male"),
-                age = c(20, 18, 32),
-                educ = c(10, 20, 5),
-                empl = c("employed", "worker", "manag"),
-                incucm = c(4, 8, 2),
-                size = c(2, 1, 3)))
-head(pr)
-@
 
+<<>>=
+predict(model5d,
+        newdata = data.frame(
+          comics = c(0, 1, 2),
+          gender = c("female", "female", "male"),
+          age = c(20, 18, 32),
+          educ = c(10, 20, 5),
+          incum = c(4, 8, 2),
+          size = c(2, 1, 3)))
+@
 
 For model evaluation and selection purposes, goodness of fit measures
 and Vuong tests described in section 3 are provided. These criteria
-allow to select the most empirically appropriate model specification.
+allow to select the most empirically relevant model specification.
 
 Two goodness of fit measures are provided. The first measure is an
 extension to limited dependent variable models of the classical
 coefficient of determination for linear regression models. This pseudo
-coefficient of determination is computed both without ($R^2$) and with
-($\bar{R}^2$) adjustment for the loss of sample degrees of freedom due
-to model parametrization.  The unadjusted coefficient of determination
-allows to compare the goodness of fit of model specifications having
-the same number of parameters, whereas the adjusted version of this
-coefficient is suited for comparing model specifications with a
-different number of parameters.
+coefficient of determination is computed both without (see
+formula~(\ref{eq38})) and with (see formula~(\ref{eq41})) adjustment for
+the loss of sample degrees of freedom due to model parametrization.
+The unadjusted coefficient of determination allows to compare the
+goodness of fit of model specifications having the same number of
+parameters, whereas the adjusted version of this coefficient is suited
+for comparing model specifications with a different number of
+parameters.
+
 
 <<>>=
-r.squared(model5d, type = "regression")
+rsq(model5d, type = "coefdet")
 @
 
 The second measure is an extension to limited dependent variable
 models of the likelihood ratio index for qualitative response
 models. This pseudo coefficient of determination is also computed both
-without ($\rho^2$) and with ($\bar{\rho}^2$) adjustment for the loss
-of sample degrees of freedom due to model parametrization, in order to
-allow model comparisons with the same or with a different number of
-parameters.
+without (see formula~(\ref{eq40})) and with (see formula~(\ref{eq42}))
+adjustment for the loss of sample degrees of freedom due to model
+parametrization, in order to allow model comparisons with the same
+or with a different number of parameters.
+
 
 <<>>=
-r.squared(model5d, type = "mcfadden", dfcor = TRUE)
+rsq(model5d, type = "lratio", adj = TRUE)
 @
 
 The Vuong test based on the $T_{LR}$ statistic, as presented in
-section 3.3, is also provided as a criteria for model selection within
-the family of 12 strictly non nested models of FIG. 1.
+section 3.3 (see formula~(\ref{eq46})), is also provided as a criteria
+for model selection within the family of 8 strictly non-nested
+models of Figure 1.
+
 
 <<>>=
 vuongtest(model5d, model8d1)
 @
 
-% In the previous example, the Vuong test also suggest that the double
-% hurdle dependent model is the best suited model within the family of
-% trihurdle models.
+According to this outcome, the null hypothesis stating the equivalence
+between the two models is strongly rejected in favor of the alternative
+hypothesis stating that \code{model8d1} is better than \code{model5d}.
+
+Note that Vuong tests for strictly non-nested mhurdle models can also
+be performed using the vuong() function of the pscl package of
+\citet{JACKM:11} .
 
 Testing the hypothesis of no correlation between the good selection
-mechanism and the desired consumption equation can be performed by
-means of a Wald test, a Lagrange multiplier (LM) test or a
-log-likelihood ratio (LR) statistic.
-
-
-Likelihood ratio tests are performed using a Vuong test, and more
-precisely the nested version of this test. As explained in section
-3.3, the critical value or the p-value to be used to perform this test
-is not the same depending on the model builder believes or not that
-his model is correctly specified. In the first case, the p-value is
-computed using the standard chi square distribution, in the second
-case a weighted chis square distribution is used.
-
-
-<<>>=
-vuongtest(model5d, model5i, type = 'nested', hyp = TRUE)
-vuongtest(model5d, model5i, type = 'nested', hyp = FALSE)
-@
-
-
-The LM test is performed using the independent model
-(\code{model8i}). The \code{summary} method performs the test, as seen
-previously, the p-value for this test is 0.494.  The Wald test is
-simply obtained in the coefficient table of the dependent model
-(\code{model8d})
+mechanism and the desired consumption equation can be performed as a
+Vuong test of selection between two nested models, differing only with
+respect to the value of the correlation coefficient $\rho_{12}$,
+namely the test of the hypothesis $H_0: \rho_{12}=0$, specifying an
+independent mhurdle model, against the alternative hypothesis $H_a:
+\rho_{12}\neq0$, specifying a corresponding dependent mhurdle
+model. This test is performed using the log-likelihood ratio (LR)
+statistic~(\ref{eq45}). As explained in section 3.3, the critical
+value or the p-value to be used to perform this test is not the same
+depending on the model builder believes or not that his unrestricted
+model, assuming $-1<\rho_{12}<1$, is correctly specified.  In the
+first case, the p-value is computed using the standard chi square
+distribution, whereas in the second case a weighted chi square
+distribution is used.
 
 <<>>=
-coef(summary(model5d), "rho")
+vuongtest(model2d, model2i, type = 'nested', hyp = TRUE)
+vuongtest(model2d, model2i, type = 'nested', hyp = FALSE)
 @
 
-In the previous example, all the tests reject the hypothesis of no
-correlation.
+According to these outcomes, the null hypothesis of zero correlation
+is accepted or rejected at almost the same significance level, which
+must be set higher than 0.066 for acceptance and lower than 0.061 for
+rejection.
+
+Testing this hypothesis of no correlation by assuming the unrestricted
+model correctly specified, can be also performed by means of the
+classical Wald test, using the t-statistic or the p-value of the
+correlation coefficient estimate presented in the table of parameter
+estimates of the dependent model (\code{model2d}).
+
+<<>>=
+coef(summary(model2d), "rho")
+@
+
+According to this test outcome, the hypothesis of zero correlation
+is accepted at a little less stringent significance level than with
+a Vuong test.
+
+Finally, to illustrate the use of the Vuong test for discriminating
+between two overlapping models, we consider a slightly different Tobit
+model obtained by removing the \code{age} covariate and adding the \code{empl}
+and \code{area} covariates :
+
+<<>>=
+model3bis <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
+                     I(log(incum)^3)  + gender + educ + age +
+                     empl+area| 0, Comics, dist = "n", method = 'bfgs')
+@
+
+In this case, the Vuong test is performed in two steps. Firstly a test
+of the null hypothesis $\omega^2=0$, meaning that the two models are
+equivalent, is undertaken.
+
+<<>>=
+vuongtest(model3, model3bis, type="overlapping")
+@
+
+This null hypothesis is here strongly rejected. Therefore, we can
+test the equivalence of these two models as if they were stricly non-nested.
+
+<<>>=
+vuongtest(model3, model3bis, type="non-nested")
+@
+
+According to the outcome of this second test, we conclude that these two
+model specifications cannot be empirically discriminated.
+
+If one of two overlapping models is assumed to be correctly specified,
+we can bypass the first step of this Voung test (the variance test) and
+proceed as if we had to discriminate between two nested models.
+
+<<>>=
+vuongtest(model3bis, model3, type="overlapping", hyp=TRUE)
+@
+
+Once again, the equivalence of the two models is not rejected.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
 \pkg{mhurdle} aims at providing a unified framework allowing to
 estimate and assess a variety of extensions of the standard
-\emph{Tobit} model particularly suitable for single-equation demand
-analysis not currently implemented in \proglang{R} .
+Tobit model particularly suitable for single-equation demand
+analysis not currently implemented in \proglang{R}. It explains the
+presence of a large proportion of zero observations for a dependent
+variable by means of up to three censoring mechanisms, called hurdles.
+Inspired by the paradigms used for analyzing censored household
+expenditure data, these hurdles express: (i) a non economic decision
+mechanism for a good rejection or selection motivated by ethical,
+psychological or social considerations; (ii) an economic decision
+mechanism for the desired level of consumption of a previously selected
+good, which can turn out to be negative leading to a nil consumption;
+(iii) an economic or non economic decision mechanism for the time
+frequency at which the desired quantity of a selected good is bought
+or consumed. Interdependence between these censoring mechanisms is
+modelled by assuming a possible correlation between the random
+disturbances in the model relations. Despite the particular area of
+application from which the above mentioned censoring mechanisms stem
+from, the practical scope of \pkg{mhurdle} models doesn't seem to be
+bound to empirical demand analysis.
+
+To provide an operational and efficient statistical framework, \pkg{mhurdle}
+models are specified in a fully parametric form allowing statistical
+estimation and testing within the maximum likelihood inferential
+framework. Tools for model evaluation and selection are provided,
+based on the use of goodness of fit measure extensions of the classical
+coefficient of determination and of the likelihood ratio index of
+McFadden, as well as on the use of Vuong tests for nested, strictly
+non-nested and overlapping model comparison when none, one or both of
+two competing models are misspecified.
+
+Tests of \pkg{mhurdle} computing procedures with a wide variety of
+simulated and observational data have proved the performance and
+robustness of \pkg{mhurdle} package. Still, extensions and improvements
+of the software are under way, notably the estimation of trivariate
+hurdle models in their full generality and the design of a consistent
+Vuong testing strategy for discriminating between a numerous set of
+competing models. Other conceivable extensions, like the use of less
+stringent distributional assumptions on which semiparametric or
+nonparametric estimation methods are based, even suitable, will be
+tackled once established the actual scope of our models through diversified
+empirical applications. Research is continuing in this direction.
+
 
 \bibliography{bibliomhurdle}
 
 \end{document}
-
-

@@ -3,13 +3,11 @@
 # values and the score vector.
 
 mhurdle.lnl <- function(param, X1, X2, X3, y, gradient = FALSE,
-                   fit = FALSE, score = FALSE,
-                   dist = NULL, corr = NULL){
-  ####
+                   fit = FALSE, dist = NULL, corr = NULL){
+
   #  Extract the elements of the model
-  ####
+
   ATAN <- FALSE
-  
   h1 <- !is.null(X1) ;  K1 <- ifelse(is.null(X1), 0, ncol(X1))
   h3 <- !is.null(X3) ;  K3 <- ifelse(is.null(X3), 0, ncol(X3))
 
@@ -38,7 +36,6 @@ mhurdle.lnl <- function(param, X1, X2, X3, y, gradient = FALSE,
   }
 
   sigma <- param[K1 + K2 + K3 + 1]
-#  if (sigma < 0) sigma <- 0.01  
   Phi2 <- pnorm(bX2 / sigma)
   phi2 <- dnorm(bX2 / sigma)
 
@@ -185,7 +182,6 @@ mhurdle.lnl <- function(param, X1, X2, X3, y, gradient = FALSE,
       else gradi <- cbind(gradi, lnL.rho3)
     }
     attr(lnL, "gradient") <- gradi
-    attr(lnL, "score") <- c(prime = - 1, second = -1)
   }
   lnL
 }
@@ -275,25 +271,19 @@ fit.simple.mhurdle <- function(X1, X2, y, dist = NULL){
                      h2    = colnames(X2),
                      other = other.coef)
   
-  rho <- attr(mhurdle.lnl(c(coef, 0), X1, X2, X3 = NULL, y, score = TRUE,
-                     dist = dist),
-              "score")
-  
   fitted <- compute.fitted.mhurdle(coef, X1, X2, X3 = NULL, dist,
                                    corr = FALSE)
-
   logLik <- L.null + L.pos
   attr(logLik, "y") <- y
   result <- list(coefficients = coef, 
                  vcov = vcov,
                  fitted.values = fitted,
                  logLik = logLik,
-                 gradient = apply(gradi, 2, sum),
+                 gradient = gradi,
                  model = NULL,
                  formula = NULL,
                  coef.names = coef.names,
-                 call = NULL,
-                 rho = rho
+                 call = NULL
                  )
   
   class(result) <- c("mhurdle","maxLik")
@@ -384,6 +374,8 @@ lnl.naive <- function(param, dist = c("l", "t", "n"), moments,
 }
 
 # Version without correlation
+
+if (T){
 lnl.naive <- function(param, dist = c("l", "t", "n"), moments,
                      h1 = TRUE, h3 = FALSE){
   
@@ -440,4 +432,5 @@ lnl.naive <- function(param, dist = c("l", "t", "n"), moments,
                 log(Phi2) * (dist == "t")
 
   n * log(P0) + (1 - n) * lnPos
+}
 }
