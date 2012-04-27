@@ -127,48 +127,48 @@ following three zero expenditure generating mechanisms.
 \item[A good selection mechanism (hurdle 1)]. According to this
   mechanism, the consumer first decides which goods to include in its
   choice set and, as a consequence, he can discard some marketed goods
-  because he dislikes them (like meet for vegetarians or wine for non
-  drinker people) or he considers them harmful (like alcohol,
-  cigarettes, inorganic food, holidays in dangerous countries), among
+  because he dislikes them (like meat for vegetarians or wine for
+  non-drinkers) or considers them harmful (like alcohol, cigarettes,
+  inorganic food, holidays in dangerous countries), among
   others.\\
   This censoring mechanism has been introduced in empirical demand
-  analysis by \citet{CRAGG/71}. It allows to account for the non
-  consumption of a good as a consequence of a fundamentally non
-  economic decision motivated by ethical, psychological or social
-  considerations altering the consumer preferences.
+  analysis by \citet{CRAGG/71}. It allows to account for the
+  non-consumption of a good as a consequence of a fundamentally
+  non-economic decision motivated by ethical, psychological or social
+  considerations altering the consumer's preferences.
 
 \item[A desired consumption mechanism (hurdle 2)]. According to this
-  mechanism, once a good has been selected, the consumer decides at
-  which level he desires to consume it and, as a consequence of his
-  preferences, resources and selected good prices, its rational
-  decision can turn out to be a negative desired consumption level
-  leading to a nil consumption.\\
-  The use of this mechanism to explain the presence of zero observations
-  in family expenditure surveys originates in Tobin (1958). Its theoretical
-  relevance has been later rationalized by the existence of corner
-  solutions to the microeconomic problem of rational choice of the
-  neoclassical consumer. See section 10.2 of \citet{AMEM/85}, for an
-  elementary presentation of this issue, and chapter 4 of \citet{PUDNEY/89},
-  for a more comprehensive one.
+  mechanism, once a good has been selected, the consumer decides which
+  amount to consume and, as a consequence of his preferences, resources
+  and selected good prices, its rational decision can turn out to be a
+  negative desired consumption level leading to a nil consumption.\\
+  The use of this mechanism to explain the presence of zero
+  observations in family expenditure surveys introduced by
+  \citet{TOBIN:58}. Its theoretical relevance has been later
+  rationalised by the existence of corner solutions to the
+  microeconomic problem of rational choice of the neoclassical
+  consumer. See section 10.2 of \citet{AMEM/85}, for an elementary
+  presentation of this issue, and chapter 4 of \citet{PUDNEY/89}, for
+  a more comprehensive one.
 
 \item[A purchasing mechanism (hurdle 3)]. According to this mechanism,
-  once a consumption decision has been taken, the consumer set up the
+  once a consumption decision has been taken, the consumer sets up the
   schedule at which to buy the good and, as a consequence of its
   purchasing strategy, zero expenditure may be observed if the survey
   by which these data are collected is carried out over a too short
   period with respect to the frequency at which the good is bought.\\
   This censoring mechanism has been introduced in empirical demand
-  analysis by \citet{DEATO/IRISH/84}. It allows to account for the non
-  purchase of a good not because the good is not consumed but because it is
-  a durable or a storable good infrequently bought. By the same token,
-  this mechanism allows to derive from observed expenditures, the rate
-  of use of a durable good or the rate of consumption of a stored
-  non durable good.
+  analysis by \citet{DEATO/IRISH/84}. It allows to account for the
+  non-purchase of a good not because the good is not consumed but
+  because it is a durable or a storable good infrequently bought. By
+  the same token, this mechanism allows to derive from observed
+  expenditures, the rate of use of a durable good or the rate of
+  consumption of a stored non durable good.
 \end{description}
 
 For each of these censoring mechanisms, a continuous latent variable
 is defined, indicating that censoring is in effect when the latent
-variable is negative. These latent variables are modeled as the sum of
+variable is negative. These latent variables are modelled as the sum of
 a linear combination of explanatory variables and of a normal random
 disturbance with a possible correlation between the disturbances of
 different latent variables.  By combining part or the whole set of
@@ -177,43 +177,44 @@ models that can be used to explain censored expenditure data depending
 on the structural censoring mechanisms that a priori information
 suggests to be at work.
 
-It is worth mentioning that, although this formal model has been primarily
-developed to deal with censored household expenditure data, its practical
-scope is not bound to empirical demand analysis. A quite natural other
-area of application is represented by the empirical analysis of individual's
-labour supply. Indeed, in this context hurdle 1 can be reinterpreted as a
-non economic mechanism of individual's labour market participation; hurdle 2
-as a desired working hours mechanism based on the neoclassical model of
-labour supply that can generate negative desired working hours leading to
-a nil labour supply; hurdle 3 as an unemployment mechanism explaining zero
-hours worked as a result of spells of unemployment. Note also that even
-within the realm of demand analysis, the economic interpretation of hurdles
-1, 2 and 3 may require to be adapted to the specific features of available
-data, as we illustrate by an empirical application presented at the
-end of the paper (see section~\ref{sec:examples}).
+It is worth mentioning that, although this formal model has been
+primarily developed to deal with censored household expenditure data,
+its practical scope is not restricted to empirical demand analysis. A
+quite natural other area of application is represented by the
+empirical analysis of labour supply. In this context, hurdle 1 can
+indeed be reinterpreted as a non-economic mechanism of labour market
+participation; hurdle 2 as a desired working hours mechanism based on
+the neoclassical model of labour supply that can generate negative
+desired working hours leading to a nil labour supply; hurdle 3 as an
+unemployment mechanism explaining zero hours worked as a result of
+spells of unemployment. Note also that even within the realm of demand
+analysis, the economic interpretation of hurdles 1, 2 and 3 may
+require to be adapted to the specific features of available data, as
+we illustrate by an empirical application presented at the end of the
+paper (see section~\ref{sec:examples}).
 
 Our hurdle models are specified as fully parametric models allowing
 estimation and inference within an efficient maximum likelihood
 framework. In order to identify a relevant model specification,
-goodness of fit measures for model evaluation and
-selection, as well as Vuong tests for discriminating between nested,
-strictly non nested and overlapping models have been implemented in
-\pkg{mhurdle} package. Vuong tests remarkably permit to
-compare two competing models when both, only one, or neither of them
-contain the true mechanism generating the sample of observations.
-More precisely, such tests allow assessing which of the two
-competing models is closest to the true unknown model according to
-the Kullback-Leibler information criterion. Therefore,
-such symmetric tests are not intended, as classical Neyman-Pearson
-tests, to pinpointing the chimeric true model, but to identifying
-a best parametric model specification (with respect to available
-observations) among a set of competing specifications. As a consequence,
-they can provide inconclusive results, preventing from disentangling
-some competing models, and when they are conclusive, they don't guarantee
-of identifying a relevant model specification.
+goodness of fit measures for model evaluation and selection, as well
+as Vuong tests for discriminating between nested, strictly non nested
+and overlapping models have been implemented in \pkg{mhurdle}
+package. Vuong tests remarkably permit to compare two competing models
+when both, only one, or neither of them contain the true mechanism
+generating the sample of observations.  More precisely, such tests
+allow to assess which of the two competing models is closest to the
+true unknown model according to the Kullback-Leibler information
+criterion. Therefore, such symmetric tests are not intended, as
+classical Neyman-Pearson tests, to pinpoint the chimeric true model,
+but to identify a best parametric model specification (with respect to
+available observations) among a set of competing specifications. As a
+consequence, they can provide inconclusive results, which prevent from
+disentangling some competing models, and when they are conclusive,
+they don't guarantee an identification of the relevant model
+specification.
 
-The paper is organized as follows: Section~\ref{sec:limdepvar}
-presents the rationale of our modeling strategy.
+The paper is organised as follows: Section~\ref{sec:limdepvar}
+presents the rationale of our modelling strategy.
 Section~\ref{sec:estevalsel} presents the theoretical framework for
 model estimation, evaluation and selection. Section~\ref{sec:software}
 discusses the software rationale used in the
@@ -221,13 +222,13 @@ package. Section~\ref{sec:examples} illustrates the use of
 \pkg{mhurdle} with several examples. Section~\ref{sec:conclusion}
 concludes.
 
-\section{Modeling strategy}
+\section{Modelling strategy}
 \label{sec:limdepvar}
 
 \subsection{Model specification}
 \label{sec:modelspec}
 
-Our modeling strategy is intended to model the level $y$ of expenditures
+Our modelling strategy is intended to model the level $y$ of expenditures
 of a household for a given good or service during a given period of observation.
 To this purpose, we use up to three zero expenditure generating mechanisms,
 called hurdles, and a demand function.
@@ -254,114 +255,124 @@ disturbances.
 
 \begin{itemize}
 
-\item Hurdle 1 models the household decision of selecting or not selecting the good
-  we consider as a relevant consumption good, complying with household's ethical,
-  psychological and social convictions and habits.
-  This good selection mechanism explains the outcome of a
-  binary choice that can be coded by a binary variable $I_1$ taking value 1
-  if the household decides to enter the good on its basket of relevant consumption
-  goods and 0 otherwise. The outcome of this binary choice is modeled by
-  associating the decision to select the good to positive values of latent
-  variable $y_1^*$ and that to reject the good to negative values of $y_1^*$.
-  Therefore, good selection or rejection is modeled as a probability choice where
-  selection occurs with probability $P(I_1=1)=P(y_1^*>0)$ and rejection
+\item Hurdle 1 models the household decision of selecting or not
+  selecting the good we consider as a relevant consumption good,
+  complying with household's ethical, psychological and social
+  convictions and habits. This good selection mechanism explains the
+  outcome of a binary choice that can be coded by a binary variable
+  $I_1$ taking value 1 if the household decides to enter the good in
+  its basket of relevant consumption goods and 0 otherwise. The
+  outcome of this binary choice is modelled by associating the decision
+  to select the good to positive values of the latent variable $y_1^*$
+  and that to reject the good to negative values of $y_1^*$.
+  Therefore, good selection or rejection is modelled as a probability
+  choice where selection occurs with probability $P(I_1=1)=P(y_1^*>0)$
+  and rejection
   with probability $P(I_1=0)=P(y_1^*\leq 0)=1-P(y_1^*>0)$.\\
-  Note that if this mechanism is inoperative, this probit model must be
-  replaced by a singular probability choice model where $P(I_1=1)=1$ and
-  $P(I_1=0)=0$.
+  Note that if this mechanism is inoperative, this probit model must
+  be replaced by a singular probability choice model where
+  $P(I_1=1)=1$ and $P(I_1=0)=0$.
 
-\item Hurdle 2 models the household decision of consuming or not consuming
-  the selected good, given its actual economic conditions. This desired consumption
-  mechanism explains the outcome of a binary choice coded by a binary variable $I_2$
-  taking value 1 if the household decides to consume the good and 0 otherwise.
-  The outcome of this binary choice is modeled by associating the decision
-  to consume the selected good to a positive value of its desired consumption level,
-  represented by latent variable $y_2^*$, and that of not to consume the good
-  to negative values of $y_2^*$. Therefore, when this zero expenditure generating
-  mechanism is operative, it also models the level of desired consumption expenditures
-  by means of a Tobit model identifying the desired consumption expenditures to the
-  value of latent variable $y_2^*$, when it is positive, and to zero, when it is negative.\\
-  Conversely, when the desired consumption mechanism is inoperative, implying that the
-  desired consumption cannot be a corner solution of a budget constrained problem of
-  utility maximization, we must replace not only the probit model explaining variable
-  $I_2$ by a singular probability choice model where $P(I_2=1)=1$, but also the Tobit
-  demand function by a demand model enforcing non negative values to latent variable $y_2^*$.
-  For the time being, two functional forms of this demand model have been programmed
-  in \pkg{mhurdle}, namely a log-normal functional form :
+\item Hurdle 2 models the household decision of consuming or not
+  consuming the selected good, given its actual economic
+  conditions. This desired consumption mechanism explains the outcome
+  of a binary choice coded by a binary variable $I_2$ taking value 1
+  if the household decides to consume the good and 0 otherwise.  The
+  outcome of this binary choice is modelled by associating the decision
+  to consume the selected good to a positive value of its desired
+  consumption level, represented by the latent variable $y_2^*$, and
+  that of not to consume the good to negative values of
+  $y_2^*$. Therefore, when this zero expenditure generating mechanism
+  is operative, it also models the level of desired consumption
+  expenditures by means of a Tobit model identifying the desired
+  consumption expenditures to the value of latent variable $y_2^*$,
+  when it is positive, and to zero, when it is negative.\\
+  Conversely, when the desired consumption mechanism is inoperative,
+  implying that the desired consumption cannot be a corner solution of
+  a budget constrained problem of utility minimisation, we must
+  replace not only the probit model explaining the variable $I_2$ by a
+  singular probability choice model where $P(I_2=1)=1$, but also the
+  Tobit demand function by a demand model enforcing non-negative
+  values on the latent variable $y_2^*$. For the time being, two
+  functional forms of this demand model have been programmed in
+  \pkg{mhurdle}, namely a log-normal functional form :
 
   \begin{equation}\label{eq2}
   \ln y_2^* = \beta_2^\top x_2+\epsilon_2
   \end{equation}
 
-  and a truncated Tobit model, defined by the second of the set of linear
-  relationships~(\ref{eq1}) with $\epsilon_2$ distributed as a normal random
-  disturbance left-truncated at $\epsilon_2 = -\beta_2^\top x_2$,
-  as suggested by \citet{CRAGG/71}. Nevertheless, to avoid a cumbersome analytic
-  presentation of our models, in the followings we consider only the log-normal
-  model specification.
+  and a truncated Tobit model, defined by the second of the set of
+  linear relationships~(\ref{eq1}) with $\epsilon_2$ distributed as a
+  normal random disturbance left-truncated at $\epsilon_2 =
+  -\beta_2^\top x_2$, as suggested by \citet{CRAGG/71}. Nevertheless,
+  to avoid a cumbersome analytic presentation of our models, in the
+  following we only consider the log-normal model specification.
 
-\item Hurdle 3 models the household decision of purchasing or not purchasing
-  the good during the survey period over which expenditure data are collected. This
-  purchasing mechanism also explains the outcome of a binary choice, coded
-  by a binary variable $I_3$ taking value 1 if the household decides
-  to buy the good during the period of statistical observation and 0 otherwise.
-  The probit model we use associates the purchasing decision to positive
-  values of latent variable $y_3^*$ and that of not purchasing to negative
+\item Hurdle 3 models the household decision to purchase or not to
+  purchase the good during the survey period over which expenditure
+  data are collected. This purchasing mechanism also explains the
+  outcome of a binary choice, coded by a binary variable $I_3$ taking
+  value 1 if the household decides to buy the good during the period
+  of statistical observation and 0 otherwise.  The probit model we use
+  associates the purchasing decision to positive values of latent
+  variable $y_3^*$ and that of not purchasing to negative
   values of $y_3^*$.\\
-  By assuming that consumption and purchases are uniformly distributed over time,
-  but according to different timetables entailing a frequency of consumption higher
-  than that of purchasing, we can also interpret the probability
-  $P(I_3=1)=P(y_3^*>0)$ as measuring the share of expenditures
-  to consumption during the observation period. This allows to relate the observed
-  level of expenditures $y$ to the unobserved level of consumption $y_2^*$ during
-  the observation period, using the following identity:
+  By assuming that consumption and purchases are uniformly distributed
+  over time, but according to different timetables entailing a
+  frequency of consumption higher than that of purchasing, we can also
+  interpret the probability $P(I_3=1)=P(y_3^*>0)$ as measuring the
+  share of expenditures to consumption during the observation
+  period. This allows to relate the observed level of expenditures $y$
+  to the unobserved level of consumption $y_2^*$ during the
+  observation period, using the following identity:
 
   \begin{equation}\label{eq3}
   y = \frac{y_2^*}{P(I_3=1)} I_1 I_2 I_3 .
   \end{equation}
 
-  When the purchasing mechanism is inoperative, the previous probit model must be
-  replaced by a singular probability choice model where $P(I_3=1)=1$.
-  In such a case, the observed level of expenditures is identified to the level
-  of consumption, implying $y=y_2^* I_1 I_2$.
+  When the purchasing mechanism is inoperative, the previous probit
+  model must be replaced by a singular probability choice model where
+  $P(I_3=1)=1$.  In such a case, the observed level of expenditures is
+  identified to the level of consumption, implying $y=y_2^* I_1 I_2$.
 
 \end{itemize}
 
 A priori information may suggest that one or more of these censoring
-mechanisms are not in effect. For instance, we know in advance that all
-households purchase food regularly, implying that the first two
+mechanisms are not in effect. For instance, we know in advance that
+all households purchase food regularly, implying that the first two
 censoring mechanisms are inoperative for food.  In this case, the
 relevant model is defined by only two relations: one defining the
 desired consumption level of food, according to a log-normal
-specification or a truncated Tobit model, and the other the decision of food
-purchasing during the observation period.
+specification or a truncated Tobit model, and the other the decision
+to purchase food during the observation period.
 
-Figure 1 outlines the full set of special models that can be generated
-by selecting which of these three mechanisms are in effect and which are not.
-It shows that 8 different models can be dealt with the \pkg{mhurdle}
-package.
+Figure~\ref{fig:arbre2} outlines the full set of special models that
+can be generated by selecting which of these three mechanisms are in
+effect and which are not.  It shows that 8 different models can be
+dealt with by means of the \pkg{mhurdle} package.
 
 \begin{sidewaysfigure}
-\caption{\label{arbre2} The full set of mhurdle special models.}
+\caption{\label{fig:arbre2} The full set of mhurdle special models.}
   \includegraphics[width=20cm,height=17cm]{typo1.pdf}
 \end{sidewaysfigure}
 
-Among these models, one is not concerned by censored data, namely model 1.
-This model is relevant only for modeling uncensored samples. All the
-other models are potentially able to analyze censored samples
-by combining up to the three censoring mechanisms described
+Among these models, one is not concerned by censored data, namely
+model 1.  This model is relevant only for modelling uncensored
+samples. All the other models are potentially able to analyse censored
+samples by combining up to the three censoring mechanisms described
 above. With the notable exception of the standard Tobit model 3, that
 can be estimated also by the \pkg{survival} package of
-\citet{SURVA/08} or the AER package of \citet{KLEI/ZEIL/08}, these models
-cannot be found in an other \proglang{R} package.
+\citet{SURVA/08} or the AER package of \citet{KLEI/ZEIL/08}, these
+models cannot be found in an other \proglang{R} package.
 
-Some of \pkg{mhurdle} models have already been used in the applied
-econometric literature. In particular, model 2 is a single-hurdle
-good selection model originated by \citet{CRAGG/71}. The double-hurdle
-model combining independent good selection (hurdle 1) and desired consumption
-(hurdle 2) censoring mechanisms is also due to \citet{CRAGG/71}. An
-extension of this double-hurdle model to dependent censoring mechanisms
-has been originated by \citet{BLUNDELL/87}.
+Some of \pkg{mhurdle} models have already been used in applied
+econometric literature. In particular, model 2 is a single-hurdle good
+selection model originated by \citet{CRAGG/71}. The double-hurdle
+model combining independent good selection (hurdle 1) and desired
+consumption (hurdle 2) censoring mechanisms is also due to
+\citet{CRAGG/71}. An extension of this double-hurdle model to
+dependent censoring mechanisms has been originated by
+\citet{BLUNDELL/87}.
 
 P-Tobit model 7 is due to \citet{DEATO/IRISH/84} and explains zero
 purchases by combining the desired consumption censoring mechanism
@@ -380,26 +391,26 @@ infrequent purchases (hurdle 3).
 
 To derive the form of the probability distribution of the observable
 dependent variable $y$, we must specify the joint distribution of the
-random disturbances entering into the structural relations of these models.
+random disturbances entering the structural relations of these models.
 
 \begin{itemize}
 
-\item Models 8 and 6 are trivariate hurdle models as they involve disturbances
-  $\epsilon_1$, $\epsilon_2$ and $\epsilon_3$, distributed according to the
-  trivariate normal density function:
+\item Models 8 and 6 are trivariate hurdle models as they involve
+  disturbances $\epsilon_1$, $\epsilon_2$ and $\epsilon_3$,
+  distributed according to the trivariate normal density function:
 
   \begin{equation}\label{eq4}
-  \frac{1}{\sigma}\phi\left(\epsilon_1,\frac{\epsilon_2}{\sigma},\epsilon_3;
-  \rho_{12},\rho_{13},\rho_{23}\right),
+    \frac{1}{\sigma}\phi\left(\epsilon_1,\frac{\epsilon_2}{\sigma},\epsilon_3;
+      \rho_{12},\rho_{13},\rho_{23}\right),
   \end{equation}
 
   where
 
   $$
   \phi(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23})={\displaystyle
-  \frac{\exp\left\{-\frac{\rho^{11}z_1^2+\rho^{22}z_2^2+\rho^{33}z_3^2
-  -2[\rho^{12}z_1z_2+\rho^{13}z_1z_3+\rho^{23}z_2z_3]}{2}\right\}}
-  {\sqrt{(2\pi)^3}\mid R\mid}},
+    \frac{\exp\left\{-\frac{\rho^{11}z_1^2+\rho^{22}z_2^2+\rho^{33}z_3^2
+          -2[\rho^{12}z_1z_2+\rho^{13}z_1z_3+\rho^{23}z_2z_3]}{2}\right\}}
+    {\sqrt{(2\pi)^3}\mid R\mid}},
   $$
   with
   $$
@@ -421,7 +432,7 @@ random disturbances entering into the structural relations of these models.
   $\rho_{23}$ the correlation coefficients between the couples of normal standard
   random variables $z_1$ and $z_2$, $z_1$ and $z_3$, $z_2$ and $z_3$, respectively.
   As the unit of measurement of $\epsilon_1$ and $\epsilon_3$ are not identified,
-  these disturbances are normalized by setting their variances equal to 1.
+  these disturbances are normalised by setting their variances equal to 1.
 
 \item Models 7 and 4 are bivariate hurdle models as they involve disturbances
   $\epsilon_2$ and $\epsilon_3$, distributed according to the bivariate normal
@@ -461,31 +472,30 @@ random disturbances entering into the structural relations of these models.
   \phi(z_1)=\frac{\exp\left\{-\frac{z_1^2}{2}\right\}}{\sqrt{2\pi}}
   $$
 
-  denotes the density function of a standard univariate normal distribution.
+  denotes the density function of a standard univariate normal
+  distribution.
 
 \end{itemize}
 
 A priori information may also suggest to set to zero some or all
-correlations between the random disturbances entering into these
-models, entailing a partial or total independence between the
-above defined censoring mechanisms. The use of this a priori
-information generates, for each trivariate or bivariate hurdle model
-of Figure 1, a subset of special models all nested within the
-general model from which they are derived. For a trivariate
-hurdle model the number of special models so derived is equal
-to 7, but for a bivariate hurdle model only one special model is
-generated, namely the model obtained by assuming the independence
-between the two random disturbances of the model.
+correlations between the random disturbances entering these models,
+entailing a partial or total independence between the above defined
+censoring mechanisms. The use of this a priori information generates,
+for each trivariate or bivariate hurdle model of Figure 1, a subset of
+special models all nested within the general model from which they are
+derived. For a trivariate hurdle model the number of special models so
+derived is equal to 7, but for a bivariate hurdle model only one
+special model is generated, namely the model obtained by assuming the
+independence between the two random disturbances of the model.
 
-In the followings, we shall work out the distribution of our
-hurdle models in their general case, but considering the
-difficulties of implementing trivariate hurdle models
-in their full generality, for these models only the special
-cases of independence or dependence between one of hurdles 1
-or 3 and the desired consumption equation, which seem the most
-relevant for empirical applications, have been programmed in
-\pkg{mhurdle}. The extension of our package to more general
-model specifications is in progress.
+In the following, we shall work out the distribution of our hurdle
+models in their general case, but considering the difficulties of
+implementing trivariate hurdle models in their full generality, for
+these models only the special cases of independence or dependence
+between one of hurdles 1 or 3 and the desired consumption equation,
+which seems the most relevant for empirical applications, have been
+programmed in \pkg{mhurdle}. The extension of our package to more
+general model specifications is in progress.
 
 \subsection{Likelihood function}
 
@@ -499,8 +509,8 @@ P(y=0)+\int_0^\infty f_+(y)dy=1.
 \end{equation}
 
 The probability mass $P(y=0)=1-P(y>0)$ may be computed by integrating
-the joint density function of the latent variables entering into the
-hurdle model over their positive values.
+the joint density function of the latent variables entering the hurdle
+model over their positive values.
 
 \begin{itemize}
 
@@ -616,68 +626,72 @@ A blackened square indicates which hurdle or correlation is assumed to be at wor
 
 \end{sidewaystable}
 
-The density function $f_+(y)$ may be computed by performing: first the change of
-variables $y_2^* = P(I_3=1)y = \Phi_3y$ on the joint density function of the
-latent variables entering into the hurdle model; than by integrating this
-transformed density function over the positive values of latent variables $y_1^*$ and $y_3^*$.
+The density function $f_+(y)$ may be computed by performing: first the
+change of variables $y_2^* = P(I_3=1)y = \Phi_3y$ on the joint density
+function of the latent variables entering the hurdle model; then by
+integrating this transformed density function over the positive values
+of latent variables $y_1^*$ and $y_3^*$.
 
 \begin{itemize}
 \item For trivariate hurdle model 8 this transformed density function
   is written as:
 
   \begin{equation}\label{eq13}
-  \frac{\Phi_3}{\sigma}\phi\left(y_1^*-\beta_1^\top x_1,\frac{\Phi_3 y-\beta_2^\top x_2}
-  {\sigma},y_3^*-\beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right).
+    \frac{\Phi_3}{\sigma}\phi\left(y_1^*-\beta_1^\top x_1,\frac{\Phi_3 y-\beta_2^\top x_2}
+      {\sigma},y_3^*-\beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23}\right).
   \end{equation}
 
   To perform the analytical integration of this function, it is useful
-  to rewrite it as the product of the marginal distribution of $y$, namely:
+  to rewrite it as the product of the marginal distribution of $y$,
+  namely:
 
   \begin{equation}\label{eq14}
-  \frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)
+    \frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)
   \end{equation}
 
   and of the joint density function of $y_1^*$ and $y_3^*$ conditioned
   with respect to $y$, which can be written as follows:
 
   \begin{equation}\label{eq15}
-  \frac{1}{\sigma_{1|2}\sigma_{3|2}}\phi\left(\frac{y_1^*-\mu_{1|2}}{\sigma_{1|2}},
-  \frac{y_3^*-\mu_{3|2}}{\sigma_{3|2}}; \rho_{13|2}\right),
+    \frac{1}{\sigma_{1|2}\sigma_{3|2}}\phi\left(\frac{y_1^*-\mu_{1|2}}{\sigma_{1|2}},
+      \frac{y_3^*-\mu_{3|2}}{\sigma_{3|2}}; \rho_{13|2}\right),
   \end{equation}
 
   with:
   $$
-  \mu_{1|2}=\beta_1^\top x_1+\rho_{12}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma}, \quad
-  \mu_{3|2}=\beta_3^\top x_3+\rho_{23}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma},
+  \mu_{1|2}=\beta_1^\top x_1+\rho_{12}\frac{\Phi_3y-\beta_2^\top
+    x_2}{\sigma}, \quad \mu_{3|2}=\beta_3^\top
+  x_3+\rho_{23}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma},
   $$
   $$
-  \sigma_{1|2}^2=1-\rho_{12}^2, \quad \sigma_{3|2}^2=1-\rho_{23}^2, \quad
+  \sigma_{1|2}^2=1-\rho_{12}^2, \quad \sigma_{3|2}^2=1-\rho_{23}^2,
+  \quad
   \rho_{13|2}=\frac{\rho_{13}-\rho_{12}\rho_{23}}{\sqrt{1-\rho_{12}^2}\sqrt{1-\rho_{23}^2}}.
   $$
 
-  Using this factorization of the density function of $y_1^*$, $y$ and $y_3^*$,
-  we obtain:
+  Using this factorization of the density function of $y_1^*$, $y$ and
+  $y_3^*$, we obtain:
 
 
   \begin{equation}\label{eq16}
   \begin{array}{l}
     f_+(y)={\displaystyle\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)}\\[12pt]
     \phantom{f_+(y)} \times {\displaystyle\int_0^\infty\int_0^\infty \frac{1}{\sigma_{1|2}\sigma_{3|2}}\phi\left(\frac{y_1^*-\mu_{1|2}}{\sigma_{1|2}},
-    \frac{y_3^*-\mu_{3|2}}{\sigma_{3|2}}; \rho_{13|2}\right)dy_1^*dy_3^*} \\[16pt]
+        \frac{y_3^*-\mu_{3|2}}{\sigma_{3|2}}; \rho_{13|2}\right)dy_1^*dy_3^*} \\[16pt]
     \phantom{f_+(y)}= {\displaystyle\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)
-    \int_{-\frac{\mu_{1|2}}{\sigma_{1|2}}}^\infty\int_{-\frac{\mu_{3|2}}{\sigma_{3|2}}}^\infty
-    \phi(z_1,z_3;\rho_{13|2})dz_1 dz_3} \\[8pt]
+      \int_{-\frac{\mu_{1|2}}{\sigma_{1|2}}}^\infty\int_{-\frac{\mu_{3|2}}{\sigma_{3|2}}}^\infty
+      \phi(z_1,z_3;\rho_{13|2})dz_1 dz_3} \\[8pt]
     \phantom{f_+(y)}={\displaystyle\frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)}\\[12pt]
     \phantom{f_+(y)} \times{\displaystyle \Phi\left(\frac{\beta_1^\top x_1+\rho_{12}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma}}
-    {\sqrt{1-\rho_{12}^2}},\frac{\beta_3^\top x_3+\rho_{23}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma}}
-    {\sqrt{1-\rho_{23}^2}};\rho_{13|2}\right)}.
+        {\sqrt{1-\rho_{12}^2}},\frac{\beta_3^\top x_3+\rho_{23}\frac{\Phi_3y-\beta_2^\top x_2}{\sigma}}
+        {\sqrt{1-\rho_{23}^2}};\rho_{13|2}\right)}.
   \end{array}
   \end{equation}
 
 
-\item For trivariate hurdle model 6, we proceed as for hurdle model 8 by
-  substituting the joint normal density function~(\ref{eq13}),
-  by the following joint normal/log-normal density function:
+\item For trivariate hurdle model 6, we proceed as for hurdle model 8
+  by substituting the joint normal density function~(\ref{eq13}), by
+  the following joint normal/log-normal density function:
 
   \begin{equation}\label{eq17}
   \frac{1}{\sigma y}\phi\left(y_1^*-\beta_1^\top x_1,\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}
@@ -708,37 +722,39 @@ transformed density function over the positive values of latent variables $y_1^*
   \rho_{13|2}=\frac{\rho_{13}-\rho_{12}\rho_{23}}{\sqrt{1-\rho_{12}^2}\sqrt{1-\rho_{23}^2}}.
   $$
 
-  By integrating this factorization of the density function of $y_1^*$, $y$ and $y_3^*$,
+  By integrating this factorisation of the density function of $y_1^*$, $y$ and $y_3^*$,
   over the positive values of $y_1^*$ and $y_3^*$, we obtain:
 
   \begin{equation}\label{eq20}
   \begin{array}{l}
     f_+(y)={\displaystyle\frac{\phi\left(\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}\right)}{\sigma y}
-    \int_{-\frac{\mu_{1|2}}{\sigma_{1|2}}}^\infty\int_{-\frac{\mu_{3|2}}{\sigma_{3|2}}}^\infty
-    \phi(z_1,z_3;\rho_{13|2})dz_1 dz_3} \\[8pt]
+      \int_{-\frac{\mu_{1|2}}{\sigma_{1|2}}}^\infty\int_{-\frac{\mu_{3|2}}{\sigma_{3|2}}}^\infty
+      \phi(z_1,z_3;\rho_{13|2})dz_1 dz_3} \\[8pt]
     \phantom{f_+(y)}={\displaystyle\frac{\phi\left(\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}\right)}{\sigma y}}\\[8pt]
     \phantom{f_+(y)}\times{\displaystyle\Phi\left(\frac{\beta_1^\top x_1+\rho_{12}\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}}
-    {\sqrt{1-\rho_{12}^2}},\frac{\beta_3^\top x_3+\rho_{23}\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}}
-    {\sqrt{1-\rho_{23}^2}};\rho_{13|2}\right)}.
+        {\sqrt{1-\rho_{12}^2}},\frac{\beta_3^\top x_3+\rho_{23}\frac{\ln(\Phi_3 y)-\beta_2^\top x_2}{\sigma}}
+        {\sqrt{1-\rho_{23}^2}};\rho_{13|2}\right)}.
   \end{array}
   \end{equation}
 
-\item The density function $f_+(y)$ for bivariate hurdle models 7 and 5 and
-  univariate hurdle model 3 can be derived from that of trivariate model 8
-  by eliminating hurdles 1, 3, 1 and 3, respectively.
-  Likewise, this density function for bivariate hurdle models 4 and 2 can be derived
-  from that of trivariate hurdle model 6 by eliminating hurdles 1 and 3, respectively.
-  Corresponding formulas of $f_+(y)$ for all this special cases implemented in
+\item The density function $f_+(y)$ for bivariate hurdle models 7 and
+  5 and univariate hurdle model 3 can be derived from that of
+  trivariate model 8 by eliminating hurdles 1, 3, 1 and 3,
+  respectively.  Likewise, this density function for bivariate hurdle
+  models 4 and 2 can be derived from that of trivariate hurdle model 6
+  by eliminating hurdles 1 and 3, respectively.  Corresponding
+  formulas for $f_+(y)$ for all this special cases implemented in
   \proglang{R} are presented in Table~\ref{tab:typo}.
 \end{itemize}
 
 From these results it is easy to derive the likelihood function of a
-random sample of $n$ observations of the censored dependent variable $y$.
-As these observations are all independently drawn from the same conditional
-(on covariates $x_1$, $x_2$ and $x_3$) discrete-continuous distribution,
-which assign a conditional probability mass $P(y=0)$ to the observed value $y=0$ and
-a conditional density function $f_+(y)$ to the observed values $y>0$,
-the log-likelihood function for an observation $y_i$ can be written as :
+random sample of $n$ observations of the censored dependent variable
+$y$.  As these observations are all independently drawn from the same
+conditional (on covariates $x_1$, $x_2$ and $x_3$) discrete-continuous
+distribution, which assigns a conditional probability mass $P(y=0)$ to
+the observed value $y=0$ and a conditional density function $f_+(y)$
+to the observed values $y>0$, the log-likelihood function for an
+observation $y_i$ can be written as :
 
 \begin{equation}\label{eq21}
 \ln L_i = \left\{
@@ -752,7 +768,7 @@ the log-likelihood function for an observation $y_i$ can be written as :
 and the log-likelihood for the entire random sample:
 
 \begin{equation}\label{eq22}
-\ln L = \sum_{i=1}^n \ln L_i= \sum_{i \mid y_i = 0} \ln P(y_i=0) + \sum_{i \mid y_i > 0} \ln f_+(y_i).
+  \ln L = \sum_{i=1}^n \ln L_i= \sum_{i \mid y_i = 0} \ln P(y_i=0) + \sum_{i \mid y_i > 0} \ln f_+(y_i).
 \end{equation}
 
 
@@ -761,7 +777,7 @@ and the log-likelihood for the entire random sample:
 \label{sec:estevalsel}
 
 The econometric framework described in the previous section provides a
-theoretical framework for tackling the problems of model estimation,
+theoretical background for tackling the problems of model estimation,
 evaluation and selection within the statistical theory of classical
 inference.
 
@@ -770,30 +786,30 @@ inference.
 The full parametric specification of our multiple hurdle models allows
 to efficiently estimate their parameters by means of the maximum
 likelihood principle. Indeed, it is well known from classical
-estimation theory that, under the assumption of correct model
+estimation theory that, under the assumption of a correct model
 specification and for a likelihood function sufficiently well behaved,
 the maximum likelihood estimator is asymptotically efficient within
-the class of consistent and asymptotically normal
-estimators \footnote{See \citet{AMEM/85} chapter 4, for a more rigorous
-statement of this property.}.
-
+the class of consistent and asymptotically normal estimators
+\footnote{See \citet{AMEM/85} chapter 4, for a more rigorous statement
+  of this property.}.
 
 More precisely, the asymptotic distribution of the maximum likelihood
 estimator $\hat{\theta}$ for the parameter vector $\theta$ of a
 multiple hurdle model, is written as:
 
 \begin{equation}\label{eq23}
-\hat{\theta} \overset{A}{\sim} N(\theta,\frac{1}{n} I_A (\theta)^{-1}),
+  \hat{\theta} \overset{A}{\sim} N(\theta,\frac{1}{n} I_A (\theta)^{-1}),
 \end{equation}
 
-where $\overset{A}{\sim}$ stands for ``asymptotically distributed as'' and
+where $\overset{A}{\sim}$ stands for ``asymptotically distributed as''
+and
 
 \begin{equation*}
-I_A(\theta)=\mbox{plim} \frac{1}{n} \sum_{i=1}^n E\left(\frac{\partial^2
-  \ln L_i (\theta)}{\partial \theta \partial \theta^\top}\right)
-=\mbox{plim} \frac{1}{n} \sum_{i=1}^n E\left(\frac{\partial\ln
-  L_i(\theta)}{\partial\theta} \frac{\partial\ln L_i
-  (\theta)}{\partial\theta^\top}\right)
+  I_A(\theta)=\mbox{plim} \frac{1}{n} \sum_{i=1}^n E\left(\frac{\partial^2
+      \ln L_i (\theta)}{\partial \theta \partial \theta^\top}\right)
+  =\mbox{plim} \frac{1}{n} \sum_{i=1}^n E\left(\frac{\partial\ln
+      L_i(\theta)}{\partial\theta} \frac{\partial\ln L_i
+      (\theta)}{\partial\theta^\top}\right)
 \end{equation*}
 
 for the asymptotic Fisher information matrix of a sample of $n$
@@ -837,47 +853,48 @@ and predictive adequacy. The first principle deals with the issues of
 accordance of model estimate with the economic rationale underlying
 the model specification and of its relevance for answering the
 questions for which the model has been built. These issues are
-essentially context specific and, therefore, cannot be dealt with
-generic criteria.  The second principle refers to the issues of
-empirical soundness of model estimate and of its ability to predict
+essentially context specific and, therefore, cannot be dealt with by
+means of generic criteria.  The second principle refers to the issues
+of empirical soundness of model estimate and of its ability to predict
 sample or out-of-sample observations.  These issues can be tackled by
 means of formal tests of significance, based on the previously
 presented asymptotic distributions of model estimates, and by measures
 of goodness of fit/prediction, respectively.
 
-To assess the goodness of fit of \pkg{mhurdle} estimates, two pseudo $R^2$
-coefficients are provided. The first one is an extension of the
+To assess the goodness of fit of \pkg{mhurdle} estimates, two pseudo
+$R^2$ coefficients are provided. The first one is an extension of the
 classical coefficient of determination, used to explain the fraction
 of variation of the dependent variable explained by the covariates
 included in a linear regression model with intercept. The second one
-is an extension of the likelihood ratio index introduced by~\citet{MCFA/74}
-to measure the relative gain in the maximized
+is an extension of the likelihood ratio index introduced
+by~\citet{MCFA/74} to measure the relative gain in the maximised
 log-likelihood function due to the covariates included in a
 qualitative response model.
 
 To define a pseudo coefficient of determination, we rely on the non
-linear regression model explaining the dependent variable of a multiple hurdle
-model. This model is written as:
+linear regression model explaining the dependent variable of a
+multiple hurdle model. This model is written as:
 
 \begin{equation}\label{eq25}
 y=E(y)+u,
 \end{equation}
 
-where $u$ stands for a zero expectation, heteroskedastic random disturbance and
-$E(y)$ for the expectation of the censored dependent variable $y$:
+where $u$ stands for a zero expectation, heteroskedastic random
+disturbance and $E(y)$ for the expectation of the censored dependent
+variable $y$:
 
 \begin{equation}\label{eq26}
-E(y)=0 \times P(y=0)+\int_0^\infty yf_+(y)dy=\int_0^\infty yf_+(y)dy.
+  E(y)=0 \times P(y=0)+\int_0^\infty yf_+(y)dy=\int_0^\infty yf_+(y)dy.
 \end{equation}
 
-To compute this expectation, we reformulate it as a multiple integral of the
-joint density function of $y_1^*$, $y$ and $y_3^*$ multiplied by $y$, over
-the positive values of these variables.
+To compute this expectation, we reformulate it as a multiple integral
+of the joint density function of $y_1^*$, $y$ and $y_3^*$ multiplied
+by $y$, over the positive values of these variables.
 
 \begin{itemize}
 
-\item For trivariate hurdle model 8, using the density function ~(\ref{eq13})
-  and the change of variables:
+\item For trivariate hurdle model 8, using the density function
+  ~(\ref{eq13}) and the change of variables:
 
   \begin{equation}\label{eq27}
   \left\{
@@ -926,7 +943,7 @@ the positive values of these variables.
   \varrho_3=\frac{\rho_{23}-\rho_{12}\rho_{13}}{1-\rho_{13}^2}.
   $$
 
-  Using this factorization of the density function of $z_1$, $z_2$ and $z_3$,
+  Using this factorisation of the density function of $z_1$, $z_2$ and $z_3$,
   we obtain:
 
   \begin{equation}\label{eq30}
@@ -969,10 +986,10 @@ the positive values of these variables.
   \end{array}
   \end{equation}
 
-\item For trivariate hurdle model 6, we proceed as for hurdle model 8 by first
-  substituting the joint normal density function~(\ref{eq13})
-  by the joint normal/log-normal density function~(\ref{eq17}),
-  than by performing the change of variables:
+\item For trivariate hurdle model 6, we proceed as for hurdle model 8
+  by first substituting the joint normal density function~(\ref{eq13})
+  by the joint normal/log-normal density function~(\ref{eq17}), then
+  by performing the change of variables:
 
   \begin{equation}\label{eq34}
   \left\{
@@ -996,7 +1013,7 @@ the positive values of these variables.
   \end{array}
   \end{equation}
 
-  obtained by factorizing the density function of $z_1$, $z_2$ and $z_3$
+  obtained by factorising the density function of $z_1$, $z_2$ and $z_3$
   as the product of the marginal density function of $z_1$ and $z_3$
   times the density function of $z_2|z_1,z_3$.\\
   By performing the change of variable~(\ref{eq31}),
@@ -1082,72 +1099,42 @@ this goodness of fit measure cannot exceed one but can be negative, as
 a consequence of the non linearity of $E(y_i)$ with respect to the
 parameters.
 
-Two other formulas, which are equivalent to compute $R^2$ in the
-linear regression model with intercept, have been used to define
-a pseudo coefficient of determination, namely: the ratio of the
-explained sum of square to the total sum of squares and the squared
-correlation between actual and fitted values. The first of these two
-alternative formulas can provide values exceeding one in a non linear
-regression model, while the second, although providing values always
-within zero and one, cannot be adjusted for degrees of freedom for a
-use as a model selection criterion, as we shall see later on. For these
-reasons, we give preference to the use of formula~(\ref{eq38}) .
-
-A more promising approach consists
-in computing $RSS$ and $TSS$ with standardized residuals, to correct
-for the heteroskedasticity of raw residuals. This standardized pseudo
-coefficient of determination is written as:
-
-\begin{equation}\label{eq39}
-R_S^2=1-\frac{SRSS}{STSS},
-\end{equation}
-
-with $SRSS=\sum (y_i - \hat{y}_i)^2/\hat{\sigma}_i^2$ the standardized
-residual sum of squares and $STSS=\sum
-(y_i-\hat{y}_0)^2/\hat{\sigma}_0^2$ the standardized total sum of
-squares, where $\hat{\sigma}_i^2$ denotes the maximum likelihood
-estimate of $V(y_i)$ in the multiple hurdle model with covariates and
-$\hat{\sigma}_0^2$ that in the corresponding multiple hurdle model
-without covariates (intercept-only model). This Pearson goodness of
-fit measure, that requires to write down analytically $V(y_i)$, will
-be implemented in a next version of \pkg{mhurdle} package.
-
 The extension of the McFadden likelihood ratio index for qualitative
-response models to multiple hurdle models is straightforwardly obtained by
-substituting in this index formula:
+response models to multiple hurdle models is straightforwardly
+obtained by substituting in this index formula:
 
 \begin{equation}\label{eq40}
 \rho^2=1-\frac{\ln L(\hat{\theta})}{\ln L(\hat{\alpha})}=\frac{\ln
 L(\hat{\alpha})-\ln L(\hat{\theta})}{\ln L(\hat{\alpha})},
 \end{equation}
 
-the maximized log-likelihood function of a qualitative response model
+the maximised log-likelihood function of a qualitative response model
 with covariates and the log-likelihood function of the corresponding
-model without covariates or intercept-only model, with the maximized
-log-likelihood functions of a multiple hurdle model with covariates, $\ln
-L(\hat{\theta})$, and without covariates, $\ln L(\hat{\alpha})$,
+model without covariates or intercept-only model, with the maximised
+log-likelihood functions of a multiple hurdle model with covariates,
+$\ln L(\hat{\theta})$, and without covariates, $\ln L(\hat{\alpha})$,
 respectively.  This goodness of fit measure takes values within zero
 and one and, as it can be easily inferred from the above second
 expression of $\rho^2$, it measures the relative increase of the
-maximized log-likelihood function due to the use of explanatory
-variables with respect to the maximized log-likelihood function of a
+maximised log-likelihood function due to the use of explanatory
+variables with respect to the maximised log-likelihood function of a
 naive intercept-only model.
 
 Model selection deals with the problem of discriminating between
 alternative model specifications used to explain the same dependent
-variable, with the view of finding the one best suited to explain the
-sample of observations at hand.  This decision problem can be tackled
-from the point of view of the model specification achieving the best
-in-sample fit.
+variable, with the purpose of finding the one best suited to explain
+the sample of observations at hand.  This decision problem can be
+tackled from the point of view of the model specification achieving
+the best in-sample fit.
 
-This selection criterion is easy to apply as it consists in
-comparing one of the above defined measures of fit, computed for the
-competing model specifications, after adjusting them for the loss of
-sample degrees of freedom due to model parametrization.  Indeed, the
-value of these measures of fit can be improved by increasing model
-parametrization, in particular when the parameter estimates are
-obtained by optimizing a criteria functionally related to the selected
-measure of fit, as it is the case when using the $\rho^2$ fit measure
+This selection criterion is easy to apply as it consists in comparing
+one of the above defined measures of fit, computed for the competing
+model specifications, after adjusting them for the loss of sample
+degrees of freedom due to model parametrisation.  Indeed, the value of
+these measures of fit can be improved by increasing model
+parametrisation, in particular when the parameter estimates are
+obtained by optimising a criteria functionally related to the selected
+measure of fit, as is the case when using the $\rho^2$ fit measure
 with a maximum likelihood estimate. Consequently, a penalty that
 increases with the number of model parameters should be added to the
 $R^2$ and $\rho^2$ fit measures to trade off goodness of fit
@@ -1181,7 +1168,7 @@ the largest
 \bar{\rho}^2=1-\frac{\ln L(\hat{\theta})-K}{\ln L(\hat{\alpha})-K_0}
 \end{equation}
 
-is equivalent to choosing the model specification that minimizes the
+is equivalent to choosing the model specification that minimises the
 \citet{AKAIKE/73} predictor of the Kullback-Leibler Information
 Criterion (KLIC). This criterion measures the distance between the
 conditional density function $f(y|x;\theta)$ of a possibly
@@ -1204,13 +1191,13 @@ $f(y|x;\theta)$ is misspecified.
 \subsection{Model selection using Vuong tests}
 
 Model selection can also be tackled from the point of view of the model
-specification that is favored in a formal test comparing two model
+specification that is favoured in a formal test comparing two model
 alternatives.
 
 This second model selection criterion relies on the use of a test
 proposed by \citet{VUONG/89}. According to the rationale of this test,
 the "best" parametric model specification among a collection of
-competing specifications is the one that minimizes the $KLIC$
+competing specifications is the one that minimises the $KLIC$
 criterion or, equivalently, the specification for which the quantity:
 
 \begin{equation}\label{eq44}
@@ -1225,7 +1212,8 @@ hypothesis:
 
 $$
 H_0 : E[\ln f(y|x;\theta_\ast)]=E[\ln g(y|x;\pi_\ast)]
-\Longleftrightarrow E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]=0,
+\Longleftrightarrow
+E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]=0,
 $$
 
 meaning that the two models are equivalent, against:
@@ -1261,11 +1249,11 @@ is a consistent estimator of
 $E\left[\ln\frac{f(y|x;\theta_\ast)}{g(y|x;\pi_\ast)}\right]$. Therefore,
 an obvious test of $H_0$ consists in verifying whether the LR
 statistic differs from zero.  The distribution of this statistic can
-be worked out even when the true model is unknown, as the quasi-maximum
-likelihood estimators $\hat{\theta}$ and $\hat{\pi}$ converge in
-probability to the pseudo-true values $\theta_\ast$ and $\pi_\ast$,
-respectively, and have asymptotic normal distributions centered on
-these pseudo-true values.
+be worked out even when the true model is unknown, as the
+quasi-maximum likelihood estimators $\hat{\theta}$ and $\hat{\pi}$
+converge in probability to the pseudo-true values $\theta_\ast$ and
+$\pi_\ast$, respectively, and have asymptotic normal distributions
+centred on these pseudo-true values.
 
 The resulting distribution of $LR(\hat{\theta},\hat{\pi})$ depends on
 the relation linking the two competing models. To this purpose, Vuong
@@ -1342,10 +1330,11 @@ If model $F_\theta$ is misspecified, it has been shown by Vuong that:
 
 \end{itemize}
 
-Performing this standard LR test for nested models,
-requires to replace the theoretical matrices $W$ and $\underline{W}$ by a consistent
-estimators. Such estimators are obtained by substituting matrices $A_f$, $A_g$,
-$B_f$, $B_g$ and $B_{fg}$ for their sample analogue:
+Performing this standard LR test for nested models, requires to
+replace the theoretical matrices $W$ and $\underline{W}$ by a
+consistent estimator. Such an estimator is obtained by substituting
+matrices $A_f$, $A_g$, $B_f$, $B_g$ and $B_{fg}$ for their sample
+analogue:
 
 $$
 \hat{A}_f=\frac{1}{n}\sum_{i=1}^n\frac{\partial^2\ln
@@ -1372,7 +1361,7 @@ and $D$ for $\hat{D}=\partial T(\hat{\pi})/\partial\pi^\top$.
 The density function of this asymptotic test statistic has not
 been worked out analytically. Therefore, we compute it by simulation.
 
-Hence, for a test with critical value $c$, $H_0$ is rejected in favor
+Hence, for a test with critical value $c$, $H_0$ is rejected in favour
 of $H_f$ if $2LR(\hat{\theta},\hat{\pi})>c$ or if the p-value
 associated to the observed value of $2LR(\hat{\theta},\hat{\pi})$ is
 less than the significance level of the test.
@@ -1410,7 +1399,7 @@ For such strictly non-nested models, Vuong has shown that:
   $-\infty$.
 \end{itemize}
 
-Hence, $H_0$ is tested against $H_f$ or $H_g$ using the standardized
+Hence, $H_0$ is tested against $H_f$ or $H_g$ using the standardised
 LR statistic:
 
 \begin{equation}\label{eq46}
@@ -1428,9 +1417,9 @@ $$
 $$
 
 As a consequence, for a test with critical value $c$, $H_0$ is
-rejected in favor of $H_f$ if $T_{LR}>c$ or if the p-value associated
+rejected in favour of $H_f$ if $T_{LR}>c$ or if the p-value associated
 to the observed value of $T_{LR}$ in less than the significance level
-of the test. Conversely, $H_0$ is rejected in favor of $H_g$ if
+of the test. Conversely, $H_0$ is rejected in favour of $H_g$ if
 $T_{LR}<-c$ or if the p-value associated to the observed value of
 $|T_{LR}|$ in less than the significance level of the test.
 
@@ -1438,7 +1427,8 @@ Note that, if one of models $F_\theta$ or $G_\pi$ is assumed to be
 correctly specified, the \citet{COX/61,COX/62} LR test of non nested
 models needs to be used. Because this test is computationally awkward
 to implement and not really one of model selection, as it can lead to
-reject both competing models, it has not been programmed in \pkg{mhurdle}.
+reject both competing models, it has not been programmed in
+\pkg{mhurdle}.
 
 Two parametric models $F_\theta$ and $G_\pi$ defined by conditional
 distribution functions $f(y|x;\theta)$ and $g(y|x;\pi)$ are said to be
@@ -1485,7 +1475,7 @@ and derive by simulation the density function of the corresponding
 weighted sum of iid $\chi^2(1)$ random variables.
 
 Hence, for a test with critical value $c$, $H_0^\omega$ is rejected in
-favor of $H_A^\omega$ if $n\hat{\omega}^2>c$ or if the p-value
+favour of $H_A^\omega$ if $n\hat{\omega}^2>c$ or if the p-value
 associated to the observed value of $n\hat{\omega}^2$ is less than the
 significance level of the test.
 
@@ -1502,16 +1492,16 @@ the outcome of the variance test.
 \begin{itemize}
 \item If $H_0^\omega$ is not rejected, one should conclude that the
   two models cannot be discriminated given the data, since assuming
-  $\omega^2=0$ implies $H_0$ meaning that the two models are
+  $\omega^2=0$ implies that $H_0$ means that the two models are
   equivalent.
 \item If $H_0^\omega$ is rejected, the test of $H_0$ against $H_f$ or
-  $H_g$ must be carried out using the standardized LR statistic
+  $H_g$ must be carried out using the standardised LR statistic
   $T_{LR}$, as for discriminating between two strictly non-nested
   models. Indeed, $H_0$ is still possible when $\omega^2\neq0$. Note,
   that this sequential procedure of testing $H_0$ against $H_f$ or
   $H_g$ has a significance level bounded above by the maximum of the
   significance levels used for performing the variance and the
-  standardized LR tests.
+  standardised LR tests.
 \end{itemize}
 
 Finally, if one of the two competing models is supposed to be
@@ -1528,12 +1518,12 @@ between two nested models.
 \label{sec:software}
 
 There are three important issues to be addressed to correctly
-implement in \proglang{R} the modeling strategy described in the
+implement in \proglang{R} the modelling strategy described in the
 previous sections. The first one is to provide a good interface to
 describe the model to be estimated. The second one is to find
 good starting values for computing model estimates. The third
-one is to have flexible optimization tools for likelihood
-maximization.
+one is to have flexible optimisation tools for likelihood
+maximisation.
 
 \subsection{Model syntax}
 \label{sec:modeldesc}
@@ -1648,14 +1638,14 @@ The second algorithm, called Broyden, Fletcher, Goldfarb, Shanno or
 hessian matrix of the log-likelihood. It is often more robust and may perform
 better in cases where the formers don't work.
 
-Two optimization functions are included in core \proglang{R}:
+Two optimisation functions are included in core \proglang{R}:
 \code{nlm}, which uses the Newton-Raphson method, and \code{optim} ,
 which uses the \textsc{bfgs} method (among others). The recently developed
 \pkg{maxLik} package by \citet{MAXLIK/08} provides a unified
 framework. With a unique interface, all the previously described
 methods are available.
 
-The behavior of \code{maxLik} can be controlled by the user using
+The behaviour of \code{maxLik} can be controlled by the user using
 \code{mhurdle} arguments like \texttt{print.level} (from 0-silent to
 2-verbal), \texttt{iterlim} (the maximum number of iterations),
 \texttt{methods} (the method used, one of \texttt{"nr"},
@@ -1663,7 +1653,7 @@ The behavior of \code{maxLik} can be controlled by the user using
 
 Some models require the computation of the bivariate normal
 cumulative density function. We use the \pkg{pbivnorm} package
-\citep{KENKE:11} which provides a vectorized (and therefore fast
+\citep{KENKE:11} which provides a vectorised (and therefore fast
 convenient) function to compute the bivariate normal cdf.
 
 
@@ -1681,7 +1671,7 @@ To illustrate the use of \pkg{mhurdle}, we use the \code{Comics} data
 frame which contains data about the readings of comics. It is part of
 a survey conducted by the \textsc{insee} (the French national
 statistical institute) in 2003 about cultural and sportive
-practices\footnote{The data is available at
+practises\footnote{The data is available at
   \url{http://insee.fr/fr/themes/detail.asp?reg_id=0&ref_id=fd-parcul03}. Main
   results are presented in \citet{MULL/05}.}. The explained variable
 is the number of comics read during the last 12 months by one
@@ -1689,17 +1679,17 @@ is the number of comics read during the last 12 months by one
 observations.
 
 
-We emphasize that the observed censored variable to explain is not an
-expenditure but a service derived from the use of a durable good,
-namely the comics' library to which the comics' reader have
-access. Therefore, hurdles 2 and 3 of our modeling paradigm must be
+We emphasise that the observed censored variable to be explained is
+not an expenditure but a service derived from the use of a durable
+good, namely the comic book library to which the comic book reader has
+access. Therefore, hurdles 2 and 3 of our modelling paradigm must be
 reinterpreted as mechanisms describing the process of building up the
-comics' library and that of planning the intensity of use of the
+comic book library and that of planning the intensity of use of the
 library, respectively.  Note also that \pkg{mhurdle} treats the
 dependent variable as a continuous quantitative variable, while it is
-in fact a discrete count variable.  However, the high number of
-readings during a year by a comics' reader fully justify this numerical
-approximation.
+in fact a discrete count variable. However, the high number of
+readings during a year by a comic book reader fully justifies this
+numerical approximation.
 
 
 <<>>=
@@ -1737,8 +1727,8 @@ has the following arguments:
 \begin{description}
 \item[formula:] a formula describing the model to estimate. It should
   have three parts on the right-hand side specifying, in the first
-  part, the good selection equation covariates, in the second
-  part, the desired consumption equation covariates and, in the third part,
+  part, the good selection equation covariates, in the second part,
+  the desired consumption equation covariates and, in the third part,
   the purchasing equation covariates.
 \item[data:] a data frame containing the observations of the variables
   present in the formula.
@@ -1752,12 +1742,13 @@ has the following arguments:
   desired consumption equation, which may be either log-normal
   \code{"l"} (the default), normal \code{"n"} or truncated normal
   \code{"t"}.
-\item[corr:] a logical argument indicating whether the disturbance of
-  the good selection equation (hurdle 1) or that of the purchasing equation
-  (hurdle 3) is correlated with that of the desired consumption equation.
-  This argument is in this case respectively equal to \code{"h1"} or \code{"h3"},
-  or \code{NULL} (the default) in case of no correlation,
-\item[...] further arguments that are passed to the optimization
+\item[corr:] this argument indicates whether the disturbance of the
+  good selection equation (hurdle 1) or that of the purchasing
+  equation (hurdle 3) is correlated with that of the desired
+  consumption equation.  This argument is in this case respectively
+  equal to \code{"h1"} or \code{"h3"}, or \code{NULL} (the default) in
+  case of no correlation,
+\item[...] further arguments that are passed to the optimisation
   function \code{maxLik}.
 \end{description}
 
@@ -1905,7 +1896,7 @@ extension to limited dependent variable models of the classical
 coefficient of determination for linear regression models. This pseudo
 coefficient of determination is computed both without (see
 formula~(\ref{eq38})) and with (see formula~(\ref{eq41})) adjustment for
-the loss of sample degrees of freedom due to model parametrization.
+the loss of sample degrees of freedom due to model parametrisation.
 The unadjusted coefficient of determination allows to compare the
 goodness of fit of model specifications having the same number of
 parameters, whereas the adjusted version of this coefficient is suited
@@ -1922,7 +1913,7 @@ models of the likelihood ratio index for qualitative response
 models. This pseudo coefficient of determination is also computed both
 without (see formula~(\ref{eq40})) and with (see formula~(\ref{eq42}))
 adjustment for the loss of sample degrees of freedom due to model
-parametrization, in order to allow model comparisons with the same
+parametrisation, in order to allow model comparisons with the same
 or with a different number of parameters.
 
 
@@ -1941,8 +1932,8 @@ vuongtest(model5d, model8d1)
 @
 
 According to this outcome, the null hypothesis stating the equivalence
-between the two models is strongly rejected in favor of the alternative
-hypothesis stating that \code{model8d1} is better than \code{model5d}.
+between the two models is strongly rejected in favour of the alternative
+hypothesis stating that \code{model5d} is better than \code{model8d1}.
 
 Note that Vuong tests for strictly non-nested mhurdle models can also
 be performed using the vuong() function of the pscl package of
@@ -2008,7 +1999,7 @@ vuongtest(model3, model3bis, type="overlapping")
 @
 
 This null hypothesis is here strongly rejected. Therefore, we can
-test the equivalence of these two models as if they were stricly non-nested.
+test the equivalence of these two models as if they were strictly non-nested.
 
 <<>>=
 vuongtest(model3, model3bis, type="non-nested")
@@ -2031,47 +2022,48 @@ Once again, the equivalence of the two models is not rejected.
 \label{sec:conclusion}
 
 \pkg{mhurdle} aims at providing a unified framework allowing to
-estimate and assess a variety of extensions of the standard
-Tobit model particularly suitable for single-equation demand
-analysis not currently implemented in \proglang{R}. It explains the
-presence of a large proportion of zero observations for a dependent
-variable by means of up to three censoring mechanisms, called hurdles.
-Inspired by the paradigms used for analyzing censored household
-expenditure data, these hurdles express: (i) a non economic decision
-mechanism for a good rejection or selection motivated by ethical,
-psychological or social considerations; (ii) an economic decision
-mechanism for the desired level of consumption of a previously selected
-good, which can turn out to be negative leading to a nil consumption;
-(iii) an economic or non economic decision mechanism for the time
-frequency at which the desired quantity of a selected good is bought
-or consumed. Interdependence between these censoring mechanisms is
+estimate and assess a variety of extensions of the standard Tobit
+model particularly suitable for single-equation demand analysis not
+currently implemented in \proglang{R}. It explains the presence of a
+large proportion of zero observations for a dependent variable by
+means of up to three censoring mechanisms, called hurdles.  Inspired
+by the paradigms used for analysing censored household expenditure
+data, these hurdles express: (i) a non economic decision mechanism for
+a good rejection or selection motivated by ethical, psychological or
+social considerations; (ii) an economic decision mechanism for the
+desired level of consumption of a previously selected good, which can
+turn out to be negative leading to a nil consumption; (iii) an
+economic or non economic decision mechanism for the time frequency at
+which the desired quantity of a selected good is bought or
+consumed. Interdependence between these censoring mechanisms is
 modelled by assuming a possible correlation between the random
 disturbances in the model relations. Despite the particular area of
-application from which the above mentioned censoring mechanisms stem
-from, the practical scope of \pkg{mhurdle} models doesn't seem to be
-bound to empirical demand analysis.
+application from which the above mentioned censoring mechanisms stem,
+the practical scope of \pkg{mhurdle} models doesn't seem to be
+restricted to empirical demand analysis.
 
-To provide an operational and efficient statistical framework, \pkg{mhurdle}
-models are specified in a fully parametric form allowing statistical
-estimation and testing within the maximum likelihood inferential
-framework. Tools for model evaluation and selection are provided,
-based on the use of goodness of fit measure extensions of the classical
-coefficient of determination and of the likelihood ratio index of
-McFadden, as well as on the use of Vuong tests for nested, strictly
-non-nested and overlapping model comparison when none, one or both of
-two competing models are misspecified.
+To provide an operational and efficient statistical framework,
+\pkg{mhurdle} models are specified in a fully parametric form allowing
+statistical estimation and testing within the maximum likelihood
+inferential framework. Tools for model evaluation and selection are
+provided, based on the use of goodness of fit measure extensions of
+the classical coefficient of determination and of the likelihood ratio
+index of McFadden, as well as on the use of Vuong tests for nested,
+strictly non-nested and overlapping model comparison when none, one or
+both of two competing models are misspecified.
 
 Tests of \pkg{mhurdle} computing procedures with a wide variety of
 simulated and observational data have proved the performance and
-robustness of \pkg{mhurdle} package. Still, extensions and improvements
-of the software are under way, notably the estimation of trivariate
-hurdle models in their full generality and the design of a consistent
-Vuong testing strategy for discriminating between a numerous set of
-competing models. Other conceivable extensions, like the use of less
-stringent distributional assumptions on which semiparametric or
-nonparametric estimation methods are based, even suitable, will be
-tackled once established the actual scope of our models through diversified
-empirical applications. Research is continuing in this direction.
+robustness of \pkg{mhurdle} package. Still, extensions and
+improvements of the software are under way, notably the estimation of
+trivariate hurdle models in their full generality and the design of a
+consistent Vuong testing strategy for discriminating between a
+numerous set of competing models. Other desirable extensions, like the
+use of less stringent distributional assumptions on which
+semi-parametric or nonparametric estimation methods are based, will be
+tackled once the actual scope of our models is established through
+diversified empirical applications. Research is continuing in this
+direction.
 
 
 \bibliography{bibliomhurdle}

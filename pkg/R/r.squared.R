@@ -26,9 +26,6 @@ rsq <- function(object,
   if (type == "coefdet"){
     ym <- mean(y)
     yf <- fitted(object, "positive") * (1 - fitted(object, "zero"))
-    print(summary(yf))
-    print(ym)
-    print(mean(yf-ym))
     R2 <- switch(r2pos,
                  ess = ifelse(adj,
                    sum( (yf - ym) ^ 2) / sum( (y - ym) ^ 2) * (n - K) / (n - Ko),
