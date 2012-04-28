@@ -92,7 +92,9 @@ Vuong tests for model selection, R}
 
 
 \section{Introduction}
-
+<<echo=FALSE,results=hide>>=
+options(prompt= "R> ", useFancyQuotes = FALSE)
+@
 Data collected by means of households' expenditure survey may present
 a large proportion of zero expenditures due to many households
 recording, for one reason or another, no expenditure for some
@@ -144,7 +146,7 @@ following three zero expenditure generating mechanisms.
   negative desired consumption level leading to a nil consumption.\\
   The use of this mechanism to explain the presence of zero
   observations in family expenditure surveys introduced by
-  \citet{TOBIN:58}. Its theoretical relevance has been later
+  \citet{TOBIN/58}. Its theoretical relevance has been later
   rationalised by the existence of corner solutions to the
   microeconomic problem of rational choice of the neoclassical
   consumer. See section 10.2 of \citet{AMEM/85}, for an elementary
