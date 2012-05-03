@@ -40,13 +40,14 @@ rsq(object, type = c("coefdet", "lratio"),
  
 }
 \examples{
-
-# A dependent double hurdle example
-data8d <- simhurdle(n = 1000, h3 = FALSE, h1 = TRUE, corr = "h1", dist = "n")
-z8d <- mhurdle(y ~ x1 | x2 | 0, data = data8d, dist = "n", corr = "h1", method = "bfgs")
-
-rsq(z8d, type = "lratio")
-rsq(z8d, type = "coefdet", adj = TRUE, r2pos = "rss")
+data("Comics", package = "mhurdle")
+Comics$incu <- with(Comics, income / cu)
+Comics$incum <- with(Comics, incu / mean(incu))
+model3 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
+                  I(log(incum)^3) + age  + gender + educ +
+                  size| 0, Comics, dist = "n", method = 'bfgs')
+rsq(model3, type = "lratio")
+rsq(model3, type = "coefdet", adj = TRUE, r2pos = "rss")
 
 }
 \keyword{htest}
