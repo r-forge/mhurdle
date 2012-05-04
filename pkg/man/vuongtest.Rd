@@ -38,17 +38,17 @@ vuongtest(x, y,
   \code{vuong} in package \code{pscl}.
 }
 \examples{
-## dependent simple hurdle ptobit vs an
-## independent double hurdle ptobit
 
-data6 <- simhurdle(n = 1000, h3 = TRUE, h1 = FALSE,
-                   dist = "l", corr = "h3")
-
-z6d <- mhurdle(y ~ 0 | x2 | x3, data6, dist = "l", corr = "h3")
-
-z11i <- mhurdle(y ~ 0 | x2 | x3, data6, dist = "n", corr = NULL)
-
-vuongtest(z6d, z11i)
+# Vuong test for strictly non-nested models, triple hurdle vs double
+# hurdle models
+data("Comics", package = "mhurdle")
+model5d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
+                   I(log(incum)^2) + I(log(incum)^3) + size | 0,
+                   Comics, corr = "h1", dist = "n", method = 'bfgs')
+model8d1 <- mhurdle(comics ~ gender + educ  |  log(incum) +
+                    I(log(incum)^2) + I(log(incum)^3) + size | age,
+                    Comics, corr = "h1", dist = "n", method = 'bfgs')
+vuongtest(model5d, model8d1)
 
 }
 \keyword{htest}
