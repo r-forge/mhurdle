@@ -1,4 +1,3 @@
-
 \name{vuongtest}
 \alias{vuongtest}
 \title{Vuoung test for non-nested models}
@@ -42,6 +41,8 @@ vuongtest(x, y,
 # Vuong test for strictly non-nested models, triple hurdle vs double
 # hurdle models
 data("Comics", package = "mhurdle")
+Comics$incu <- with(Comics, income / cu)
+Comics$incum <- with(Comics, incu / mean(incu))
 model5d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
                    I(log(incum)^2) + I(log(incum)^3) + size | 0,
                    Comics, corr = "h1", dist = "n", method = 'bfgs')
