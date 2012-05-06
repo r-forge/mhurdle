@@ -323,10 +323,10 @@ disturbances.
   over time, but according to different timetables entailing a
   frequency of consumption higher than that of purchasing, we can also
   interpret the probability $P(I_3=1)=P(y_3^*>0)$ as measuring the
-  share of expenditures to consumption during the observation
-  period. This allows to relate the observed level of expenditures $y$
-  to the unobserved level of consumption $y_2^*$ during the
-  observation period, using the following identity:
+  share of purchasing frequency to that of consumption during the
+  observation period. This allows to relate the observed level of
+  expenditures $y$ to the unobserved level of consumption $y_2^*$
+  during the observation period, using the following identity:
 
   \begin{equation}\label{eq3}
   y = \frac{y_2^*}{P(I_3=1)} I_1 I_2 I_3 .
@@ -2061,11 +2061,13 @@ improvements of the software are under way, notably the estimation of
 trivariate hurdle models in their full generality and the design of a
 consistent Vuong testing strategy for discriminating between a
 numerous set of competing models. Other desirable extensions, like the
-use of less stringent distributional assumptions on which
-semi-parametric or nonparametric estimation methods are based, will be
-tackled once the actual scope of our models is established through
-diversified empirical applications. Research is continuing in this
-direction.
+use of more general functional forms of the desired consumption
+relation\footnote{See \citet{POIR/78}, \citet{LANK/WYCK/91} and
+  \citet{JONE/YEN/00}.} or of less stringent distributional
+assumptions on which semi-parametric or nonparametric estimation
+methods are based, will be tackled once the actual scope of our models
+is established through diversified empirical applications. Research is
+continuing in this direction.
 
 
 \bibliography{bibliomhurdle}
