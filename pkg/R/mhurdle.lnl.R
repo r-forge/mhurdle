@@ -290,10 +290,9 @@ fit.simple.mhurdle <- function(X1, X2, y, dist = NULL){
   result
 }
 
-# Compute the likelihood model, i.e. a model with no explanatory
-# variables.
-
-# Full version with correlation
+# Compute the "naive" model, i.e. a model with no explanatory
+# variables.  Full version with correlation ; not used because
+# identification problems
 
 lnl.naive <- function(param, dist = c("l", "t", "n"), moments,
                      h1 = TRUE, h3 = FALSE,
@@ -375,7 +374,7 @@ lnl.naive <- function(param, dist = c("l", "t", "n"), moments,
 
 # Version without correlation
 
-if (T){
+if (TRUE){
 lnl.naive <- function(param, dist = c("l", "t", "n"), moments,
                      h1 = TRUE, h3 = FALSE){
   

@@ -1,3 +1,5 @@
+# extract the names of all or part of the coefficients of the fitted
+# model
 nm.mhurdle <- function(object,
                        which = c("all", "h1", "h3", "h2", "other", "sigma", "rho"),
                        ...){
@@ -23,6 +25,8 @@ nm.mhurdle <- function(object,
   result
 }
 
+# extract the index of a subset of the coefficients of the fitted
+# model
 sub.mhurdle <- function(object,
                         which = c("all", "h1", "h3", "h2", "other", "sigma", "rho"),
                         ...){
@@ -37,20 +41,21 @@ sub.mhurdle <- function(object,
   }
   if (which == "h3"){
     if (!describe(object, "h3")) stop("no ifrequency equation")
-    else sub <- (K[[1]]+K[[2]]+1):(K[[1]]+K[[2]]+K[[3]])
+    else sub <- (K[[1]] + K[[2]] + 1):(K[[1]] + K[[2]] + K[[3]])
   }
   if (which == "other")
-    if (!is.null(describe(object,"corr"))) sub <- (K[[1]]+K[[2]]+K[[3]]+1):(K[[1]]+K[[2]]+K[[3]]+2)
-    else sub <- (K[[1]]+K[[2]]+K[[3]]+1) 
+    if (!is.null(describe(object,"corr"))) sub <- (K[[1]] + K[[2]] + K[[3]] + 1):(K[[1]] + K[[2]] + K[[3]] + 2)
+    else sub <- (K[[1]] +  K[[2]] + K[[3]] + 1) 
   if (which == "rho"){
     if (is.null(describe(object, "corr"))) stop("no corr coefficient estimated")
-    else sub <- K[[1]]+K[[2]]+K[[3]]+2
+    else sub <- K[[1]] + K[[2]] + K[[3]] + 2
   }
-  if (which == "sigma") sub <- K[[1]]+K[[2]]+K[[3]]+1
+  if (which == "sigma") sub <- K[[1]] + K[[2]] + K[[3]] + 1
   sub
 }
 
 
+# coef method, support subset extracting
 coef.mhurdle <- function(object,
                       which = c("all", "h1", "h2", "h3", "other", "sigma", "rho"),
                       ...){
@@ -63,6 +68,7 @@ coef.mhurdle <- function(object,
   result
 }
 
+# vcov method, support subset extracting
 vcov.mhurdle <- function(object,
                       which = c("all", "h1", "h2", "h3", "other", "sigma", "rho"),
                       ...){
@@ -80,32 +86,7 @@ vcov.mhurdle <- function(object,
   result
 }
 
-logLik.mhurdle <- function(object,
-                           which = c("all", "zero", "positive"),
-                           naive = FALSE, ...){
-  which <- match.arg(which)
-  if (!naive){
-    x <- object$logLik
-    y <- attr(x, "y")
-    x <- switch(which,
-                all      = sum(x),
-                zero     = sum(x[y == 0]),
-                positive = sum(x[y > 0])
-              )
-    attr(x,"df") <- NULL
-    attr(x,"y")  <- NULL
-    result <- sum(x)
-  }
-  else{
-    naive <- object$naive
-    result <- switch(which,
-                     all      = naive$logLik,
-                     zero     = naive$logLik.part['zero'],
-                     positive = naive$logLik.part['positive'])
-  }
-  result
-}
-
+# logLik method, naive models may be extracted
 logLik.mhurdle <- function(object, naive = FALSE, ...){
   if (!naive){
     x <- object$logLik
@@ -193,7 +174,6 @@ print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
 
 ## a simple copy from mlogit. update with formula doesn't work
 ## otherwise ????
-
 update.mhurdle <- function (object, new, ...){
   call <- object$call
   if (is.null(call))
@@ -218,8 +198,9 @@ update.mhurdle <- function (object, new, ...){
   eval(call, parent.frame())
 }
 
+# compute the fitted values, ie the probability of 0 and the
+# conditional expected positive value
 compute.fitted.mhurdle <- function(param, X1, X2, X3, dist, corr){
-
   h1 <- !is.null(X1) ;  K1 <- ifelse(is.null(X1), 0, ncol(X1))
   h3 <- !is.null(X3) ;  K3 <- ifelse(is.null(X3), 0, ncol(X3))
   
@@ -357,45 +338,6 @@ compute.fitted.mhurdle <- function(param, X1, X2, X3, dist, corr){
   result
 }
 
-
-psy <- function(x1 , x2, rho, terms = "tot", degree = 3){
-  d0 <- degree >= 0
-  d1 <- degree >= 1
-  d2 <- degree >= 2
-  d3 <- degree >= 3
-  
-  A0 <- pnorm(x2) * dnorm(x1)
-  A1 <- dnorm(x2) * (pnorm(x1) - x1 * dnorm(x1))
-  A2 <- -dnorm(x2) * x2 * dnorm(x1)*(1 + x1 ^ 2)
-  A3 <- dnorm(x2) * (1 - x2 ^ 2) * x1 ^ 3 * dnorm(x1)
-
-  B0 <- dnorm(x2) * pnorm(x1)
-  B1 <- - x2 * dnorm(x2) * dnorm(x1)
-  B2 <- - dnorm(x2) * (x1 * dnorm(x1) * (x2^2 - 1) + pnorm(x1))
-  B3 <- dnorm(x2) * x2 * dnorm(x1) * (3 * x1 ^ 2 + x2 ^ 2 - x2 ^ 2 * x1 ^ 2)
-  
-  A <- rho * (d0 * A0 + A1 * d1 * rho + A2 * d2 * rho ^ 2 / 2 + A3 * d3 * rho ^ 3 / 6)
-  B <- sqrt(abs(1 - rho ^ 2) )*(d0 * B0 + B1 * rho + B2 * d2 * rho ^ 2 / 2 + B3 * d3 * rho ^ 3 / 6)
-  
-  result <- switch(terms,
-                   "tot" = A + B,
-                   "A"   = A,
-                   "B"   = B
-                   )
-  result
-}
-
-psylog <- function(x, rho){
-  phi <- dnorm(x)
-  Phi <- pnorm(x)
-  (Phi + rho * phi +
-   rho ^ 2 / 2 * (Phi - x * phi) +
-   rho ^ 3 / 6 * (2 + x ^ 2) * phi +
-   rho ^ 4 / 12 * (3 * Phi - x * (3 + x ^ 2) * phi))
-}
-
-
-
 predict.mhurdle <- function(object, newdata = NULL, ...){
   if (is.null(newdata)){
     result <- fitted(object, ...)
@@ -427,6 +369,7 @@ fitted.mhurdle <- function(object, which = c("all", "zero", "positive"), ...){
          )
 }
 
+# print a summary of the non-linear opimization
 print.est.stat <- function(x, ...){
   et <- x$elaps.time[3]
   i <- x$nb.iter[1]

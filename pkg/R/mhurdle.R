@@ -172,6 +172,9 @@ mhurdle.fit <- function(start, X1, X2, X3, y, gradient = FALSE, fit = FALSE,
   result
 }
 
+# extract the structure of the model (which hurdles are present and
+# whether the model is dependent)
+
 describe <- function(x, which){
   if (which == "h1") result <- attr(x$formula, "rhs")[[1]] != 0
   if (which == "h2") result <- attr(x$formula, "rhs")[[2]] != 0
@@ -248,12 +251,3 @@ start.mhurdle <- function(X1, X2, X3, y, dist, corr){
   start
 }
 
-
-  ## V <- 1985.696
-  ## P1 <- 0.783
-  ## yb <- 19.553
-
-  ## za <- function(b2){
-  ##   s <- sqrt( V + (yb - b2)^2 + (yb - b2) )
-  ##   (yb-b2)/s - dnorm(b2/s) / pnorm(b2/s)
-  ## }

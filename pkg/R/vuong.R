@@ -1,8 +1,5 @@
-############################################################
-## les fonctions donnant les quantiles et les proba pour la
-## loi des Khi Deux pondérés
-############################################################
-
+# simulated probabilities and quantiles for the weighted chi-squares
+# distribution
 pwchisq <- function(q, weights, lower.tail = TRUE, n = 1000){
   set.seed(100)
   K <- length(weights)
@@ -11,7 +8,6 @@ pwchisq <- function(q, weights, lower.tail = TRUE, n = 1000){
   F <- ecdf(wcs)
   ifelse(lower.tail, F(q), 1 - F(q))
 }
-
 qwchisq <- function(p, weights, lower.tail = TRUE, n = 1000){
   K <- length(weights)
   e <- matrix(rnorm(n * K) ^ 2, n, K)

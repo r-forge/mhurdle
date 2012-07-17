@@ -3,9 +3,8 @@
 \title{R squared and pseudo R squared}
 \description{
   This function computes the R squared for multiple hurdle models. The
-  measure is an extension of the R squared of linear model or may be based on
-  the likelihood and may measure the goodness of fit for the zero part,
-  the positive part of the model or the whole model.
+  measure is a pseudo coefficient of determination or may be based on
+  the likelihood.
 }
 \usage{
 rsq(object, type = c("coefdet", "lratio"),
@@ -14,14 +13,14 @@ rsq(object, type = c("coefdet", "lratio"),
 \arguments{
   \item{object}{an object of class \code{"mhurdle"},}
   \item{type}{one of \code{"coefdet"} or \code{"lratio"} to select a
-    linear measure of the R squared or a Mc Fadden like measure based on
-    the likelihood function,}
+    pseudo coefficient of correlation or a Mc Fadden like measure based
+    on the likelihood function,}
   \item{adj}{if \code{TRUE} a correction for the degrees of freedom is
     performed,}
-  \item{r2pos}{only for linear R squared, should the positive part of
-    the R squared be computed using the residual sum of squares
-    (\code{"rss"}), the explained sum of squares (\code{"ess"}) or the
-    coefficient of correlation between the fitted values and the
+  \item{r2pos}{only for pseudo coefficient of determination, should the
+    positive part of the R squared be computed using the residual sum of
+    squares (\code{"rss"}), the explained sum of squares (\code{"ess"})
+    or the coefficient of correlation between the fitted values and the
     response (\code{cor}).
     }
 }
