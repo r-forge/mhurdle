@@ -75,13 +75,15 @@ E-mail: \email{stephane.hoareau@univ-reunion.fr}
   by means of goodness of fit measures and Vuong tests. Software rationale
   and user's guidelines are presented and illustrated with actual examples.}
 
-\Keywords{households' expenditure survey analysis, censored regression models,
-hurdle models, maximum likelihood estimation, nonlinear goodness of fit measures,
-Vuong tests for model selection, \proglang{R}}
+\Keywords{households' expenditure survey analysis, censored regression
+  models, hurdle models, maximum likelihood estimation, nonlinear
+  goodness of fit measures, Vuong tests for model selection,
+  \proglang{R}}
 
-\Plainkeywords{households' expenditure survey analysis, censored regression models,
-hurdle models, maximum likelihood estimation, nonlinear goodness of fit measures,
-Vuong tests for model selection, R}
+\Plainkeywords{households' expenditure survey analysis, censored
+  regression models, hurdle models, maximum likelihood estimation,
+  nonlinear goodness of fit measures, Vuong tests for model selection,
+  R}
 
 \begin{document}
 
