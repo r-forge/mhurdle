@@ -17,12 +17,12 @@
 \usage{
 mhurdle(formula, data, subset, weights, na.action,
      start = NULL,
-     dist = c("l","t","n"),
+     dist = c("ln","tn","n", "bc", "ihs"),
      corr = NULL, ...)
 \method{coef}{mhurdle}(object,
-   which = c("all", "h1", "h2", "h3", "other", "sigma", "rho"), ...)
+   which = c("all", "h1", "h2", "h3", "sd", "corr", "tr"), ...)
 \method{vcov}{mhurdle}(object,
-   which = c("all", "h1", "h2", "h3", "other", "sigma", "rho"), ...)
+   which = c("all", "h1", "h2", "h3", "sd", "corr", "tr"), ...)
 \method{logLik}{mhurdle}(object, naive = FALSE, ...)
 \method{print}{mhurdle}(x, digits = max(3, getOption("digits") - 2),
                      width = getOption("width"), ...)
@@ -46,8 +46,11 @@ mhurdle(formula, data, subset, weights, na.action,
   \item{dist}{the distribution of the error of the consumption
     equation: one of \code{"n"} (normal), \code{"l"} (log-normal) or \code{"t"} (truncated
     normal),}
-  \item{corr}{a boolean, \code{TRUE} if the two error terms are
-    correlated,}
+  \item{corr}{indicates whether the errors of the different equations
+   are correlated. For models with two equations, this can be either
+   \code{"d"} for dependent and \code{"i"} for independent. For models
+   with three equations, this should be a character of length three
+   containing values of "i" and "d",}
   \item{naive}{a boolean, it \code{TRUE}, the likelihood of the naive
     model is returned,}
   \item{object,x}{an object of class \code{"mhurdle"},}
@@ -146,13 +149,13 @@ data("Comics", package = "mhurdle")
 Comics$incu <- with(Comics, income / cu)
 Comics$incum <- with(Comics, incu / mean(incu))
 # A tobit model
-model3 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
+model010 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
                   I(log(incum)^3) + age  + gender + educ +
                   size| 0, Comics, dist = "n", method = 'bfgs')
 # A dependent double hurdle example
-model5d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
+model110d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
                    I(log(incum)^2) + I(log(incum)^3) + size | 0,
-                   Comics, corr = "h1", dist = "n", method = 'bfgs')
+                   Comics, corr = "d", dist = "n", method = 'bfgs')
 }
 % \author{}
 \keyword{regression}

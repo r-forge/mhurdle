@@ -43,13 +43,12 @@ vuongtest(x, y,
 data("Comics", package = "mhurdle")
 Comics$incu <- with(Comics, income / cu)
 Comics$incum <- with(Comics, incu / mean(incu))
-model5d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
+model110d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
                    I(log(incum)^2) + I(log(incum)^3) + size | 0,
-                   Comics, corr = "h1", dist = "n", method = 'bfgs')
-model8d1 <- mhurdle(comics ~ gender + educ  |  log(incum) +
+                   Comics, corr = "d", dist = "n", method = 'bfgs')
+model111dii <- mhurdle(comics ~ gender + educ  |  log(incum) +
                     I(log(incum)^2) + I(log(incum)^3) + size | age,
-                    Comics, corr = "h1", dist = "n", method = 'bfgs')
-vuongtest(model5d, model8d1)
-
+                    Comics, corr = "dii", dist = "n", method = 'bfgs')
+vuongtest(model110d, model111dii)
 }
 \keyword{htest}

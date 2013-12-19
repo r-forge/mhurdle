@@ -42,11 +42,11 @@ rsq(object, type = c("coefdet", "lratio"),
 data("Comics", package = "mhurdle")
 Comics$incu <- with(Comics, income / cu)
 Comics$incum <- with(Comics, incu / mean(incu))
-model3 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
+model010 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
                   I(log(incum)^3) + age  + gender + educ +
                   size| 0, Comics, dist = "n", method = 'bfgs')
-rsq(model3, type = "lratio")
-rsq(model3, type = "coefdet", adj = TRUE, r2pos = "rss")
+rsq(model010, type = "lratio")
+rsq(model010, type = "coefdet", adj = TRUE, r2pos = "rss")
 
 }
 \keyword{htest}

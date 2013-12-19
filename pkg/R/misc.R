@@ -50,31 +50,36 @@ bdiag <- function(...){
   return(out)
 } 
 
-# a function used to compute the expected value of the variable for
-# some models
-psy <- function(x1 , x2, rho, terms = "tot", degree = 3){
-  d0 <- degree >= 0
-  d1 <- degree >= 1
-  d2 <- degree >= 2
-  d3 <- degree >= 3
-  
-  A0 <- pnorm(x2) * dnorm(x1)
-  A1 <- dnorm(x2) * (pnorm(x1) - x1 * dnorm(x1))
-  A2 <- -dnorm(x2) * x2 * dnorm(x1)*(1 + x1 ^ 2)
-  A3 <- dnorm(x2) * (1 - x2 ^ 2) * x1 ^ 3 * dnorm(x1)
-
-  B0 <- dnorm(x2) * pnorm(x1)
-  B1 <- - x2 * dnorm(x2) * dnorm(x1)
-  B2 <- - dnorm(x2) * (x1 * dnorm(x1) * (x2^2 - 1) + pnorm(x1))
-  B3 <- dnorm(x2) * x2 * dnorm(x1) * (3 * x1 ^ 2 + x2 ^ 2 - x2 ^ 2 * x1 ^ 2)
-  
-  A <- rho * (d0 * A0 + A1 * d1 * rho + A2 * d2 * rho ^ 2 / 2 + A3 * d3 * rho ^ 3 / 6)
-  B <- sqrt(abs(1 - rho ^ 2) )*(d0 * B0 + B1 * rho + B2 * d2 * rho ^ 2 / 2 + B3 * d3 * rho ^ 3 / 6)
-  
-  result <- switch(terms,
-                   "tot" = A + B,
-                   "A"   = A,
-                   "B"   = B
-                   )
-  result
+# print a summary of the non-linear opimization
+print.est.stat <- function(x, ...){
+  et <- x$elaps.time[3]
+  i <- x$nb.iter[1]
+  halton <- x$halton
+  method <- x$method
+  if (!is.null(x$type) && x$type != "simple"){
+    R <- x$nb.draws
+    cat(paste("Simulated maximum likelihood with", R, "draws\n"))
+  }
+  s <- round(et,0)
+  h <- s%/%3600
+  s <- s-3600*h
+  m <- s%/%60
+  s <- s-60*m
+  cat(paste(method, "method\n"))
+  tstr <- paste(h, "h:", m, "m:", s, "s", sep="")
+  cat(paste(i,"iterations,",tstr,"\n"))
+  if (!is.null(halton)) cat("Halton's sequences used\n")
+  if (!is.null(x$eps)) cat(paste("g'(-H)^-1g =", sprintf("%5.3G", as.numeric(x$eps)),"\n"))
+  if (is.numeric(x$code)){
+    msg <- switch(x$code,
+                  "1" = "gradient close to zero",
+                  "2" = "successive fonction values within tolerance limits",
+                  "3" = "last step couldn't find higher value",
+                  "4" = "iteration limit exceeded"
+                  )
+    cat(paste(msg, "\n"))
+  }
+  else cat(paste(x$code, "\n"))
 }
+
+

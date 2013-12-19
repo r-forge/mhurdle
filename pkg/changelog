@@ -1,3 +1,7 @@
+Changes since version 0.1-4
+	* major revision for the code and the vignette ; bc and ihs
+	transformation, heteroscedasticity are introduced
+
 Changes since version 0.1-2 :
 
 	* minor changes of the vignette
