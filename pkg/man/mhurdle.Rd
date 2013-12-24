@@ -145,17 +145,17 @@ or a double hurdle model if \code{dist="n"}.
 % \seealso{
 % }
 \examples{
-data("Comics", package = "mhurdle")
-Comics$incu <- with(Comics, income / cu)
-Comics$incum <- with(Comics, incu / mean(incu))
-# A tobit model
-model010 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
-                  I(log(incum)^3) + age  + gender + educ +
-                  size| 0, Comics, dist = "n", method = 'bfgs')
-# A dependent double hurdle example
-model110d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
-                   I(log(incum)^2) + I(log(incum)^3) + size | 0,
-                   Comics, corr = "d", dist = "n", method = 'bfgs')
+data("tobin", package = "survival")
+#  tobit model
+model010 <- mhurdle(durable ~ 0 | age + quant | 0, tobin, dist = "n")
+#  independent double hurdle model
+model110i <- mhurdle(durable ~ age |  quant | 0, tobin,  dist = "n")
+# Cragg log-normal single hurdle model
+model100il <- mhurdle(durable ~ age |  quant | 0, tobin, dist = "ln")
+# Cragg truncated-normal single hurdle model
+model100it <- update(model100il, dist = "tn")
+# a double-hurdle p-tobit
+model011i <- mhurdle(durable ~ 0 |  quant | age, tobin,  dist = "n")
 }
 % \author{}
 \keyword{regression}

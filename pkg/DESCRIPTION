@@ -6,7 +6,7 @@ Authors@R: c(person("Yves", "Croissant", role = c("aut", "cre"), email = "yves.c
              person("Fabrizio", "Carlevaro", role = "aut", email = "fabrizio.carlevaro@unige.ch"),
              person("Stephane", "Hoareau", role = "aut", email = "sjlhoaro@univ-reunion.fr"))
 Depends: R (>= 2.10), Formula, truncreg, maxLik, pbivnorm
-Suggests: 
+Suggests: survival
 Description: Estimation of models with zero left-censored variables. 
              Null values may be caused by a selection process, insufficient 
              ressource or infrequency of purchase.

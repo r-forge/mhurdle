@@ -39,14 +39,10 @@ rsq(object, type = c("coefdet", "lratio"),
  
 }
 \examples{
-data("Comics", package = "mhurdle")
-Comics$incu <- with(Comics, income / cu)
-Comics$incum <- with(Comics, incu / mean(incu))
-model010 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
-                  I(log(incum)^3) + age  + gender + educ +
-                  size| 0, Comics, dist = "n", method = 'bfgs')
-rsq(model010, type = "lratio")
-rsq(model010, type = "coefdet", adj = TRUE, r2pos = "rss")
-
+data("tobin", package = "survival")
+#  independent double hurdle model
+model110i <- mhurdle(durable ~ age |  quant | 0, tobin,  dist = "n")
+rsq(model110i, type = "lratio")
+rsq(model110i, type = "coefdet", r2pos = "rss")
 }
 \keyword{htest}

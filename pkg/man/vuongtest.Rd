@@ -37,18 +37,12 @@ vuongtest(x, y,
   \code{vuong} in package \code{pscl}.
 }
 \examples{
-
-# Vuong test for strictly non-nested models, triple hurdle vs double
-# hurdle models
-data("Comics", package = "mhurdle")
-Comics$incu <- with(Comics, income / cu)
-Comics$incum <- with(Comics, incu / mean(incu))
-model110d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
-                   I(log(incum)^2) + I(log(incum)^3) + size | 0,
-                   Comics, corr = "d", dist = "n", method = 'bfgs')
-model111dii <- mhurdle(comics ~ gender + educ  |  log(incum) +
-                    I(log(incum)^2) + I(log(incum)^3) + size | age,
-                    Comics, corr = "dii", dist = "n", method = 'bfgs')
-vuongtest(model110d, model111dii)
+data("tobin", package = "survival")
+# selection double hurdle model
+model110i <- mhurdle(durable ~ age |  quant | 0, tobin,  dist = "n")
+# double-hurdle p-tobit
+model011i <- mhurdle(durable ~ 0 |  quant | age, tobin,  dist = "n")
+# Vuong test for strictly non-nested models
+vuongtest(model011i, model110i)
 }
 \keyword{htest}
