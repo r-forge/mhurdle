@@ -63,7 +63,7 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
     Ty <- switch(dist,
                  "ln" = log2(y) + log(Phi3),
                  "bc" = ((y * Phi3) ^ lambda - 1) / lambda,
-                 "ish" = log(lambda * y * Phi3 + sqrt(1 + (lambda  * y * Phi3) ^ 2)) / lambda,
+                 "ihs" = log(lambda * y * Phi3 + sqrt(1 + (lambda  * y * Phi3) ^ 2)) / lambda,
                  y * Phi3
                  )
     # logarithm of the jacobian
