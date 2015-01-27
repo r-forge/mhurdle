@@ -1,6 +1,6 @@
 Package: mhurdle
 Version: 1.0-1
-Date: 2013-12-27
+Date: 2014-01-25
 Title: Multiple hurdle Tobit models
 Authors@R: c(person("Yves", "Croissant", role = c("aut", "cre"), email = "yves.croissant@univ-reunion.fr"),
              person("Fabrizio", "Carlevaro", role = "aut", email = "fabrizio.carlevaro@unige.ch"),
