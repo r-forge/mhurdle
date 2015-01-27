@@ -17,12 +17,12 @@
 \usage{
 mhurdle(formula, data, subset, weights, na.action,
      start = NULL,
-     dist = c("ln","tn","n", "bc", "ihs"),
+     dist = c("ln","tn","n", "bc", "ihs", "ln2", "bc2"),
      corr = NULL, ...)
 \method{coef}{mhurdle}(object,
-   which = c("all", "h1", "h2", "h3", "sd", "corr", "tr"), ...)
+   which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"), ...)
 \method{vcov}{mhurdle}(object,
-   which = c("all", "h1", "h2", "h3", "sd", "corr", "tr"), ...)
+   which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"), ...)
 \method{logLik}{mhurdle}(object, naive = FALSE, ...)
 \method{print}{mhurdle}(x, digits = max(3, getOption("digits") - 2),
                      width = getOption("width"), ...)

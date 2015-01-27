@@ -13,7 +13,7 @@
 ## rsq
 
 nm.mhurdle <- function(object,
-                       which = c("all", "h1", "h2", "h3", "sd", "corr", "tr"),
+                       which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"),
                        ...){
     coefnames <- object$coef.names
     which <- match.arg(which)
@@ -27,7 +27,8 @@ nm.mhurdle <- function(object,
         else sd.names <- paste("sd", coefnames$sd, sep = ".")
         corr.names <- coefnames$corr
         tr.names <- coefnames$tr
-        result <- c(h1.names, h2.names, h3.names, sd.names, corr.names, tr.names)
+        mu.names <- coefnames$mu
+        result <- c(h1.names, h2.names, h3.names, sd.names, corr.names, tr.names, mu.names)
     }
     else{
         result <- coefnames[[which]]
@@ -37,7 +38,7 @@ nm.mhurdle <- function(object,
 }
 
 sub.mhurdle <- function(object,
-                        which = c("all", "h1", "h2", "h3", "sd", "corr", "tr"),
+                        which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"),
                         ...){
   # there is no need to check if the coefficient is relevant at it has
   # been checked previously by the nm.mhurdle function
@@ -54,7 +55,7 @@ sub.mhurdle <- function(object,
 }
 
 coef.mhurdle <- function(object,
-                        which = c("all", "h1", "h2", "h3", "sd", "corr", "tr"),
+                        which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"),
                       ...){
   which <- match.arg(which)
   nm <- nm.mhurdle(object, which)
@@ -65,7 +66,7 @@ coef.mhurdle <- function(object,
 }
 
 vcov.mhurdle <- function(object,
-                        which = c("all", "h1", "h2", "h3", "sd", "corr", "tr"),
+                        which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"),
                       ...){
   which <- match.arg(which)
   nm <- nm.mhurdle(object, which)
@@ -242,6 +243,10 @@ rsq <- function(object,
     Ko <- length(object$naive$coefficients)
     
     if (type == "lratio"){
+        ## print(logLik(object))
+        ## print(logLik(object, naive = TRUE))
+        ## print(c(K, Ko))
+              
         if (!adj) R2 <- 1 - logLik(object) / logLik(object, naive = TRUE)
         else R2 <- 1 - (logLik(object) - K) / (logLik(object, naive = TRUE) - Ko)
         R2 <- as.numeric(R2)

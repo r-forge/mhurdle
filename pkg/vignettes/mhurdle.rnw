@@ -11,6 +11,7 @@
 \usepackage{wasysym}
 \usepackage{threeparttable}
 \usepackage{amssymb, amsfonts}
+\usepackage{longtable, lscape}
 
 
 %\VignetteIndexEntry{Multiple Hurdle Models in R: the mhurdle Package}
@@ -81,17 +82,15 @@ E-mail: \email{stephane.hoareau@univ-reunion.fr}
   method for random samples. Model evaluation and selection are
   tackled by means of goodness of fit measures and Vuong
   tests. Software rationale and user's guidelines are presented and
-  illustrated with real-world examples.}
+  illustrated with a real-world example.}
 
-\Keywords{households' expenditure survey analysis, censored regression
-  models, hurdle models, maximum likelihood estimation, nonlinear
-  goodness of fit measures, Vuong tests for model selection, Tobit
-  models, \proglang{R}}
+\Keywords{Households' expenditure survey analysis, censored regression
+  models, hurdle models, Tobit models, maximum likelihood estimation,
+  goodness of fit measures, Vuong tests, \proglang{R}}
 
-\Plainkeywords{households' expenditure survey analysis, censored
-  regression models, hurdle models, maximum likelihood estimation,
-  nonlinear goodness of fit measures, Vuong tests for model selection,
-  Tobit models, R}
+\Plainkeywords{Households' expenditure survey analysis, censored
+  regression models, hurdle models, Tobit models, maximum likelihood estimation,
+  goodness of fit measures, Vuong tests, R}
 
 \begin{document}
 
@@ -123,11 +122,11 @@ put forward to explain the appearance of zero expenditure
 observations. The original Tobin's model takes only one of these
 mechanisms into account. With \pkg{mhurdle}, up to three mechanisms
 generating zero expenditure observations may be introduced in the
-model\footnote{This package has been developed as part of a PhD
-  dissertation carried out by St\'ephane \citet{HOAR/09} at the
-  University of La R\'eunion under the supervision of Fabrizio
-  Carlevaro and Yves Croissant.}. More specifically, we consider the
-following three zero expenditure generating mechanisms.
+model \footnote{This package is an improved version of a package first
+  developed as part of a PhD dissertation carried out by St\'ephane
+  \citet{HOAR/09} at the University of R\'eunion under the supervision
+  of Fabrizio Carlevaro and Yves Croissant.}. More specifically, we
+consider the following three zero expenditure generating mechanisms.
 
 \begin{description}
 \item[A good selection mechanism (hurdle 1)]. According to this
@@ -154,9 +153,9 @@ following three zero expenditure generating mechanisms.
   resources and selected good prices, its rational decision can turn
   out to be a
   negative desired consumption level leading to a nil consumption.\\
-  The use of this mechanism to explain the presence of zero
-  observations in family expenditure surveys, was introduced by
-  \citet{TOBIN/58}. Its theoretical relevance has been later
+  The use of this mechanism, to explain the presence
+  of zero observations in family expenditure surveys, was introduced
+  by \citet{TOBIN/58}. Its theoretical relevance has been later
   rationalised by the existence of corner solutions to the
   microeconomic problem of rational choice of the neoclassical
   consumer. See section 10.2 of \citet{AMEM/85}, for an elementary
@@ -181,9 +180,14 @@ following three zero expenditure generating mechanisms.
 For each of these censoring mechanisms, a continuous latent variable
 is defined, indicating that censoring is in effect when the latent
 variable is negative. These latent variables are modelled as the sum of
-a linear combination of explanatory variables and of a normal random
-disturbance with a possible correlation between the disturbances of
-different latent variables. By combining part or the whole set of
+a linear function of explanatory variables and of a normal random
+disturbance, with a possible correlation between the disturbances of
+different latent variables in order to account for a 
+possible simultaneity of the decisions modelled by censoring mechanisms.
+\textcolor{red}{To model possible departures of the observed dependent 
+variable to normality, we use flexible transformations allowing 
+to rescale skewed or leptokurtic random variables to normality.}   
+By combining part or the whole set of
 these censoring mechanisms, we generate a set of non-nested parametric
 models that can be used to explain censored expenditure data depending
 on the structural censoring mechanisms that a priori information
@@ -192,9 +196,21 @@ suggests to be at work.
 These formal models have been primarily developed to deal with
 censored household expenditure data, and numerous applications have
 been carried out in this field. Complementing a previous survey by
-\citet{SMITH:02}, table~\ref{tab:exconso} gives an overview of these
-studies and clearly shows that in empirical works, most of the time,
-two mechanisms are taken into account simultaneously.
+\citet{SMITH:02}, Table~\ref{tab:exconso} gives an updated overview of these
+studies. We note a late popularity of Cragg's approach, 
+as the first applications of hurdle models are published in the late of 
+1980s, namely almost two decades after the publication of Cragg's paper
+in Econometrica. Since then, a large variety of demand models including 
+one or two among the previous three censoring mechanisms are estimated.
+However, none of these studies use the three censoring mechanisms 
+we consider, jointly. From the 1990s on, many studies account for deviations 
+of the desired consumption relation to homoscedasticity and normality by
+modelling the standard error of this variable as a non negative 
+parametric function of some explanatory variables and by transforming 
+its distribution to normality using either the Box-Cox or the inverse
+hyperbolic sine transformations. The estimation of a correlation coefficient 
+between disturbances is also performed in several of these studies, with 
+an increasing succes over time, in terms of statistical significance of estimates.
 
 \input{biblio.tex}
 % revoir les \cite ci-dessous et le WODJ:2020
@@ -204,7 +220,7 @@ to empirical demand analysis but has been fruitfully used in other
 fields of economics. This includes labor
 economics~\citep[][]{ELEK:KOLL:REIZ:SZAB:11}, contingent valuation
 studies \citep[][]{SAZS:RAUS:08,MART:06}, finance
-\citep[see][]{MOFF:05}, sport activities \citep[][]{HUMP:RUSE:10},
+\citep[][]{MOFF:05}, sport activities \citep[][]{HUMP:RUSE:10},
 internet use \citep[][]{WODJ:2020}, gambling
 \citep[][]{HUMP:LEE:SOEB:09}, production \citep[][]{AKPA:NKAN:ESSI:12,
   MAL:ANIK:BAUE:SCHM:12, OKEL:KIRU:GITO:12, TEKL:DADI:YAMI:DANA:06}
@@ -264,7 +280,7 @@ presents the rationale of our modelling strategy.  Section
 \ref{sec:estevalsel} presents the theoretical framework for model
 estimation, evaluation and selection. Section \ref{sec:software}
 discusses the software rationale used in the package. Section
-\ref{sec:examples} illustrates the use of \pkg{mhurdle} with
+\ref{sec:examples} illustrates the use of \pkg{mhurdle} with a
 real-world example. Section \ref{sec:conclusion} concludes.
 
 \section{Modelling strategy}
@@ -296,7 +312,10 @@ variables (called covariates in the followings), $\beta_1$, $\beta_2$,
 $\beta_3$ for column-vectors of the impact coefficients of the
 explanatory variables on the continuous latent dependent variables $y_1^*$, $y_2^*$,
 $y_3^*$ and $\epsilon_1$, $\epsilon_2$, $\epsilon_3$ for normal random
-disturbances.
+disturbances. Since variables $y_1^*$ and $y_3^*$ are never observed, 
+contrary to $y_2^*$, the units of measurement of $\epsilon_1$ and $\epsilon_3$ are
+not identified. Hence, these disturbances are normalized by setting their variances 
+equal to 1, i.e. by identifying them to standard normal random variables.
 
 \begin{itemize}
 
@@ -323,10 +342,10 @@ disturbances.
   conditions. This desired consumption mechanism explains the outcome
   of a binary choice coded by a binary variable $I_2$ taking value 1
   if the household decides to consume the good and 0 otherwise.  The
-  outcome of this binary choice is modelled by associating the decision
-  to consume the selected good to a positive value of its desired
-  consumption level, represented by the latent variable $y_2^*$, and
-  that of not to consume the good to negative values of
+  outcome of this binary choice is modelled by associating the
+  decision to consume the selected good to a positive value of its
+  desired consumption level, represented by the latent variable
+  $y_2^*$, and that of not to consume the good to negative values of
   $y_2^*$. Therefore, when this zero expenditure generating mechanism
   is operative, it also models the level of desired consumption
   expenditures by means of a Tobit model identifying the desired
@@ -338,21 +357,22 @@ disturbances.
   replace not only the probit model explaining the variable $I_2$ by a
   singular probability choice model where $P(I_2=1)=1$, but also the
   Tobit demand function by a demand model enforcing non-negative
-  values on the latent variable $y_2^*$. For the time being, two
-  functional forms of this demand model have been programmed in
-  \pkg{mhurdle}, namely a log-normal functional form :
+  values on the latent variable $y_2^*$.  \citet{CRAGG/71}
+  suggested two types of functional forms for this demand model, namely
+  a log-normal functional form :
 
   \begin{equation}\label{eq2}
   \ln y_2^* = \beta_2^\top x_2+\epsilon_2
   \end{equation}
 
-  and a truncated normal functional form where $y^*_2$ is generated by
-  the second of the set of linear relationships (\ref{eq1}) with
-  $\epsilon_2$ distributed according to a normal random disturbance
-  left-truncated at $\epsilon_2 = -\beta_2^\top x_2$, as suggested by
-  \citet{CRAGG/71}. Nevertheless, to avoid a cumbersome analytic
-  presentation of our models, in the following we only consider the
-  log-normal model specification.
+  and a truncated normal functional form where $y_2^*$ is generated by
+  a linear relationship $y_2^*=\beta_2^\top x_2 + \epsilon_2$ with
+  $\epsilon_2$ distributed according to a normal distribution
+  left-truncated at $\epsilon_2 = -\beta_2^\top x_2$.  Nevertheless,
+  to avoid a cumbersome analytic presentation of our models, in the
+  following we only consider the log-normal model specification.
+  More flexible generalizations of these functional
+  forms will be discussed in section 2.3.
 
 \item Hurdle 3 models the household decision to purchase or not to
   purchase the good during the survey period over which expenditure
@@ -383,24 +403,26 @@ disturbances.
 
 \end{itemize}
 
-A priori information may suggest that one or more of these censoring
-mechanisms are not in effect. For instance, we know in advance that
-all households purchase food regularly, implying that the first two
-censoring mechanisms are inoperative for food.  In this case, the
-relevant model is defined by only two relations: one defining the
-desired consumption level of food, according to a log-normal
-specification or a truncated Tobit model, and the other the decision
-to purchase food during the observation period.
+A priori information (theoretical or real-world knowledge) may suggest
+that one or more of these censoring mechanisms are not in effect. For
+instance, we know in advance that all households purchase food
+regularly, implying that the first two censoring mechanisms are
+inoperative for food.  In this case, the relevant model is defined by
+only two relations: one defining the desired consumption level of
+food, according to a log-normal or a truncated normal specification,
+and the other the decision to purchase food during the observation
+period.
 
 Figure \ref{fig:arbre2} outlines the full set of special models that
 can be generated by selecting which of these three mechanisms are in
-effect and which are not.  It shows that 8 different models can be
-dealt with by means of the \pkg{mhurdle} package. \textcolor{red}{In
-  the following, we'll name the different models using the structure
-  of this figure. 1 will indicate that a specific hurdle is operative
-  as a 0 means that it is not operative. For example, \code{011} is the model
-  for which there is no selection process, but for which zero occurs
-  because of corner solutions and infrequency of purchase.}
+effect and which are not. It shows that 8 different models can be
+dealt with by means of \pkg{mhurdle} package.  To use a mnemonically
+rule, we number the models by 3 binary digits, each of which indicates
+if a censoring mechanism is or is not in effect, using figures
+\code{1} and \code{0}, respectively.  For example, \code{011}
+indicates the model for which hurdle 1 (good selection mechanism) is
+not in effect while hurdles 2 (desired consumption mechanism) and 3
+(purchasing mechanism) are.
 
 
 \begin{sidewaysfigure}
@@ -409,7 +431,7 @@ dealt with by means of the \pkg{mhurdle} package. \textcolor{red}{In
 \end{sidewaysfigure}
 
 Among these models, one is not concerned by censored data, namely
-model 1.  This model is relevant only for modelling uncensored
+model \code{000}. This model is relevant only for modelling uncensored
 samples. All the other models are potentially able to analyse censored
 samples by combining up to the three censoring mechanisms described
 above. With the notable exception of the standard Tobit model \code{010}, that
@@ -418,9 +440,24 @@ can be estimated also by the \pkg{survival} package of
 models cannot be found in an other \proglang{R} package.
 
 Some of \pkg{mhurdle} models have already been used in applied
-econometric literature. In particular, model \code{100} is a single-hurdle
-good selection model originated by \citet{CRAGG/71}. The double-hurdle
-model \code{110} combining independent good selection (hurdle 1) and desired
+econometric literature. In particular, model \code{100} is a
+single-hurdle good selection model originated by \citet{CRAGG/71}
+by assuming independence between disturbances $\epsilon_1$ and $\epsilon_2$.
+\textcolor{red}{The dependent version of this model
+may be viewed as a sample selection model in which only the desired consumption 
+is observed, but it diffears from this model
+populazied by Heckman (1979) to illustrate linear regression model estimation
+given sample selection, in that desired consumption is generated by a demand model
+enforcing non negative values on latent variable $y_2^*$. 
+Still, in many applications presented in Table~\ref{tab:exconso},
+Heckman's sample selection model is used as a dependent single-hurdle
+good selection model in which good selection decision is assumed to dominate good
+consumption decision. From our point of view, this model is theoretically
+misspecified to analyse a latent dependent variable that could take negative values 
+while assuming that hurdle 2 is not in effect.} 
+
+The double-hurdle model 
+\code{110} combining independent good selection (hurdle 1) and desired
 consumption (hurdle 2) censoring mechanisms is also due to
 \citet{CRAGG/71}. An extension of this double-hurdle model to
 dependent censoring mechanisms has been originated by
@@ -483,9 +520,7 @@ random disturbances entering the structural relations of these models.
   distribution and $\rho_{12}$, $\rho_{13}$, $\rho_{23}$ the
   correlation coefficients between the couples of normal standard
   random variables $z_1$ and $z_2$, $z_1$ and $z_3$, $z_2$ and $z_3$,
-  respectively.  As the unit of measurement of $\epsilon_1$ and
-  $\epsilon_3$ are not identified, these disturbances are normalised
-  by setting their variances equal to 1.
+  respectively.
 
 \item Models \code{011} and \code{001} are bivariate hurdle models as they involve disturbances
   $\epsilon_2$ and $\epsilon_3$, distributed according to the bivariate normal
@@ -530,16 +565,20 @@ random disturbances entering the structural relations of these models.
 
 \end{itemize}
 
-A priori information may also suggest to set to zero some or all
-correlations between the random disturbances entering these models,
-entailing a partial or total independence between the above defined
-censoring mechanisms. The use of this a priori information generates,
-for each trivariate or bivariate hurdle model of Figure 1, a subset of
-special models all nested within the general model from which they are
-derived. For a trivariate hurdle model the number of special models so
-derived is equal to 7, but for a bivariate hurdle model only one
-special model is generated, namely the model obtained by assuming the
-independence between the two random disturbances of the model.
+While the assumption of correlated disturbances is intended to account
+for the interdependence between latent variables $y_1^*$, $y_2^*$ and
+$y_3^*$ unexplained by covariates $x_1$, $x_2$ and $x_3$, a priori
+information (theoretical or real-world knowledge) may also suggest to
+set to zero some or all correlations between the random disturbances
+entering these models, entailing a partial or total independence
+between model relations. The use of this a priori information
+generates, for each trivariate or bivariate hurdle model of Figure 1,
+a subset of special models all nested within the general model from
+which they are derived. For a trivariate hurdle model the number of
+special models so derived is equal to 7, but for a bivariate hurdle
+model only one special model is generated, namely the model obtained
+by assuming the independence between the two random disturbances of
+the model.
 
 In the following, we shall work out the distribution of our hurdle
 models in their general case, but considering the difficulties of
@@ -547,8 +586,15 @@ implementing trivariate hurdle models in their full generality, for
 these models only the special cases of independence or dependence
 between one of hurdles 1 or 3 and the desired consumption equation,
 which seems the most relevant for empirical applications, have been
-programmed in \pkg{mhurdle}. The extension of our package to more
-general model specifications is in progress.
+programmed in the present version of \pkg{mhurdle}.  To identify the
+presence or absence of assumed dependence between couples of
+disturbances of a given \pkg{mhurdle} special model, we add to the 3
+binary digit number of the model a letter \code{i} , if independence
+is assumed, and a letter \code{d} , otherwise.  For exemple,
+\code{101dii} indicates a trivariate model \code{101} for which the
+couple of disturbances $(\epsilon_1 ,\epsilon_2)$ are assumed to be
+correlated, while $(\epsilon_1 ,\epsilon_3)$ and $(\epsilon_2
+,\epsilon_3)$ are not.
 
 \subsection{Likelihood function}
 
@@ -627,7 +673,7 @@ model over their positive values.
   \code{011} and \code{110} and univariate hurdle model \code{010} can
   be derived from that of trivariate model \code{111} by eliminating
   hurdles 1, 3, 1 and 3, respectively.  Likewise, this probability for
-  bivariate hurdle models \code{001} and \code{100} can be derived
+  bivariate hurdle models \code{100} and \code{001} can be derived
   from that of trivariate hurdle model \code{101} by eliminating
   hurdles 1 and 3, respectively.  Corresponding formulas of $P(y=0)$
   for all this special cases implemented in \proglang{R} are presented
@@ -680,8 +726,8 @@ $\exp\left\{\beta_2^{\top} x_2 + \frac{\sigma^2}{2}\right\}\frac{\Phi\left(\beta
 \vspace{.5cm}
 
 A blackened square indicates which hurdle or correlation is assumed to
-be at work in the model, an empty square indicates a hurdle which is
-not a effect or a zero correlation.
+be at work in the model ; an empty square indicates a hurdle which is
+not in effect or a zero correlation.
 
 \end{sidewaystable}
 
@@ -704,6 +750,7 @@ of latent variables $y_1^*$ and $y_3^*$.
   to rewrite it as the product of the marginal distribution of $y$,
   namely:
 
+  
   \begin{equation}\label{eq14}
     \frac{\Phi_3}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^\top x_2}{\sigma}\right)
   \end{equation}
@@ -798,8 +845,8 @@ of latent variables $y_1^*$ and $y_3^*$.
   \end{equation}
 
 \item The density function $f_+(y)$ for bivariate hurdle models
-  \code{011} and \code{110} and univariate hurdle model 3 can be
-  derived from that of trivariate model \code{111} by eliminating
+  \code{011} and \code{110} and univariate hurdle model \code{010} can
+  be derived from that of trivariate model \code{111} by eliminating
   hurdles 1, 3, 1 and 3, respectively.  Likewise, this density
   function for bivariate hurdle models \code{100} and \code{001} can
   be derived from that of trivariate hurdle model \code{101} by
@@ -832,6 +879,349 @@ and the log-likelihood for the entire random sample:
   \ln L = \sum_{i=1}^n \ln L_i= \sum_{i \mid y_i = 0} \ln P(y_i=0) + \sum_{i \mid y_i > 0} \ln f_+(y_i).
 \end{equation}
 
+\subsection{Heteroscedasticity and nonnormality}
+
+\textcolor{red}{
+Contrary to the classical linear regression model which estimation 
+is robust with respect to deviations from the assumptions of homoscedasticity
+and normality of disturbances, the maximum likelihood estimation of a Tobit model
+become inconsistent under heteroscedasticity and nonnormality of disturbances.
+Therefore, it is important to have methods allowing to test whether these 
+assumptions are acceptable, on grounds of empirical evidence provided by 
+a sample of observations, and to suggest how to respecify the model in case where
+a misspecification is brought out. In this section, we shall tackle this problem by
+using more flexible specifications of the desired consumption relation, where 
+homoscedasticity and normality assumptions appear as special cases. Our choices are
+inspired by model specifications identified in our survey of hurdle Tobit model 
+applications reported in Table~\ref{tab:exconso}.
+}
+Stated in general terms, our generalizations of models presented in section 2.1
+are written as:
+
+\begin{equation}\label{eq51}
+  \left\{
+  \begin{array}{l}
+  y_1^* = \beta_1^\top x_1 + z_1 \\[4pt]
+  T(y_2^*) = \beta_2^\top x_2 + \sigma(\beta_0^\top x_0) z_2 \\[4pt]
+  y_3^* = \beta_3^\top x_3 + z_3 \\
+  \end{array}
+  \right.
+\end{equation}
+
+where $T(y_2^*)$ denotes a monotonic transformation of desired consumption 
+variable $y_2^*$, $\sigma(\beta_0^\top x_0)$ a positive monotonic transformation 
+of a linear function of a vector of covariates $x_0$, selected to explain
+the heteroscedasticity of desired consumption, $z_1$, $z_2$ and $z_3$ 
+standard normal random variables, with $z_2$ possibly truncated at the bounds of an interval
+$]B_1,B_2[$ ensuring that the range of values of $\beta_2^\top x_2 + \sigma(\beta_0^\top x_0) z_2$
+corresponds to the domain of definition of the inverse transformation
+$y_2^* = T^{-1} (\beta_2^\top x_2 + \sigma(\beta_0^\top x_0) z_2)$.
+
+With these assumptions in mind, we can derive the form of the observable dependent variable
+
+\begin{equation}\label{eq52}
+  y = \frac{T^{-1} (\beta_2^\top x_2 + \sigma(\beta_0^\top x_0) z_2)}{P(I_3=1)} I_1 I_2 I_3 .
+\end{equation}
+
+from the joint distribution of random variables $z_1$, $z_2$ and $z_3$, which is written as:
+
+\begin{equation}\label{eq53}
+    \frac{\phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right)}{\Phi(B_2)-\Phi(B_1)}.
+\end{equation}
+
+Using the change of variables:
+
+\begin{equation}\label{eq54}
+  \left\{
+  \begin{array}{l}
+   z_1  =  y_1^* - \beta_1^\top x_1 \\[4pt]
+   z_2  =  {\displaystyle\frac{T(y_2^*) - \beta_2^\top x_2}{\sigma(\beta_0^\top x_0)}} \\[8pt]
+   z_3  =  y_3^* - \beta_3^\top x_3 \\
+  \end{array}
+  \right.
+\end{equation}
+
+we derive the joint density function of latent variables $y_1^*$, $y_2^*$ and $y_3^*$:
+
+\begin{equation}\label{eq55}
+  f(y_1^*, y_2^*, y_3^*)=\frac{T^{'}(y_2^*)}{\sigma(\beta_0^\top x_0)}
+  \frac{\phi\left(y_1^* - \beta_1^\top x_1, \frac{T(y_2^*)-\beta_2^\top x_2}{\sigma(\beta_0^\top x_0)}, 
+  y_3^* - \beta_3^\top x_3)\right)}{\Phi(B_2)-\Phi(B_1)},
+\end{equation}
+
+where $T^{'}(y_2^*)$ stands for the derivative of $T(y_2^*)$. Using this density function 
+we compute the probability mass $P(y=0)=1-P(y>0)$ as follows:
+
+\begin{equation}\label{eq56}
+  \begin{array}{l}
+  P(y=0) = {\displaystyle 1-\int_{0}^\infty \int_{0}^\infty \int_{0}^\infty \frac{\phi(y_1^*,y_2^*,y_3^*;\rho_{12},\rho_{13},\rho_{23})}
+  {\Phi(B_2)-\Phi(B_1)} dy_1^* dy_2^* dy_3^*}\\[16pt]
+  \phantom{P(y=0)} ={\displaystyle 1-\int_{-\beta_1^\top x_1}^\infty \int_{\frac{T(0)-\beta_2^\top x_2}{\sigma(\beta_0^\top x_0)}}^{B_2}
+  \int_{-\beta_3^\top x_3}^\infty \frac{\phi(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23})}{\Phi(B_2)-\Phi(B_1)} dz_1 dz_2 dz_3}\\[16pt]
+  \phantom{P(y=0)} ={\displaystyle 1-\frac{\Phi(\beta_1^\top x_1,\frac{\beta_2^\top x_2 - T(0)}{\sigma(\beta_0^\top x_0)},
+  \beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23})- \Phi(\beta_1^\top x_1,-B_2,\beta_3^\top x_3;\rho_{12},\rho_{13},\rho_{23})}
+  {\Phi(B_2)-\Phi(B_1)}}.
+  \end{array}
+  \end{equation}
+
+To compute the density function $f_+(y)$ , we first perform the
+change of variable $y_2^* = \Phi_3y$ on the joint density
+function \label{eq55}, leading to the joint density function of variables $y_1^*$, $y$ and $y_3^*$:
+
+\begin{equation}\label{eq57}
+  f(y_1^*, y, y_3^*)=\frac{\Phi_3 T^{'}(\Phi_3 y)}{\sigma(\beta_0^\top x_0)}
+  \frac{\phi\left(y_1^* - \beta_1^\top x_1, \frac{T(\Phi_3 y)-\beta_2^\top x_2}{\sigma(\beta_0^\top x_0)}, 
+  y_3^* - \beta_3^\top x_3)\right)}{\Phi(B_2)-\Phi(B_1)}.
+\end{equation}
+
+Then we integrate this transformed density function, rewritten as the product 
+of the marginal density function of $y$, namely:
+
+\begin{equation}\label{eq58}
+    \frac{\Phi_3 T^{'}(\Phi_3 y)}{\sigma(\beta_0^\top x_0)} 
+    \frac{\phi\left(\frac{T(\Phi_3 y)-\beta_2^\top x_2}{\sigma(\beta_0^\top x_0)}\right)}{\Phi(B_2)-\Phi(B_1)},
+\end{equation}
+
+and of the joint density function of $y_1^*$ and $y_2^*$ conditioned with respect to $y$,
+stated by formula \label{eq15}, over the positive values of latent variables $y_1^*$ and $y_3^*$.
+By this way we get:
+
+
+\begin{equation}\label{eq59}
+  \begin{array}{l}
+    f_+(y)={\displaystyle 
+    \frac{\Phi_3 T^{'}(\Phi_3 y)}{\sigma(\beta_0^\top x_0)} 
+    \frac{\phi\left(\frac{T(\Phi_3 y)-\beta_2^\top x_2}{\sigma(\beta_0^\top x_0)}\right)}{\Phi(B_2)-\Phi(B_1)}}\\%[12pt]
+    \phantom{f_+(y)} \times{\displaystyle \Phi\left(\frac{\beta_1^\top x_1+\rho_{12}\frac{T(\Phi_3 y)-\beta_2^\top x_2}
+    {\sigma(\beta_0^\top x_0)}}{\sqrt{1-\rho_{12}^2}},\frac{\beta_3^\top x_3+\rho_{23}\frac{T(\Phi_3 y)-\beta_2^\top x_2}
+    {\sigma(\beta_0^\top x_0)}}{\sqrt{1-\rho_{23}^2}};\rho_{13|2}\right)}.
+  \end{array}
+\end{equation}
+
+A natural choice for the heteroscedastic model $\sigma(\beta_0^\top x_0)$ is given by the exponential 
+functional form $\sigma(\beta_0^\top x_0)=\exp\{\beta_0^\top x_0\}$, as exponential is a 
+strictly increasing function mapping the set of real numbers $]-\infty,+\infty[$ onto the
+the set of positive real numbers $]0,+\infty[$, and leads to homoscedasticity when the linear function
+$\beta_0^\top x_0$ is a constant. This allows to test the assumption of homoscedasticity by inserting
+an intercept among parameters $\beta_0$ and assessing whether the other parameters are statistically 
+significant or not. 
+
+The main drawbacks of this functional form lies in its implicit assumption of
+unboundedness of the variance of disturbance $\epsilon_2$ with respect to covariates $x_0$. When a priori
+information suggests that this conditional variance remains bounded with respect to any possible values of
+these covariates, it is best to consider a functional model of the form 
+$\sigma(\beta_0^\top x_0)=\exp\{\alpha F(\beta_0^\top x_0)\}$, where $F(.)$ is a distribution function mapping 
+the set of real numbers $]-\infty,+\infty[$ onto the unit interval $]0,1[$, and $\alpha$ a parameter playing 
+the role of the intercept in the exponential functional form. Therefore, testing the assumption of homoscedasticity 
+amounts to assessing the statistical non significance of parameter vector $\beta_0$ without an intercept, and setting 
+the standard deviation of $\epsilon_2$ equal to $\sigma = \exp\{\alpha F(0)\}$. For a practical application of this
+parametric model of heteroscedasticity, a menu of functional forms of $F(.)$ have been programmed in \pkg{mhurdle},
+including the distribution functions of standard normal, logistic, Cauchy and Gompertz random variables.
+
+As far as the choice of transformation $T(y_2^*)$ is concerned, two families of parametric functions have been
+considered, in order to generate departures from normality towards skewed and leptokurtic (more sharply peaked)
+distributions, of the kind encountered in collected economic data.
+
+To generate skewed distributions of $y_2^*$ we use the two parameters \citet{BOX:COX:64} transformation, as suggested
+by \citet{CHAZ:05}. This transformation is written as:
+
+\begin{equation}\label{eq60}
+  T(y_2^*) = \left\{
+  \begin{array}{ll}
+    \frac{(y_2^* + \gamma)^{\lambda}-1}{\lambda} & \mbox{if} \quad \lambda \neq 0 \\
+    \ln (y_2^* + \gamma) & \mbox{if} \quad \lambda=0
+  \end{array}
+  \right.
+\end{equation}
+
+with $\lambda$ a parameter characterizing the non linearity of the transformation. 
+As shown in Figure 1, this transformation is linear for $\lambda = 1$, convex for $\lambda > 1$, and concave for
+$\lambda < 1$, with a ceiling asymptote at $-1/\lambda$ when $\lambda<0$. $\gamma$ is a 
+location parameter, restricting the domain where the transformation holds, to the 
+interval $]-\lambda,+\infty[$. Hence, the image of this interval by the Box-Cox 
+transformation is given by:
+
+\begin{equation}\label{eq61}
+  T(]-\gamma,+\infty[) = \left\{
+  \begin{array}{ll}
+    ]-1/\lambda,+\infty[ & \mbox{if} \quad \lambda > 0 \\
+    ]-\infty,+\infty[ & \mbox{if} \quad \lambda = 0 \\
+    ]-\infty,-1/\lambda[ & \mbox{if} \quad \lambda <0 
+  \end{array}
+  \right.
+\end{equation}
+
+As the inverse Box-Cox transformation is written as:
+
+\begin{equation}\label{eq62}
+  y_2^* = \left\{
+  \begin{array}{ll}
+    \{\lambda(\beta_2^\top x_2 + \sigma(\beta_0^\top x_0) z_2)+1\}^{1/\lambda}-\gamma & \mbox{if} \quad \lambda \neq 0 \\
+    \exp\{\beta_2^\top x_2 + \sigma(\beta_0^\top x_0) z_2\} - \gamma & \mbox{if} \quad \lambda=0
+  \end{array}
+  \right.
+\end{equation}
+
+it turns out that $z_2$ is truncated at the bounds of the interval $]B_1,B_2[$, with:
+
+\begin{equation}\label{eq63}
+  B_1 = \left\{
+  \begin{array}{ll}
+    -\frac{\beta_1^\top x_1 + (1/\lambda)}{\sigma(\beta_0^\top x_0)} & \mbox{if} \quad \lambda > 0 \\
+    -\infty & \mbox{if} \quad \lambda \leq 0
+  \end{array}
+  \right.
+\end{equation}
+
+and
+
+\begin{equation}\label{eq64}
+  B_2 = \left\{
+  \begin{array}{ll}
+     +\infty & \mbox{if} \quad \lambda \geq 0\\
+    -\frac{\beta_1^\top x_1 + (1/\lambda)}{\sigma(\beta_0^\top x_0)} & \mbox{if} \quad \lambda < 0
+  \end{array}
+  \right.
+\end{equation}
+
+Hence:
+
+\begin{equation}\label{eq63}
+  \Phi(B_2)-\Phi(B_1) = \left\{
+  \begin{array}{ll}
+    \Phi(sign(\lambda)\frac{\beta_1^\top x_1 + (1/\lambda)}{\sigma(\beta_0^\top x_0)}) & \mbox{if} \quad \lambda \neq 0 \\
+    1 & \mbox{if} \quad \lambda = 0
+  \end{array}
+  \right.
+\end{equation}
+
+with
+
+\begin{equation}\label{eq69}
+  sign(\lambda) = \left\{
+  \begin{array}{ll}
+     + & \mbox{if} \quad \lambda > 0\\
+     - & \mbox{if} \quad \lambda < 0
+  \end{array}
+  \right.
+\end{equation}
+ 
+Finally, the distribution of the observed variable $y$ is obtained by inserting these results 
+in formulas \label{eq56} and \label{eq59}, jointly with the derivative of the Box-Cox 
+transformation, $T^{'}(y_2^*)=(y_2^*+\gamma)^{\lambda-1}$.
+
+Note that when $\gamma = 0$, the Box-Cox transformation holds only for $y_2^* > 0$, corresponding 
+to the restriction enforced to the desired consumption relation, when hurdle 2 is not in effect, 
+by means of Cragg's log-normal or truncated normal functional forms. These functional forms arise as special cases
+of the Box-Cox transformation, when $\lambda = 0$ and $\lambda = 1$, respectively. Thus, testing the
+statistical significance of parameter $\gamma$, against the alternative $\gamma > 0$, amounts
+to testing the assumption that hurdle 2 is not in effect within the framework of a nested
+model. Conversely, when $\gamma < 0$ the Box-Cox transformation holds for $y_2^* > -\gamma$
+meaning that $-\gamma$ stands for a "committed" consumption of a basic necessity, while 
+$\gamma > 0$ typify a luxury good whose consumption occurs only above a given income threshold.
+
+The way the Box-Cox transformation generates the profile of the density function of $y_2^*$ from that
+of $z_2$ can be illustrated by considering the special case of $\beta_2^\top x_2=0$ and
+$\sigma(\beta_0^\top x_0)=1$. In this special case, the marginal density function of $y_2^*$
+is defined for $y_2^* \geq 0$,and takes the form of the product of the density function of $z_2$,
+written as a function of $y_2^*$:
+
+\begin{equation}\label{eq64}
+   \frac{\phi(\frac{y_2^{*\lambda}-1}{\lambda})}{\Phi(sign(\lambda)\frac{1}{\lambda})}
+\end{equation}
+
+times the value of the Jacobian of the Box-Cox transformation:
+
+\begin{equation}\label{eq65}
+   J = y_2^{*(\lambda - 1)}.
+\end{equation}
+
+This Jacobian magnifies or reduces the value of the density function of $z_2$ depending on 
+whether $J>1$ or $J<1$, respectively. According to the values of $\lambda$, three cases 
+must be considered.
+
+\begin{itemize}
+
+\item When $\lambda = 1$, $J=1$ whatever the value of $y_2^*$. Hence, the shape of the density 
+ function of $y_2^*$ is the same as that of $z_2$, namely a normal random variable left truncated
+ at $y_2^* = 0$ and with a mode at $y_2^* = 1$.
+
+\item When $\lambda > 1$, $J$ is an unbounded increasing function of $y_2^*$, taking value $0$ at 
+ $y_2^* = 0$ and $1$ at $y_2^* = 1$, while the density function of $z_2$ at $y_2^*=0$ holds finite. 
+ Hence, the density function of $y_2^*$ starts from $0$ and shifts the mode beyond $y_2^* = 1$. 
+ Furthermore, the Jacobian being a linear function of
+ $y_2^*$ when $\lambda = 2$, a concave function when $1 < \lambda < 2$, and a convex function 
+ when $\lambda > 2$, the concentration of the density function around its mode increases with
+ the value of $\lambda$, until the collapse of the entire probability mass at $y_2^* = 1$, when
+ $\lambda \rightarrow \infty$.    
+
+\item When $\lambda < 1$, $J$ is a decreasing function of $y_2^*$, from $+\infty$ at $y_2^* = 0$,
+ to $0$ when $y_2^* \rightarrow \infty$, taking value $1$ at $y_2^* = 1$, while the density function 
+ of $z_2$ at $y_2^*=0$ holds finite or takes value $0$ depending on whether $0<\lambda<1$ or $\lambda\leq 0$. 
+ Hence, contrary to the previous case, the mode of the density function of $y_2^*$ shifts short of $y_2^* = 1$, 
+ while, at the origin, the density function of $y_2^*$ tends to $+\infty$ and turns out to be an 
+ undetermined product depending on whether $0<\lambda<1$ or $\lambda\leq 0$. The application of
+ Hospital's rule allows to remove the indetermination of this limit, which turns out to be equal to $0$.
+ Note that the same tendency towards a concentration of the density function of $y_2^*$ around its degenerated 
+ limit at $y_2^* = 1$ appears when $\lambda \rightarrow -\infty$. Note also that the J-shaped profile
+ of this density function, when $0<\lambda<1$, has a mode preceded by an antimode that can coalesce into 
+ a point of inflexion.
+ 
+\end{itemize}
+ 
+All these profiles are illustrated in Figures 2.
+
+To generate leptokurtic distributions of $y_2^*$ we use the transformation popularized by \citet{JOHN:49},
+based on the inverse hyperbolic sine function, namely:
+
+\begin{equation}\label{eq66}
+  T(y_2^*) = \frac{1}{\theta} \sinh^{-1}(\theta y_2^*) = \frac{1}{\theta} 
+  \ln \{\theta y_2^* + \sqrt{(\theta y_2^*)^2+1}\} 
+\end{equation}
+
+with $\theta$ a parameter characterizing the non linearity of the transformation. Indeed, as illustrated
+by Figure 3, while, for $\theta > 0$ and finite, the general shape of this transformation is that of 
+an odd \footnote{A function $f(x)$ is said odd if $f(-x)=-f(x)$ whatever $x$, implying that $f(0)=0$.} increasing 
+function, from $-\infty$ to $+\infty$,  with an inflexion point at $y_2^*=0$, concave for $y_2^*>0$ and 
+convex for $y_2^*<0$, the transformation becomes linear, 
+when $\theta \rightarrow 0$, and constant (equal to $0$), when $\theta\rightarrow +\infty$ 
+\footnote{These limits can be obtained easily by using Hospital's rule.}, by progressively loosing its 
+sigmoidal profile. As these profiles are invariant with respect to a change of sign of $\theta$, this parameter
+can be assumed to be non negative, without loss of generality.
+
+To determine the distribution of the observed variable $y$, we need to insert in formulas \label{eq56} and \label{eq59}
+the expressions of $\Phi(B_2)-\Phi(B_1)$ and $T^{'}(y_2^*)$ for Johnson's transformation. We first note that 
+the inverse function of this transformation, which is written:
+
+\begin{equation}\label{eq67}
+  \begin{array}{l}
+  y_2^* = {\displaystyle \frac{\sinh (\theta(\beta_2^\top x_2 + \sigma(\beta_0^\top x_0) z_2))}{\theta} }\\[16pt]
+  \phantom{ y_2^*} = {\displaystyle \frac{\exp\{\theta(\beta_2^\top x_2 + \sigma(\beta_0^\top x_0) z_2)\}
+  -\exp\{-\theta(\beta_2^\top x_2 + \sigma(\beta_0^\top x_0) z_2)\}}{2 \theta}}
+  \end{array} 
+\end{equation}
+
+does not require a truncation of the support of $z_2$, implying that $B_1=-\infty$, $B_2=+\infty$, and hence
+$\Phi(B_2)-\Phi(B_1)=1$. 
+
+Secondly, the derivative of Johnson's transformation, namely:
+
+\begin{equation}\label{eq68}
+  T^{'}(y_2^*) = \frac{1}{\sqrt{(\theta y_2^*)^2 + 1}}   
+\end{equation}
+
+is a bell-shaped positive pair function \footnote{A function $f(x)$ is said pair if $f(-x)=f(x)$ whatever $x$.} taking
+constant values $1$ and $0$ when $\theta \rightarrow 0$ and $\theta\rightarrow +\infty$, respectively. 
+
+To analyze the profile of the density function of $y_2^*$ generated by this transformation,
+we consider, as we did before for the Box-Cox transformation, the special case of $\beta_2^\top x_2=0$ and
+$\sigma(\beta_0^\top x_0)=1$. In this special case, the marginal density function of $y_2^*$ 
+takes the form of the product of the density function of $\phi (T(y_2^*))$ times the value of the Jacobian
+$T^{'}(y_2^*)$. As a function of $\theta$, this formula generates a family of bell-shaped density
+functions which kurticity increases with the value of $\theta$, from metakurticity (that of the normal distribution) 
+when $\theta=0$, to extreme leptokurticity resulting in a concentration of all the density function at point 
+$y_2^*=0$, when $\theta \rightarrow +\infty$, as shown in Figure 4. Therefore, the inverse hyperbolic sine 
+transformation must be used only when hurdle 2 is in effect.
 
 
 \section{Model estimation, evaluation and selection}
@@ -1068,9 +1458,11 @@ by $y$, over the positive values of these variables.
   \begin{array}{l}
   E(y)=\displaystyle\int_{-\beta_1^\top x_1}^\infty \int_{-\infty}^\infty
   \int_{-\beta_3^\top x_3}^\infty \frac{\exp\{\beta_2^\top x_2+\sigma z_2\}}{\Phi_3} \\
-\displaystyle  \times   \phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right) dz_1 dz_2 dz_3
+  \displaystyle  \times   \phi\left(z_1,z_2,z_3;\rho_{12},\rho_{13},\rho_{23}\right) dz_1 dz_2 dz_3
   \displaystyle =\frac{\exp\{\beta_2^\top x_2\}}{\Phi_3}\\[12pt]
-\displaystyle \times \int_{-\beta_1^\top x_1}^\infty \int_{-\beta_3^\top x_3}^\infty \left[\int_{-\infty}^\infty \exp\{\sigma z_2\}\phi\left(\frac{z_2-\mu_{2|1,3}}  {\sigma_{2|1,3}}\right)\frac{dz_2}{\sigma_{2|1,3}} \right] \phi\left(z_1,z_3;\rho_{13}\right)dz_1 dz_3
+  \displaystyle \times \int_{-\beta_1^\top x_1}^\infty \int_{-\beta_3^\top x_3}^\infty 
+  \left[\int_{-\infty}^\infty \exp\{\sigma z_2\}\phi\left(\frac{z_2-\mu_{2|1,3}}  
+  {\sigma_{2|1,3}}\right)\frac{dz_2}{\sigma_{2|1,3}} \right] \phi\left(z_1,z_3;\rho_{13}\right)dz_1 dz_3
   \end{array}
   \end{equation}
 
@@ -1660,10 +2052,11 @@ For P-Tobit models (\code{001} and \code{011}), the starting values
 are computed using an Heckman-like two step procedure. In the first
 step, parameters $\beta_3$ are estimated using a simple probit. In the
 second step, a linear regression model is estimated by ordinary least
-squares using the sub-sample of uncensored observations and
-$y_i\Phi(\hat{\beta}_3^{\top}x_{3i})$ or $\ln y_i +\ln
-\Phi(\hat{\beta}_3^{\top}x_{3i})$ (in the case of a log-normal
-specification) as dependent variable.
+squares using the sub-sample of uncensored observations and, as
+dependent variable: $y_i\Phi(\hat{\beta}_3^{\top}x_{3i})$ in the case
+of a normal specification and $\ln y_i +\ln
+\Phi(\hat{\beta}_3^{\top}x_{3i})$ in the case of a log-normal
+specification.
 
 For Tobit model \code{010}, the least squares estimate of the linear regression
 model is used as starting values.
@@ -1677,10 +2070,11 @@ Finally, for models involving hurdles 1 and 3 (models \code{101} and
 \code{111}), we use two probit models to get starting values for
 $\beta_1$ and $\beta_2$. Then, we estimate a linear regression model
 by ordinary least squares with the sub-sample of uncensored
-observations using $y_i\Phi(\hat{\beta}_3^{\top}x_{3i})$ or $\ln y_i
-+\ln \Phi(\hat{\beta}_3^{\top}x_{3i})$ (in the case of a log-normal
-specification) as dependent variable and assuming no correlation
-between the desired consumption equation and these two hurdles.
+observations, as dependent variable, and assuming no correlation
+between the desired consumption equation and these two hurdles:
+$y_i\Phi(\hat{\beta}_3^{\top}x_{3i})$, in the case of a normal
+specification and $\ln y_i +\ln \Phi(\hat{\beta}_3^{\top}x_{3i})$ in
+the case of a log-normal specification.
 
 \subsection{Optimisation}
 \label{sec:optimisation}
@@ -2096,7 +2490,7 @@ desired level of consumption of a previously selected good, which can
 turn out to be negative leading to a nil consumption; (iii) an
 economic or non economic decision mechanism for the time frequency at
 which the desired quantity of a selected good is bought or
-consumed. Interdependence between these censoring mechanisms is
+consumed. Unexplained interdependence between latent variables is
 modelled by assuming a possible correlation between the random
 disturbances in the model relations. Despite the particular area of
 application from which the above mentioned censoring mechanisms stem,
@@ -2116,10 +2510,7 @@ both of two competing models are misspecified.
 Tests of \pkg{mhurdle} computing procedures with a wide variety of
 simulated and observational data have proved the performance and
 robustness of \pkg{mhurdle} package. Still, extensions and
-improvements of the software are under way, notably the estimation of
-trivariate hurdle models in their full generality and the design of a
-consistent Vuong testing strategy for discriminating between a
-numerous set of competing models.
+improvements of the software are \textcolor{red}{continuing}.
 
 %% Other desirable extensions, like the use of more general functional
 %% forms of the desired consumption relation\footnote{See
@@ -2163,3 +2554,11 @@ $\exp\left\{\beta_2^{\top} x_2 + \frac{\sigma^2}{2}\right\}\frac{\Phi\left(\beta
 8d3 &$\blacksquare$&$\blacksquare$&$\blacksquare$&$\square$&$\square$ &$\blacksquare$&$1 - \Phi_1\Phi_{23}$& $\frac{1}{\sigma}\phi\left(\frac{\Phi_3 y-\beta_2^{\top}x_2}{\sigma}\right)\Phi_1\Phi\left(\frac{\beta_3^{\top}x_3 + \rho_{23}\frac{\Phi_3 y - \beta_2^{\top}x_2}{\sigma}}{\sqrt{1-\rho_{23}^2}}\right)\Phi_3$ & $\frac{\beta_2^{\top} x_2}{\Phi_3}
 + \sigma \frac{\Psi_{2|3}}{\Phi_{23} \Phi_3}$  \\ \hline\hline
 \end{tabular}
+
+BC <- mhurdle(comics ~ gender + educ + age |  log(incum) +
+                 I(log(incum)^2) + I(log(incum)^3) + size | 0,
+                 data = Comics, corr = "d", dist = "bc", method = 'bfgs', print.level = 3)
+                 
+IHS <- mhurdle(comics ~ gender + educ + age |  log(incum) +
+                 I(log(incum)^2) + I(log(incum)^3) + size | 0,
+                 data = Comics, corr = "d", dist = "ihs", method = 'bfgs', print.level = 3)                 

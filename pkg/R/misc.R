@@ -8,15 +8,30 @@ mypbivnorm <- function(x1, x2, rho = 0){
   if (is.null(x1) && !is.null(x2)) result <- list(f = pnorm(x2), a = 0, b = dnorm(x2), rho = 0, rho.rho = 0)
   if (is.null(x2) && !is.null(x1)) result <- list(f = pnorm(x1), a = dnorm(x1), b = 0, rho = 0, rho.rho = 0)
   if (!is.null(x1) && !is.null(x2)){
+      ## cat("_____________AVANT_______________\n")
+      ## print(summary(x1));print(summary(x2));print(rho)
+      ## cat("_____________APRES_______________\n")
+      f <- pbivnorm(x1, x2, rho)
+      b <- dnorm(x2) * pnorm( (x1 - rho * x2) / sqrt(1 - rho^2) )
+      a <- dnorm(x1) * pnorm( (x2 - rho * x1) / sqrt(1 - rho^2) )
+      eps <- 1E-07
+      rho <- (pbivnorm(x1, x2, rho + 1E-07) - pbivnorm(x1, x2, rho)) / 1E-07
+      result <- list(f = f, a = a, b = b, rho = rho)
+  }
+  result
+}
+
+# compute the bivariate normal cdf and its derivates
+p2norm <- function(x1, x2, rho = 0){
     f <- pbivnorm(x1, x2, rho)
     b <- dnorm(x2) * pnorm( (x1 - rho * x2) / sqrt(1 - rho^2) )
     a <- dnorm(x1) * pnorm( (x2 - rho * x1) / sqrt(1 - rho^2) )
     eps <- 1E-07
-    rho <- (pbivnorm(x1, x2, rho + 1E-07) - pbivnorm(x1, x2, rho)) / 1E-07
+    rho <- (pbivnorm(x1, x2, rho + eps) - pbivnorm(x1, x2, rho)) / eps
     result <- list(f = f, a = a, b = b, rho = rho)
-  }
-  result
+    result
 }
+p2norm <- function(x1, x2, rho) mypbivnorm(x1, x2, rho)
 
 # a function to construct block-diagonal matrix (can't remember from
 # which package it is borrowed)

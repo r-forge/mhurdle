@@ -1,15 +1,5 @@
-## CA MARCHE !!!
-## m111dii <- mhurdle(comics ~ gender + educ  |  log(incum) +
-##                    I(log(incum)^2) + I(log(incum)^3) + size | age|log(incum),
-##                    data = Comics, corr = "h1", dist = "n", method = 'bfgs', print.level=3)
-
-
- ## m111dii <- mhurdle(comics ~ gender + educ  |  log(incum) +
- ##                   I(log(incum)^2) + I(log(incum)^3) + size | age|log(incum),
- ##                   data = Comics, corr = "h1", dist = "b", method = 'bfgs', print.level=3)
-
 mhurdle <- function(formula, data, subset, weights, na.action,
-                    start = NULL, dist = c("ln", "tn", "n", "bc", "ihs"), corr = NULL, ...){
+                    start = NULL, dist = c("ln", "tn", "n", "bc", "ihs", "ln2", "bc2"), corr = NULL, ...){
     dots <- list(...)
     oldoptions <- options(warn = -1)
     on.exit(options(oldoptions))
@@ -60,7 +50,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
             if (corr == "dii") corr <- "h1"
             if (corr == "iid") corr <- "h3"
         }
-        else{
+        if ((h1 + h3) == 1){
             if (nchar(corr) != 1) stop("corr should contain just one character")
             if (!(corr %in% c("i", "d"))) stop("corr should be one of d or i")
             if (corr == "i") corr <- NULL
@@ -69,41 +59,48 @@ mhurdle <- function(formula, data, subset, weights, na.action,
                 if (h3) corr <- "h3"
             }
         }
+        if ((h1 + h3) == 0) stop("correlation is irrelevant in a single equation model")
     }
-    # compute the "naive" model
-    Pnull <- mean(y == 0)
-    if (dist != "ln"){
-        Ec <- mean(y[y > 0])
-        Vc <- var(y[y > 0])}
-    else{
-        Ec <- mean(log(y[y > 0]))
-        Vc <- var(log(y[y > 0]))
-    }
-    start.naive <- c(rep(0.1, 1 + h1 + h3), 1)
-    moments <- c(Pnull, Ec, Vc)
-    dist.naive <- dist
-    if (dist %in% c("bc", "ihs")) dist.naive <- "n"
-    naive <- maxLik(lnl.naive, start = start.naive,
-                    dist = dist.naive, moments = moments,
-                    h1 = h1, h3 = h3);
-    coef.naive <- naive$est
-    logLik.naive <- structure(naive$max * n, nobs = length(y), df = length(coef.naive), class = "logLik")
-    naive <- list(coefficients = coef.naive, logLik = logLik.naive, code = naive$code)
-    
+
     #  Special cases where the models can be estimated directly, without
     #  relevant starting values
   
-    # model (1l 1t), no censure, estimate the log-linear or truncated
-    # model
+    # model (000), no censure, estimate the log-linear or truncated or
+    # box-cox model
+    
     if (!h1 && !h3 && dist != "n"){
-        if (dist == "ln") result <- lm( log(y) ~ X2 - 1)
-        if (dist == "tn") result <- truncreg(y ~ X2 - 1)
+        if (dist == "ln") result <- lm( log(y) ~ X2 - 1, subset = y > 0)
+        if (dist == "tn") result <- truncreg(y ~ X2 - 1, scaled = TRUE, subset = y > 0)
+        if (dist == "bc") result <- boxcoxreg(y ~ X2 - 1, , subset = y > 0)
+        if (dist != "ln") names(result$coefficients) <- c(colnames(X2), "sigma") else names(result$coefficients) <- colnames(X2)
         return(result)
     }
-    # models (2li, 2ti) h1 without corr, can be estimated simply in two
-    # parts using fit.simple.mhurdle() used as starting values for (3d,
-    # 4d)
-    if (h1 && !h3 &&  ! (dist %in% c("n", "bc", "ihs")) && is.null(corr)){
+    else{# in all other cases, compute the naive model
+        # compute the "naive" model
+        Pnull <- mean(y == 0)
+        if (dist != "ln"){
+            Ec <- mean(y[y > 0])
+            Vc <- var(y[y > 0])}
+        else{
+            Ec <- mean(log(y[y > 0]))
+            Vc <- var(log(y[y > 0]))
+        }
+        start.naive <- c(rep(0.1, 1 + h1 + h3), 1)
+        moments <- c(Pnull, Ec, Vc)
+        dist.naive <- dist
+        if (dist %in% c("bc", "bc2", "ihs")) dist.naive <- "n"
+        if (dist == "ln2") dist.naive <- "ln"
+        naive <- maxLik(lnl.naive, start = start.naive,
+                        dist = dist.naive, moments = moments,
+                        h1 = h1, h3 = h3);
+        coef.naive <- naive$est
+        logLik.naive <- structure(naive$max * n, nobs = length(y), df = length(coef.naive), class = "logLik")
+        naive <- list(coefficients = coef.naive, logLik = logLik.naive, code = naive$code)
+    }
+
+    # models (100i) without corr, can be estimated simply in two
+    # parts using fit.simple.mhurdle()
+    if (h1 && !h3 && (dist %in% c("ln", "bc", "tn")) && is.null(corr)){
         result <- fit.simple.mhurdle(X1, X2, y, dist = dist)
         result$naive <- naive
         result$call <- cl.save
@@ -111,48 +108,73 @@ mhurdle <- function(formula, data, subset, weights, na.action,
         result$formula <- formula
         return(result)
     }
+
     # Compute the starting values if not provided
-    dist.start <- dist
-    if (dist %in% c("bc", "ish")) dist.start <- "n"
-    if (is.null(start)) start <- start.mhurdle(X1, X2, X3, y, dist.start)
-    # in case of heteroscedasctic model, add K4 zeros to the start
-    # vector and the intercept should be ln(sigma_o) (not sigma_o)
-    # beacause of the exp form
-    if (!is.null(X4)){
-        sd.int.pos <- ifelse(h1, ncol(X1), 0) + ncol(X2) + ifelse(h3, ncol(X3), 0) + 1
-        sd.last.pos <- sd.int.pos - 1 + ncol(X4)
-        start[sd.int.pos] <- log(start[sd.int.pos])
-        start <- c(start[1:sd.int.pos], rep(0, ncol(X4) - 1))
+    
+    # Use the linear specification as the starting value for box-cox
+    # and ihs
+    if (is.null(start)){
+        # for (100d), use the results of (100i) as starting values
+        if (h1 && !h3 & (dist %in% c("ln", "bc", "tn"))){
+            start <- coef(fit.simple.mhurdle(X1, X2, y, dist = dist))
+            if (dist == "bc"){
+                start.lambda <- start[length(start)]
+                start <- start[- length(start)]
+            }
+        }
+        else{
+            dist.start <- dist
+            if (dist %in% c("bc", "bc2", "ihs")) dist.start <- "n"
+            if (dist == "ln2") dist.start <- "ln"
+            start <- start.mhurdle(X1, X2, X3, y, dist.start)
+        }
+        # in case of heteroscedasctic model, add K4 zeros to the start
+        # vector and the intercept should be ln(sigma_o) (not sigma_o)
+        # because of the exp form
+        if (!is.null(X4)){
+            sd.int.pos <- ifelse(h1, ncol(X1), 0) + ncol(X2) + ifelse(h3, ncol(X3), 0) + 1
+            sd.last.pos <- sd.int.pos - 1 + ncol(X4)
+            start[sd.int.pos] <- log(start[sd.int.pos])
+            start <- c(start[1:sd.int.pos], rep(0, ncol(X4) - 1))
+        }
+        # add shape and/or scale parameters
+        if (!is.null(corr)) start <- c(start, rho = 0.01)
+        if (dist == "bc") start <- c(start, start.lambda)
+        if (dist == "bc2") start <- c(start, tr = 0.01, pos = 0.1)
+
+#        if (dist == "bc") start <- c(start, 0.2)
+        if (dist == "ihs") start <- c(start, .01)
+        if (dist == "ln2") start <- c(start, 1)
     }
-    if (!is.null(corr)) start <- c(start, 0.1)
-    if (dist == "bc") start <- c(start, 1)
-    if (dist == "ihs") start <- c(start, .2)
-    # Fit the model
+
     result <- mhurdle.fit(start, X1, X2, X3, X4, y,
                           gradient = TRUE, fit = FALSE,
                           dist = dist, corr = corr, ...)
     result$naive <- naive
     result$call <- cl.save
     result$formula <- formula
-    names(result$coefficients) <- colnames(result$vcov) <-
-        rownames(result$vcov) <- nm.mhurdle(result)
+    ## names(result$coefficients) <- colnames(result$vcov) <-
+    ##     rownames(result$vcov) <- nm.mhurdle(result)
     result$model <- mf
     result
 }
 
 mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
-                        dist = c("ln", "n", "tn", "bc", "ihs"), corr = NULL, ...){
+                        dist = c("ln", "n", "tn", "bc", "ihs", "ln2"), corr = NULL, ...){
     start.time <- proc.time()
+
     f <- function(param) mhurdle.lnl(param, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
                                      gradient = TRUE, fitted = FALSE,
                                      dist = dist, corr = corr)
     check.gradient <- FALSE
+    ## set.seed(2)
+    ## start <- start + rnorm(9, 0, .01)
     if (check.gradient){
         ngrad <- c()
         oparam <- start
         fo <- f(start)
         agrad <- apply(attr(fo, "gradient"), 2, sum)
-        eps <- 1E-05
+        eps <- 1E-07
         for (i in 1:length(start)){
             oparam[i] <- oparam[i] + eps
             ngrad <- c(ngrad, sum((as.numeric(f(oparam)) - fo) / eps))
@@ -160,6 +182,7 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
         }
         print(cbind(start, agrad, ngrad))
     }
+#    stop()
     maxl <- maxLik(f, start = start,...)
     coefficients <- maxl$estimate
     fitted <- attr(mhurdle.lnl(coefficients, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
@@ -186,13 +209,15 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
     class(est.stat) <- "est.stat"
     if (! is.null(X4)) sd.names <- colnames(X4) else sd.names <- "sd"
     if (!is.null(corr)) rho.names <- ifelse(corr == "h1", "corr12", "corr13") else rho.names <- NULL
-    if (dist %in% c("bc", "ihs")) tr.names <- "tr" else tr.names <- NULL
+    if (dist %in% c("bc", "bc2", "ihs")) tr.names <- "tr" else tr.names <- NULL
+    if (dist %in% c("ln2", "bc2")) mu.names <- "mu" else mu.names <- NULL
     coef.names <- list(h1   = colnames(X1),
                        h2   = colnames(X2),
                        h3   = colnames(X3),
                        sd   = sd.names,
                        corr = rho.names,
-                       tr   = tr.names)
+                       tr   = tr.names,
+                       mu   = mu.names)
     result <- list(coefficients  = coefficients,
                    vcov          = - solve(maxl$hessian),
                    fitted.values = fitted,
@@ -216,14 +241,15 @@ start.mhurdle <- function(X1, X2, X3, y, dist){
     # for models (2ld, 2td), estimates of models (2li, 2ti) which can be
     # estimated simply in two parts using fit.simple.mhurdle() are used
     # as starting values
-    if (h1 && !h3 &&  dist != "n"){
+    if (h1 && !h3 &&  dist %in% c("ln", "tn")){
         result <- fit.simple.mhurdle(X1, X2, y, dist = dist)
         start <- result$coefficients
     }
     # model (3) tobit : use linear model as starting values
     if (!h1 && !h3 &&  dist == "n"){
         lin <- lm(y ~ X2 - 1)
-        start <- c(coef(lin), summary(lin)$sigma)
+        sdest <- summary(lin)$sigma
+        start <- c(coef(lin) / sdest, sdest)
     }
     # model (4, 7) h3 whithout h1
     if (!h1 && h3){
@@ -233,8 +259,8 @@ start.mhurdle <- function(X1, X2, X3, y, dist){
         yPP <- y * Phi3
         lin <- switch(dist,
                       "ln" = lm(log(yPP)  ~ X2 - 1, subset = y != 0),
-                      "n" = lm(yPP       ~ X2 - 1, subset = y != 0),
-                      "tn" = truncreg(yPP ~ X2 - 1, subset = y != 0)
+                      "n" = lm(yPP        ~ X2 - 1, subset = y != 0),
+                      "tn" = truncreg(yPP ~ X2 - 1, subset = y != 0, scaled = TRUE)
                       )
         if (dist %in% c("n", "ln")) start <- c(coef(lin), coef(probit), summary(lin)$sigma)
         if (dist == "tn") start <- c(coef(lin)[- length(coef(lin))], coef(probit), coef(lin)[length(coef(lin))])
@@ -258,7 +284,7 @@ start.mhurdle <- function(X1, X2, X3, y, dist){
         lin <- switch(dist,
                       "ln" = lm(log(yPP)  ~ X2 - 1, subset = y!= 0),
                       "n" = lm(yPP       ~ X2 - 1, subset = y!= 0),
-                      "tn" = truncreg(yPP ~ X2 - 1, subset = y!= 0)
+                      "tn" = truncreg(yPP ~ X2 - 1, subset = y!= 0, scaled = TRUE)
                       )
         if(dist != "tn")
             start <- c(beta1, coef(lin), beta3, summary(lin)$sigma)
@@ -266,6 +292,32 @@ start.mhurdle <- function(X1, X2, X3, y, dist){
             start <- c(beta1, coef(lin)[- length(coef(lin))],
                        beta3, coef(lin)[length(coef(lin))])
     }
+    # divide beta2 by sigma if truncreg hasn't been used to compute
+    # the starting values
+    ## K1 <- ncol(X1) ; K2 <- ncol(X2)
+    ## start[(K1 + 1):(K1 + K2)] <- start[(K1 + 1):(K1 + K2)] / start[K1 + K2 + 1]
     start
 }
 
+# zou = mhurdle(foodaway ~ age + sex | log(income) + log(size),  Dairy, dist = "bc2", corr = "i", print.level=3, method = "bfgs")
+
+#MARCHE 10/06
+# freshveg, seafood, beef
+## depneg  <- mhurdle(sweets ~ educ + age |  log(income) + size,
+##                   data = Dairy, corr = NULL, dist = "bc", method = 'bfgs', print.level = 3)
+
+## load("~/Forge/mhurdle/Dairy/Dairy.rda")
+
+## ## ## CA MARCHE et pork aussi
+##  depneg  <- mhurdle(eggs ~ educ + age |  log(income) + size | 0,
+##                  data = Dairy, corr = "d", dist = "tn", method = 'bfgs', print.level = 3)
+
+## CA MARCHE !!!
+## m111dii <- mhurdle(comics ~ gender + educ  |  log(incum) +
+##                    I(log(incum)^2) + I(log(incum)^3) + size | age|log(incum),
+##                    data = Comics, corr = "h1", dist = "n", method = 'bfgs', print.level=3)
+
+
+ ## m111dii <- mhurdle(comics ~ gender + educ  |  log(incum) +
+ ##                   I(log(incum)^2) + I(log(incum)^3) + size | age|log(incum),
+ ##                   data = Comics, corr = "h1", dist = "b", method = 'bfgs', print.level=3)

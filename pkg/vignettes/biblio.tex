@@ -1,68 +1,94 @@
-\begin{table}
-\begin{threeparttable}
-  \caption{Litterature overview of applied papers on demand analysis using multiple hurdle Tobit models
-    \label{tab:exconso}
-    \tnote{a}}
-  \vspace{.5cm}
+\begin{landscape}
+%\begin{ThreePartTable}
   \begin{center}
 \begin{footnotesize}
+  %%   \caption{Litterature overview of applied papers on demand analysis using multiple hurdle Tobit models
+  %%   \label{tab:exconso}
+  %%   \tnote{a}}
+  %% \vspace{.5cm}
+
 % latex table generated in R 3.0.1 by xtable 1.7-1 package
-% Sat Dec 21 21:33:39 2013
-\begin{tabular}{llllllll}
+% Tue Jul 15 01:06:40 2014
+\begin{longtable}{llccclccccc}
+\caption{Litterature overview of applied papers on demand analysis using multiple hurdle Tobit models\label{tab:exconso}} \\ 
+   \hline 
+ Authors& Goods& \multicolumn{3}{c}{Hurdles}&Distribu-&Skedas-&Sample&\% of &\multicolumn{2}{c}{Correlation coefficient}\\ 
+ & & h1 & h2 & h3 & tion of $y_2^*$$^{\mbox{(a)}}$ & ticity & size & zeros & estimate$^{\mbox{(b)}}$ & signif.$^{\mbox{(c)}}$ \\ \hline 
+\endfirsthead 
+\multicolumn{11}{c}{\tablename\ \thetable\ -- \textit{Continued from previous page}}\\ 
+\hline 
+ Authors& Goods& \multicolumn{3}{c}{Hurdles}&Distribu-&Skedas-&Sample&\% of &\multicolumn{2}{c}{Correlation coefficient}\\ 
+ & & h1 & h2 & h3 & tion of $y_2^*$$^{\mbox{(a)}}$ & ticity & size & zeros & estimate$^{\mbox{(b)}}$ & signif.$^{\mbox{(c)}}$ \\ \hline 
+\endhead 
+\hline 
+\multicolumn{11}{p{22cm}}{\texttt{na} means that the information was not in the article. A black box in columns \texttt{h1-h2-h3} indicates that the relevant hurdle is taken into account, and in column \texttt{skedasticity} that heteroscedasticity is taken into account. (a) \texttt{IHS} stands for Inverse Hyperbolic Sine transformation and \texttt{tr.normal} for truncated normal distribution. (b) A starred value indicates a covariance estimate. (c) (*), (**) and (***) indicate that the correlation coefficient or the covariance estimate is significant at the 10\%, 5\% or 1\% level, respectively ; \texttt{ns} that it is non significant at the 10\% level.}\\ 
+\multicolumn{11}{r}{\textit{Continued on next page}}\endfoot 
+\hline 
+\multicolumn{11}{p{22cm}}{\texttt{na} means that the information was not in the article. A black box in columns \texttt{h1-h2-h3} indicates that the relevant hurdle is taken into account, and in column \texttt{skedasticity} that heteroscedasticity is taken into account. (a) \texttt{IHS} stands for Inverse Hyperbolic Sine transformation and \texttt{tr.normal} for truncated normal distribution. (b) A starred value indicates a covariance estimate. (c) (*), (**) and (***) indicate that the correlation coefficient or the covariance estimate is significant at the 10\%, 5\% or 1\% level, respectively ; \texttt{ns} that it is non significant at the 10\% level.}\\ 
+\endlastfoot 
+\cite{CHEN:CAPP:88} & finfish and shellfish & $\blacksquare$ & $\square$ & $\square$ & log-normal & $\square$ & 9422 & 72-83 & -0.69, 0.04 & **, ns \\ 
+  \cite{HAIN:GUIL:POPK:88} & milk, bread & $\blacksquare$ & $\square$ & $\square$ & tr. normal & $\square$ & 5406 & 43-71 &  &  \\ 
+  \cite{JONE:89} & cigarettes & $\blacksquare$ & $\square$ & $\square$ & normal & $\square$ & 1565 & 40 &  & ns \\ 
+  \cite{JONE:89} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 1565 & 40 &  & ns \\ 
+  \cite{POPK:GUIL:HAIN:89} & milk, bread & $\blacksquare$ & $\square$ & $\square$ & tr. normal & $\square$ & 1068-5406 & na &  &  \\ 
+  \cite{REYN:90} & fresh vegetables & $\blacksquare$ & $\square$ & $\square$ & tr. normal & $\square$ & 3368 & 32 &  &  \\ 
+  \cite{BLAY:BLIS:92b} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 2962 & 61 & na & ns \\ 
+  \cite{GOUL:92} & cheese & $\square$ & $\blacksquare$ & $\blacksquare$ & normal & $\square$ & 5017 & 59 & 0.22 & *** \\ 
+  \cite{BLAY:BLIS:93} & wine & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 916 & 80 & na & ns \\ 
+  \cite{BLAY:BLIS:93} & wine & $\blacksquare$ & $\square$ & $\square$ & normal & $\square$ & 916 & 80 & na & ns \\ 
+  \cite{YEN:93} & food away from home & $\blacksquare$ & $\square$ & $\square$ & Box-Cox & $\blacksquare$ & 4199 & 12 &  &  \\ 
+  \cite{BLIS:BLAY:93} & butter & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 5000 & na &  &  \\ 
+  \cite{BLIS:BLAY:93} & butter & $\square$ & $\blacksquare$ & $\blacksquare$ & normal & $\square$ & 5000 & na &  &  \\ 
+  \cite{YEN:94} & alcohol & $\blacksquare$ & $\square$ & $\square$ & Box-Cox & $\blacksquare$ & 4245 & 72 &  &  \\ 
+  \cite{GAO:WAIL:CRAM:95} & rice & $\blacksquare$ & $\blacksquare$ & $\square$ & IHS & $\blacksquare$ & 4273 & 67 & 0.24 & *** \\ 
+  \cite{YEN:DELL:SCHUP:95} & crawfish & $\blacksquare$ & $\blacksquare$ & $\square$ & Box-Cox & $\square$ & 915 & 78 &  &  \\ 
+  \cite{YEN:SU:95} & butter & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\blacksquare$ & 8083 & 81 &  &  \\ 
+  \cite{YEN:SU:95} & butter & $\square$ & $\blacksquare$ & $\blacksquare$ & normal & $\blacksquare$ & 8083 & 81 &  &  \\ 
+  \cite{YEN:95} & alcohol & $\blacksquare$ & $\square$ & $\square$ & Box-Cox & $\square$ & 4538 & 88 &  &  \\ 
+  \cite{YEN:95} & alcohol & $\blacksquare$ & $\square$ & $\square$ & IHS & $\square$ & 4538 & 88 &  &  \\ 
+  \cite{WANG:JENS:YEN:96} & eggs & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 1492 & na &  &  \\ 
+  \cite{GARC:LABE:96} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 23669 & 41 & na & ns \\ 
+  \cite{GARC:LABE:96} & cigarettes & $\blacksquare$ & $\square$ & $\square$ & normal & $\square$ & 23669 & 41 &  &  \\ 
+  \cite{YEN:HUAN:96} & finfish & $\blacksquare$ & $\blacksquare$ & $\square$ & IHS & $\blacksquare$ & 4066 & 74 &  &  \\ 
+  \cite{YEN:JONE:96} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & Box-Cox & $\square$ & 3801 & 57 & -2.63* & *** \\ 
+  \cite{SU:YEN:96} & pork & $\blacksquare$ & $\blacksquare$ & $\square$ & IHS & $\blacksquare$ & 4198 & 30 &  &  \\ 
+  \cite{SU:YEN:96} & pork & $\square$ & $\blacksquare$ & $\blacksquare$ & IHS & $\blacksquare$ & 4198 & 30 &  &  \\ 
+  \cite{BURT:DORS:YOUN:96} & meat & $\blacksquare$ & $\blacksquare$ & $\square$ & Box-Cox & $\square$ & na & na & na & ns \\ 
+  \cite{YEN:JENS:96} & alcohol & $\blacksquare$ & $\blacksquare$ & $\square$ & IHS & $\blacksquare$ & 9552 & 54 &  &  \\ 
+  \cite{WANG:GAO:WAIL:96} & alcohol & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & ns & ns & 0.77 & *** \\ 
+  \cite{YEN:JENS:WANG:96} & egg & $\blacksquare$ & $\blacksquare$ & $\square$ & IHS & $\square$ & 4230 & 58 & 4.72* & *** \\ 
+  \cite{YEN:JONE:97} & cheese & $\blacksquare$ & $\blacksquare$ & $\square$ & IHS & $\square$ & 4245 & 18 & na & ns \\ 
+  \cite{YEN:99} & cigarettes & $\blacksquare$ & $\square$ & $\square$ & tr. normal & $\square$ & 5814 & 75 &  &  \\ 
+  \cite{BERT:CAIL:NICH:99} & home produced food & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 6121 & 76 & 0.20 & ns \\ 
+  \cite{BURT:YOUN:00} & meat & $\blacksquare$ & $\blacksquare$ & $\square$ & Box-Cox & $\square$ & na & na & na & ns \\ 
+  \cite{JONE:YEN:00} & beef & $\blacksquare$ & $\blacksquare$ & $\square$ & Box-Cox & $\square$ & 4150 & 15 & -0.45 & *** \\ 
+  \cite{ANGU:GIL:GRAC:01} & alcohol & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\blacksquare$ & 15087 & na &  &  \\ 
+  \cite{ANGU:GIL:GRAC:01} & alcohol & $\blacksquare$ & $\square$ & $\blacksquare$ & normal & $\blacksquare$ & 15087 & na &  &  \\ 
+  \cite{NEWM:HENC:MATT:01} & meat & $\blacksquare$ & $\blacksquare$ & $\square$ & IHS & $\square$ & 7112-7332 & 15-68 &  &  \\ 
+  \cite{NEWM:HENC:MATT:03} & prepared meals & $\blacksquare$ & $\blacksquare$ & $\square$ & IHS & $\blacksquare$ & 7112-7332 & 51-57 &  &  \\ 
+  \cite{NEWM:HENC:MATT:03} & prepared meals & $\square$ & $\blacksquare$ & $\blacksquare$ & IHS & $\blacksquare$ & 7112-7332 & 51-57 &  &  \\ 
+  \cite{MUTL:GRAC:04} & food away from home & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\blacksquare$ & 12430 & 61 &  &  \\ 
+  \cite{CHAZ:05} & health services & $\blacksquare$ & $\blacksquare$ & $\square$ & Box-Cox & $\square$ & 9295 & 23 & -0.15 & ns \\ 
+  \cite{YEN:05} & cigarettes & $\blacksquare$ & $\square$ & $\square$ & tr. normal & $\square$ & 4921-4672 & 75-78 & -0.88, -0.59 & *** \\ 
+  \cite{YEN:05} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 4921-4672 & 75-78 & -0.71, -0.88 & *** \\ 
+  \cite{ZHAN:HUAN:LIN:08} & fresh organic product & $\blacksquare$ & $\square$ & $\square$ & log-normal & $\square$ & 6916 & 42 & 0.90 & *** \\ 
+  \cite{FULL:BEGH:ROZE:07} & dairy products & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 314 & na & 0.35, 0.56 & *** \\ 
+  \cite{ARIS:PIER:08} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & Box-Cox & $\blacksquare$ & 27499 & 67 & na & ns \\ 
+  \cite{ARIS:PERA:PIER:08} & alcohol & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 134515 & 41 & 0.12 & *** \\ 
+  \cite{ARIS:PERA:PIER:08} & alcohol & $\blacksquare$ & $\square$ & $\square$ & normal & $\square$ & 134515 & 41 & 0.14 & *** \\ 
+  \cite{KEEL:HENCH:NEWM:09} & food service & $\blacksquare$ & $\blacksquare$ & $\square$ & Box-Cox & $\square$ & 7526-7877 & 47-56 &  &  \\ 
+  \cite{ARIS:PIER:09} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & Box-Cox & $\square$ & 47777 & 40 & 0.23 & *** \\ 
+  \cite{OKUN:SURA:BENS:10} & healthcare & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ & 98632 & 28 & -0.27 & *** \\ 
+  \cite{BROU:KHAN:12} & eco-labeled market & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\square$ &  2483-2933 & na &  &  \\ 
+  \cite{BROU:KHAN:12} & eco-labeled market & $\blacksquare$ & $\square$ & $\square$ & normal & $\square$ &  2483-2933 & na &  &  \\ 
+  \cite{CROW:EAKI:JORD:12} & lottery & $\blacksquare$ & $\blacksquare$ & $\square$ & normal & $\blacksquare$ & 3082 & 55 &  &  \\ 
   \hline
-reference & goods & h1 & h2 & h3 & corr & distribution & heter \\ 
-  \hline
-\cite{CHEN:CAPP:88} & finfish and shellfish & $\blacksquare$ & $\square$ & $\square$ &  & log-normal & $\square$ \\ 
-  \cite{HAIN:GUIL:POPK:88} & milk, bread & $\blacksquare$ & $\blacksquare$ & $\square$ &  & truncated normal & $\square$ \\ 
-  \cite{JONE:89} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & ns & normal & $\square$ \\ 
-  \cite{POPK:GUIL:HAIN:89} & milk, bread & $\blacksquare$ & $\square$ & $\square$ &  & truncated normal & $\square$ \\ 
-  \cite{REYN:90} & fresh vegetables & $\blacksquare$ & $\square$ & $\square$ &  & truncated normal & $\square$ \\ 
-  \cite{BLAY:BLIS:92b} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & ns & normal & $\square$ \\ 
-  \cite{GOUL:92} & cheese & $\square$ & $\blacksquare$ & $\blacksquare$ & >0 & normal & $\square$ \\ 
-  \cite{BLAY:BLIS:93} & wine & $\blacksquare$ & $\blacksquare$ & $\square$ &  & normal & $\square$ \\ 
-  \cite{YEN:93} & food away from home & $\blacksquare$ & $\square$ & $\square$ &  & Box-Cox & $\blacksquare$ \\ 
-  \cite{LIN:MILO:93} & shellfish & $\blacksquare$ & $\square$ & $\square$ &  & truncated normal & $\square$ \\ 
-  \cite{BLIS:BLAY:93} & butter & $\blacklozenge$ & $\blacksquare$ & $\blacklozenge$ &  & normal & $\square$ \\ 
-  \cite{YEN:94} & alcohol & $\blacksquare$ & $\square$ & $\square$ &  & Box-Cox & $\blacksquare$ \\ 
-  \cite{GAO:WAIL:CRAM:95} & rice & $\blacksquare$ & $\blacksquare$ & $\square$ & >0 & IHS & $\blacksquare$ \\ 
-  \cite{YEN:DELL:SCHUP:95} & crawfish & $\blacksquare$ & $\blacksquare$ & $\square$ &  & Box-Cox & $\square$ \\ 
-  \cite{YEN:SU:95} & butter & $\blacklozenge$ & $\blacksquare$ & $\blacklozenge$ &  & normal & $\blacksquare$ \\ 
-  \cite{YEN:95} & alcohol & $\blacksquare$ & $\square$ & $\square$ &  & Box-Cox and IHS & $\square$ \\ 
-  \cite{WANG:JENS:YEN:96} & eggs & $\blacksquare$ & $\blacksquare$ & $\square$ &  & normal & $\square$ \\ 
-  \cite{GARC:LABE:96} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & ns & normal & $\square$ \\ 
-  \cite{YEN:HUAN:96} & finfish & $\blacksquare$ & $\blacksquare$ & $\square$ &  & IHS & $\blacksquare$ \\ 
-  \cite{YEN:JONE:96} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & >0 & Box-Cox & $\square$ \\ 
-  \cite{SU:YEN:96} & pork & $\blacklozenge$ & $\blacksquare$ & $\blacklozenge$ &  & IHS & $\blacksquare$ \\ 
-  \cite{BURT:DORS:YOUN:96} & meat & $\blacksquare$ & $\blacksquare$ & $\square$ & ns & Box-Cox & $\square$ \\ 
-  \cite{YEN:JENS:96} & alcohol & $\blacksquare$ & $\blacksquare$ & $\square$ &  & IHS & $\square$ \\ 
-  \cite{WANG:GAO:WAIL:96} & alcohol & $\blacksquare$ & $\blacksquare$ & $\square$ & >0 & normal & $\square$ \\ 
-  \cite{YEN:JENS:WANG:96} & egg & $\blacksquare$ & $\blacksquare$ & $\square$ & >0 & IHS & $\square$ \\ 
-  \cite{YEN:JONE:97} & cheese & $\blacksquare$ & $\blacksquare$ & $\square$ & ns & IHS & $\square$ \\ 
-  \cite{YEN:99} & cigarettes & $\blacksquare$ & $\square$ & $\square$ &  & truncated normal & $\square$ \\ 
-  \cite{BERT:CAIL:NICH:99} & home produced food & $\blacksquare$ & $\blacksquare$ & $\square$ & ns & normal & $\square$ \\ 
-  \cite{BURT:YOUN:00} & meat & $\blacksquare$ & $\blacksquare$ & $\square$ & ns & Box-Cox & $\square$ \\ 
-  \cite{JONE:YEN:00} & beef & $\blacksquare$ & $\blacksquare$ & $\square$ & >0 & Box-Cox & $\square$ \\ 
-  \cite{ANGU:GIL:GRAC:01} & alcohol & $\blacklozenge$ & $\blacksquare$ & $\blacklozenge$ & >0 & normal & $\blacksquare$ \\ 
-  \cite{NEWM:HENC:MATT:01} & meat & $\blacksquare$ & $\blacksquare$ & $\square$ &  & IHS & $\square$ \\ 
-  \cite{NEWM:HENC:MATT:03} & prepared meals & $\blacklozenge$ & $\blacksquare$ & $\blacklozenge$ &  & IHS & $\blacksquare$ \\ 
-  \cite{MUTL:GRAC:04} & food away from home & $\blacksquare$ & $\blacksquare$ & $\square$ &  & normal & $\blacksquare$ \\ 
-  \cite{CHAZ:05} & health services & $\blacksquare$ & $\blacksquare$ & $\square$ & ns & Box-Cox & $\square$ \\ 
-  \cite{YEN:05} & cigarettes & $\blacklozenge$ & $\blacksquare$ & $\blacklozenge$ & <0 & tr. normal and normal & $\square$ \\ 
-  \cite{ZHAN:HUAN:LIN:06} & fresh organic product & $\blacksquare$ & $\blacksquare$ & $\square$ & >0 & log-normal & $\square$ \\ 
-  \cite{FULL:BEGH:ROZE:07} & dairy products & $\blacksquare$ & $\blacksquare$ & $\square$ & >0 & normal & $\square$ \\ 
-  \cite{ARIS:PIER:08} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & ns & Box-Cox & $\blacksquare$ \\ 
-  \cite{ARIS:PERA:PIER:08} & alcohol & $\blacksquare$ & $\blacksquare$ & $\square$ & >0 & normal & $\square$ \\ 
-  \cite{KEEL:HENCH:NEWM:09} & food service & $\blacksquare$ & $\blacksquare$ & $\square$ &  & Box-Cox & $\square$ \\ 
-  \cite{ARIS:PIER:09} & cigarettes & $\blacksquare$ & $\blacksquare$ & $\square$ & >0 & Box-Cox & $\square$ \\ 
-  \cite{BROU:KHAN:12} & eco-labeled market & $\blacksquare$ & $\blacksquare$ & $\square$ &  & normal & $\square$ \\ 
-  \cite{CROW:EAKI:JORD:12} & lottery & $\blacksquare$ & $\blacksquare$ & $\square$ &  & normal & $\blacksquare$ \\ 
-   \hline
-\end{tabular}\begin{tablenotes}
-  \item[*] IHS stands for Inverse Hyperbolic Sine transformation, black lozenges for h1 and h3 indicates that the
-  author estimates two models, one with the first hurdle and one with
-  the third hurdle.
-\end{tablenotes}
+\end{longtable}%% \begin{tablenotes}
+%%   \item[*] IHS stands for Inverse Hyperbolic Sine transformation, black lozenges for h1 and h3 indicates that the
+%%   author estimates two models, one with the first hurdle and one with
+%%   the third hurdle.
+%% \end{tablenotes}
 \end{footnotesize}
 \end{center}
-\end{threeparttable}
-\end{table}
+%\end{ThreePartTable}
+\end{landscape}
