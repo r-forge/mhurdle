@@ -269,3 +269,30 @@ rsq <- function(object,
     }
     R2
 }
+
+extract.mhurdle <- function(model){
+    s <- summary(model)
+    names <- rownames(s$coef)
+    co <- s$coef[, 1]
+    se <- s$coef[, 2]
+    pval <- s$coef[, 4]
+    rs1 <- s$r.squared[1]
+    rs2 <- s$r.squared[2]
+    lnL <- logLik(model)
+    lnL0 <- logLik(model, naive = TRUE)
+    n <- nrow(model.frame(model))
+    gof <- c(rs1, rs2, lnL, lnL0, AIC(model), BIC(model), n)
+    gof.names <- c("R$ 2$", "Adj. \\ R$ 2$", "logLik", "logLik Null",
+                   "AIC", "BIC", "Num.\\ obs.")
+    tr <- createTexreg(
+        coef.names = names,
+        coef = co,
+        se = se,
+        pvalues = pval,
+        gof.names = gof.names,
+        gof = gof)
+    return(tr)
+}
+
+setMethod("extract", signature = className("mhurdle", "mhurdle"),
+          definition = extract.mhurdle)
