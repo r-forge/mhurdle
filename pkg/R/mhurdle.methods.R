@@ -107,9 +107,9 @@ summary.mhurdle <- function (object,...){
   std.err <- sqrt(diag(vcov(object)))
   z <- b/std.err
   p <- 2*(1-pnorm(abs(z)))
-  CoefTable <- cbind(b,std.err,z,p)
-  colnames(CoefTable) <- c("Estimate","Std. Error","t-value","Pr(>|t|)")
-  object$CoefTable <- CoefTable
+  coefficients <- cbind(b,std.err,z,p)
+  colnames(coefficients) <- c("Estimate","Std. Error","t-value","Pr(>|t|)")
+  object$coefficients <- coefficients
   object$rsq <- c(coefdet = rsq(object, type = "coefdet"),
                   lratio  = rsq(object, type = "lratio"))
   class(object) <- c("summary.mhurdle","mhurdle")
@@ -123,8 +123,8 @@ coef.summary.mhurdle <- function(object,
   which <- match.arg(which)
   sub <- sub.mhurdle(object, which)
   nm <- nm.mhurdle(object, which)
-  result <- object$CoefTable
-  if (!is.null(sub)) result <- result[sub, , drop=FALSE]
+  result <- object$coefficients
+  if (!is.null(sub)) result <- result[sub, , drop = FALSE]
   rownames(result) <- nm
   result
 }
@@ -144,12 +144,12 @@ print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
   }
   
   cat("\nCoefficients :\n")
-  printCoefmat(x$CoefTable,digits=digits)
+  printCoefmat(x$coefficients, digits = digits)
   cat("\n")
-  df <- attr(x$logLik,"df")
+  df <- attr(x$logLik, "df")
 
   cat(paste("Log-Likelihood: ",
-            signif(logLik(x),digits),
+            signif(logLik(x), digits),
             " on ",df," Df\n",sep=""))
 
   cat("\nR^2 :\n")
