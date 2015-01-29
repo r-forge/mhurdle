@@ -111,8 +111,8 @@ summary.mhurdle <- function (object,...){
   coefficients <- cbind(b,std.err,z,p)
   colnames(coefficients) <- c("Estimate","Std. Error","t-value","Pr(>|t|)")
   object$coefficients <- coefficients
-  object$rsq <- c(coefdet = rsq(object, type = "coefdet"),
-                  lratio  = rsq(object, type = "lratio"))
+  object$r.squared <- c(coefdet = rsq(object, type = "coefdet"),
+                        lratio  = rsq(object, type = "lratio"))
   class(object) <- c("summary.mhurdle","mhurdle")
   return(object)
 }
@@ -154,7 +154,7 @@ print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
             " on ",df," Df\n",sep=""))
 
   cat("\nR^2 :\n")
-  rs <- x$rsq
+  rs <- x$r.squared
   cat(paste(" Coefficient of determination :", signif(rs['coefdet'], digits), "\n"))
   cat(paste(" Likelihood ratio index       :", signif(rs['lratio'], digits), "\n"))
   invisible(x)
@@ -272,17 +272,19 @@ rsq <- function(object,
 
 extract.mhurdle <- function(model){
     s <- summary(model)
-    names <- rownames(s$coef)
-    co <- s$coef[, 1]
-    se <- s$coef[, 2]
-    pval <- s$coef[, 4]
+    names <- rownames(s$coefficients)
+    co <- s$coefficients[, 1]
+    se <- s$coefficients[, 2]
+    pval <- s$coefficients[, 4]
     rs1 <- s$r.squared[1]
     rs2 <- s$r.squared[2]
     lnL <- logLik(model)
     lnL0 <- logLik(model, naive = TRUE)
     n <- nrow(model.frame(model))
+    print(AIC(model))
     gof <- c(rs1, rs2, lnL, lnL0, AIC(model), BIC(model), n)
-    gof.names <- c("R$ 2$", "Adj. \\ R$ 2$", "logLik", "logLik Null",
+    print(gof)
+    gof.names <- c("R$ 2$", "lratio", "logLik", "logLik Null",
                    "AIC", "BIC", "Num.\\ obs.")
     tr <- createTexreg(
         coef.names = names,

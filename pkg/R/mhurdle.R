@@ -1,5 +1,6 @@
 mhurdle <- function(formula, data, subset, weights, na.action,
-                    start = NULL, dist = c("ln", "tn", "n", "bc", "ihs", "ln2", "bc2"), corr = NULL, ...){
+                    start = NULL, dist = c("ln", "tn", "n", "bc", "ihs", "ln2", "bc2"),
+                    corr = NULL, robust = TRUE, ...){
     dots <- list(...)
     oldoptions <- options(warn = -1)
     on.exit(options(oldoptions))
@@ -10,6 +11,10 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     cl[posF] <- FALSE
     cl.save <- cl
     dist <- match.arg(dist)
+    if ( (is.null(corr) | corr == "i" | dist != "bc2") & robust){
+        warning("argument robust is irrelevant for this model and will be disgarded")
+        robust <- FALSE
+    }
     
     ##
     # compute the model.frame and the model.matrix
@@ -42,7 +47,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
         if (length(X4) == 0) X4 <- NULL
     }
     else X4 <- NULL
-    
+
     if (!is.null(corr)){
         if ((h1 + h3) == 2){
             if (nchar(corr) != 3) stop("corr should contain three characters")
@@ -65,18 +70,15 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     #  Special cases where the models can be estimated directly, without
     #  relevant starting values
   
-    # model (000), no censure, estimate the log-linear or truncated or
-    # box-cox model
-    
     if (!h1 && !h3 && dist != "n"){
         if (dist == "ln") result <- lm( log(y) ~ X2 - 1, subset = y > 0)
         if (dist == "tn") result <- truncreg(y ~ X2 - 1, scaled = TRUE, subset = y > 0)
-        if (dist == "bc") result <- boxcoxreg(y ~ X2 - 1, , subset = y > 0)
+        if (dist == "bc") result <- boxcoxreg(y ~ X2 - 1, subset = y > 0)
         if (dist != "ln") names(result$coefficients) <- c(colnames(X2), "sigma") else names(result$coefficients) <- colnames(X2)
         return(result)
     }
-    else{# in all other cases, compute the naive model
-        # compute the "naive" model
+    else{
+        # in all other cases, compute the naive model
         Pnull <- mean(y == 0)
         if (dist != "ln"){
             Ec <- mean(y[y > 0])
@@ -92,7 +94,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
         if (dist == "ln2") dist.naive <- "ln"
         naive <- maxLik(lnl.naive, start = start.naive,
                         dist = dist.naive, moments = moments,
-                        h1 = h1, h3 = h3);
+                        h1 = h1, h3 = h3)
         coef.naive <- naive$est
         logLik.naive <- structure(naive$max * n, nobs = length(y), df = length(coef.naive), class = "logLik")
         naive <- list(coefficients = coef.naive, logLik = logLik.naive, code = naive$code)
@@ -138,12 +140,10 @@ mhurdle <- function(formula, data, subset, weights, na.action,
             start <- c(start[1:sd.int.pos], rep(0, ncol(X4) - 1))
         }
         # add shape and/or scale parameters
-        if (!is.null(corr)) start <- c(start, rho = 0.01)
+        if (!is.null(corr)) start <- c(start, rho = 0.1)
         if (dist == "bc") start <- c(start, start.lambda)
         if (dist == "bc2") start <- c(start, tr = 0.01, pos = 0.1)
-
-#        if (dist == "bc") start <- c(start, 0.2)
-        if (dist == "ihs") start <- c(start, .01)
+        if (dist == "ihs") start <- c(start, 0.01)
         if (dist == "ln2") start <- c(start, 1)
     }
 
@@ -153,22 +153,20 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     result$naive <- naive
     result$call <- cl.save
     result$formula <- formula
-    ## names(result$coefficients) <- colnames(result$vcov) <-
-    ##     rownames(result$vcov) <- nm.mhurdle(result)
     result$model <- mf
     result
 }
 
 mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
-                        dist = c("ln", "n", "tn", "bc", "ihs", "ln2"), corr = NULL, ...){
+                        dist = c("ln", "n", "tn", "bc", "ihs", "bc2", "ln2"),
+                        corr = NULL, robust = TRUE,  ...){
     start.time <- proc.time()
 
     f <- function(param) mhurdle.lnl(param, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
                                      gradient = TRUE, fitted = FALSE,
-                                     dist = dist, corr = corr)
-    check.gradient <- FALSE
-    ## set.seed(2)
-    ## start <- start + rnorm(9, 0, .01)
+                                     dist = dist, corr = corr,
+                                     robust = robust)
+    check.gradient <- TRUE
     if (check.gradient){
         ngrad <- c()
         oparam <- start
@@ -181,12 +179,28 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
             oparam <- start
         }
         print(cbind(start, agrad, ngrad))
-    }
-#    stop()
+    }   
     maxl <- maxLik(f, start = start,...)
     coefficients <- maxl$estimate
+    if (robust){
+        if (! is.null(corr)){
+            posCorr <- sum(c(ncol(X1),ncol(X2),ncol(X3),ncol(X4))) + 2
+            coefficients[posCorr] <- atan(coefficients[posCorr]) * 2 / pi
+        }
+        if (dist == "bc2"){
+            posMu <- sum(c(ncol(X1),ncol(X2),ncol(X3),ncol(X4))) + 3 + (! is.null(corr))
+            coefficients[posMu] <- exp(coefficients[posMu])
+        }
+        f <- function(param) mhurdle.lnl(param, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
+                                         gradient = TRUE, fitted = FALSE,
+                                         dist = dist, corr = corr,
+                                         robust = FALSE)
+        maxl <- maxLik(f, start = coefficients, iterlim = 0, ...)
+    }
+        
+    
     fitted <- attr(mhurdle.lnl(coefficients, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
-                               gradient = FALSE, fitted = TRUE,
+                               gradient = FALSE, fitted = TRUE, robust = FALSE,
                                dist = dist, corr = corr), "fitted")
     # La ligne ci-dessous renvoie la contribution de chaque obs a la
     # vraisemblance et au gradient (en attribut)
@@ -195,7 +209,6 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
     logLik <- structure(as.numeric(logLik), df = length(coefficients),
                         nobs = length(y), class = "logLik")
     hessian <- maxl$hessian
-    # A calculer, les fitted values pour Box-Cox
     convergence.OK <- maxl$code <= 2
     elaps.time <- proc.time() - start.time
     nb.iter <- maxl$iterations
@@ -249,7 +262,7 @@ start.mhurdle <- function(X1, X2, X3, y, dist){
     if (!h1 && !h3 &&  dist == "n"){
         lin <- lm(y ~ X2 - 1)
         sdest <- summary(lin)$sigma
-        start <- c(coef(lin) / sdest, sdest)
+        start <- c(coef(lin), sdest)
     }
     # model (4, 7) h3 whithout h1
     if (!h1 && h3){
@@ -292,10 +305,6 @@ start.mhurdle <- function(X1, X2, X3, y, dist){
             start <- c(beta1, coef(lin)[- length(coef(lin))],
                        beta3, coef(lin)[length(coef(lin))])
     }
-    # divide beta2 by sigma if truncreg hasn't been used to compute
-    # the starting values
-    ## K1 <- ncol(X1) ; K2 <- ncol(X2)
-    ## start[(K1 + 1):(K1 + K2)] <- start[(K1 + 1):(K1 + K2)] / start[K1 + K2 + 1]
     start
 }
 

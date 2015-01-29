@@ -3,14 +3,21 @@
 # returns also as attributes, if required, the gradient, the fitted
 # values and the score vector.
 
-
 mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
-                        fitted = FALSE, dist = NULL, corr = NULL){
-#    print(param)
-    frho <- function(x) atan(x) * 2 / pi
-    grho <- function(x) 2 / pi / (1 +  x ^ 2)
-    fmu <- function(x) exp(x)
-    gmu <- function(x) exp(x)
+                        fitted = FALSE, dist = NULL, corr = NULL, robust = TRUE){
+    if (robust){
+        frho <- function(x) atan(x) * 2 / pi
+        grho <- function(x) 2 / pi / (1 +  x ^ 2)
+        fmu <- function(x) exp(x)
+        gmu <- function(x) exp(x)
+    }
+    else{
+        frho <- function(x) x
+        grho <- function(x) 1
+        fmu <- function(x) x
+        gmu <- function(x) 1
+    }
+    
     myInf <- 1000
     N <- length(y)
     #  Extract the elements of the model
@@ -85,25 +92,18 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
     rho1 <- rho3 <- 0
     if (!is.null(corr)){
         if (corr == 'h1'){
-            rho1 <- param[K1 + K2 + K3 + K4 + 1]
-            if (rho1 < -1) rho1 <- - 0.99
-            if (rho1 >  1) rho1 <-   0.99
-        }
-        if (corr == 'h3'){
-            rho3 <- param[K1 + K2 + K3 + K4 + 1]
-            if (rho3 < -1) rho3 <- - 0.99
-            if (rho3 >  1) rho3 <-   0.99
-        }
-    }
-    rho <- c(rho1, 0, rho3)
-
-    rho1 <- rho3 <- 0
-    if (!is.null(corr)){
-        if (corr == 'h1'){
             rho1 <- frho(param[K1 + K2 + K3 + K4 + 1])
+            if (! robust){
+                if (rho1 < -1) rho1 <- - 0.99
+                if (rho1 >  1) rho1 <-   0.99
+            }
         }
         if (corr == 'h3'){
             rho3 <- frho(param[K1 + K2 + K3 + K4 + 1])
+            if (! robust){
+                if (rho3 < -1) rho3 <- - 0.99
+                if (rho3 >  1) rho3 <-   0.99
+            }
         }
         gradientrho <- grho(param[K1 + K2 + K3 + K4 + 1])
     }
@@ -152,6 +152,16 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
                  "ihs" = log(lambda * y * Phi3 + sqrt(1 + (lambda  * y * Phi3) ^ 2)) / lambda,
                  y * Phi3
                  )
+    # Inverse of the transformation
+    ITy <- switch(dist,
+                  "ln" = log2(y) + log(Phi3),
+                  "ln2" = log2(y * Phi3 + exp(mu)),
+                  "bc" = (exp(lambda * log(y * Phi3)) - 1) / lambda,#((y * Phi3) ^ lambda - 1) / lambda,
+                  "bc2" = (exp(lambda * log(y * Phi3 + mu)) - 1) / lambda,
+                  "ihs" = log(lambda * y * Phi3 + sqrt(1 + (lambda  * y * Phi3) ^ 2)) / lambda,
+                  y * Phi3
+                  )
+    
     # logarithm of the jacobian
     lnJ <- switch(dist,
                   "ln" = - log2(y),
@@ -247,7 +257,6 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
             gradi <- cbind(gradi, lnL.beta3 * X3)
         }
         
-#        PIs <- sgn * dnorm( (bX2 - Tymin) / sigma) * (- (bX2 - Tymin) / sigma ^ 2)
         PIs <- dnorm( (bX2 - Tymin) / sigma) * (- (bX2 - Tymin) / sigma ^ 2) -
             dnorm( (bX2 - Tymax) / sigma) * (- (bX2 - Tymax) / sigma ^ 2)
         
@@ -268,7 +277,6 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
         }
         
         if (dist %in% c("bc", "bc2")){
-#            Tylb <- (log(Phi3 * y) * (Phi3 * y) ^ lambda * lambda - Ty) / lambda
             Tylb <- (log(Phi3 * y + mu) * (Phi3 * y + mu) ^ lambda - Ty) / lambda
             if (mu == 0) T0lb <- ( 1 / lambda ^ 2 * (lambda > 0) + 0 * (lambda < 0))
             else T0lb <- (log(mu) * mu ^ lambda - T0) / lambda
@@ -286,12 +294,8 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
             T0mu <- mu ^ (lambda - 1)
             lnL.mu <- vector(mode = "numeric", length = length(y))
             lnL.mu[y == 0] <- (- Pr123A$b * (- T0mu / sigma) / Denom)[y == 0]
-            ## if (lambda > 0) lnL.mu[y == 0] <- (- Pr123$b / (PI - Pr123$f) * (- T0mu / sigma) )[y == 0]
-            ## else lnL.mu[y == 0] <- (- Pr123a$b / (PI - Pr123$f) * (- T0mu / sigma) )[y == 0]
             lnL.mu[y > 0] <- (( - resid / sigma ^ 2 +  mills(z1$f) * rho1 / sigma / sqrt(1 - rho1 ^ 2)  +
                                mills(z3$f) * rho3 / sigma / sqrt(1 - rho3 ^ 2) ) * Tymu + lnJmu)[y != 0]
-#            lnL.mu[y == 0] <- 0
-            #ZA
             gradi <- cbind(gradi, mu = lnL.mu * gradientmu)
         }
 
@@ -307,35 +311,67 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
             Tymu <- 1 / (exp(mu) + Phi3 * y) * exp(mu)
             lnL.mu <- vector(mode = "numeric", length = length(y))
             lnL.mu[y == 0] <- ( Pr123$b / Denom * (- 1 / (sigma * exp(mu)) ))[y == 0] * exp(mu)
-#            lnL.mu[y == 0] <- ((- sgn * Pr123$b / (1 - sgn * Pr123$f)) * (- 1 / (sigma * exp(mu)) ))[y == 0] * exp(mu)
             lnL.mu[y != 0] <- (( -resid / sigma ^ 2 +  mills(z1$f) * rho1 / sigma / sqrt(1 - rho1 ^ 2) +
                            mills(z3$f) * rho3 / sigma / sqrt(1 - rho3 ^ 2) ) * Tymu + lnJmu)[y != 0]
             gradi <- cbind(gradi, lnL.mu)
-#            if (dist == "ln2") print(apply(gradi, 2, sum))
         }
         attr(lnL, "gradient") <- gradi
     }
     if (fitted){
         P0 <- exp(lnL.null)
-        if (dist != "ln"){
-            if (h3) Psi23 <- rho3 * phi3 * pnorm( (bX2 / sigma - rho3 * bX3) / sqrt(1 - rho3 ^ 2)) +
-                phi2 * pnorm( (bX3 - rho3 * bX2 / sigma) / sqrt(1 - rho3 ^ 2))
-            else Psi23 <- phi2
-            if (h1) Psi21 <- rho1 * phi1 * pnorm( (bX2 / sigma - rho1 * bX1) / sqrt(1 - rho1 ^ 2)) +
-                phi2 * pnorm( (bX1 - rho1 * bX2 / sigma) / sqrt(1 - rho1 ^ 2))
-            else Psi21 <- phi2
-            # PAS MODIFI2 PAR FLEMME !!!!!!!!
-            Phi12 <- mypbivnorm(bX1, bX2  / sigma , rho1)
-            Phi23 <- mypbivnorm( bX2 / sigma, bX3, rho3)
-            Econd <- bX2 / Phi3 + sigma * (Psi23 * Psi21 * Phi2) / (Phi12$f * Phi23$f * Phi3 * phi2)
+        if (dist %in% c("ln", "n", "tn")){
+            if (dist != "ln"){
+                if (h3) Psi23 <- rho3 * phi3 * pnorm( (bX2 / sigma - rho3 * bX3) / sqrt(1 - rho3 ^ 2)) +
+                    phi2 * pnorm( (bX3 - rho3 * bX2 / sigma) / sqrt(1 - rho3 ^ 2))
+                else Psi23 <- phi2
+                if (h1) Psi21 <- rho1 * phi1 * pnorm( (bX2 / sigma - rho1 * bX1) / sqrt(1 - rho1 ^ 2)) +
+                    phi2 * pnorm( (bX1 - rho1 * bX2 / sigma) / sqrt(1 - rho1 ^ 2))
+                else Psi21 <- phi2
+                # PAS MODIFI2 PAR FLEMME !!!!!!!!
+                Phi12 <- mypbivnorm(bX1, bX2  / sigma , rho1)
+                Phi23 <- mypbivnorm( bX2 / sigma, bX3, rho3)
+                Econd <- bX2 / Phi3 + sigma * (Psi23 * Psi21 * Phi2) / (Phi12$f * Phi23$f * Phi3 * phi2)
+            }
+            else{
+                if (h3) Psi23 <- pnorm(bX3 + sigma * rho3) else Psi23 <- 1
+                if (h1) Psi21 <- pnorm(bX1 + sigma * rho1) else Psi21 <- 1
+                Econd <- exp(bX2 + sigma ^ 2 / 2) * Psi21 * Psi23 / (Phi1 * Phi3 ^ 2)
+            }
+#            print(head(Econd))
         }
-        else{
-            if (h3) Psi23 <- pnorm(bX3 + sigma * rho3) else Psi23 <- 1
-            if (h1) Psi21 <- pnorm(bX1 + sigma * rho1) else Psi21 <- 1
-            Econd <- exp(bX2 + sigma ^ 2 / 2) * Psi21 * Psi23 / (Phi1 * Phi3 ^ 2)
+        TI <- function(z, dist, EXO){
+            abX2 <- EXO[1]
+            abX3 <- EXO[2]
+            switch(dist,
+                   "ln"  = exp(abX2 + sigma * z) / pnorm(abX3),
+                   "n"   = (abX2 + sigma * z) / pnorm(abX3),
+                   "bc"  = (lambda * (abX2 + sigma * z) + 1) ^ (1 / lambda) / pnorm(abX3),
+                   "bc2" = ( (lambda * (abX2 + sigma * z) + 1) ^ (1 / lambda) - mu )/ pnorm(abX3),
+                   "ln2" = (exp(abX2 + sigma * z) - mu)/ pnorm(abX3),
+                   "tn"  = (abX2 + sigma * z) / pnorm(abX3)
+                   )
         }
-        attr(lnL, "fitted") <- cbind("P(y=0)" = P0, "E(y|y>0)" = Econd)
+        toInt <- function(z, EXO){
+            abX1 <- EXO[1]
+            abX2 <- EXO[2]
+            abX3 <- EXO[3]
+            pnorm( (abX1 + rho1 * z) / sqrt(1 - rho1 ^ 2) ) *
+                pnorm( (abX3 + rho3 * z) / sqrt(1 - rho3 ^ 2) ) *
+                    TI(z, dist, c(abX2, abX3)) * 
+                        dnorm(z)
+        }
+        MatEXO <- cbind(bX1, bX2, bX3)
+        ## Ey <- apply(MatEXO, 1, function(x){
+        ##     af <- function(z) toInt(z, EXO = x) ;
+        ##     integrate(af,
+        ##               lower = (T0- x[2]) / sigma,
+        ##               upper = (Tymax - x[2]) / sigma)$value})
+        ## Econd<- Ey / (1 - P0) / PI
+#        print(head(Econd))
+#        attr(lnL, "fitted") <- cbind("P(y=0)" = P0, "E(y|y>0)" = Econd)
     }
+    ## print(head(as.numeric(lnL)))
+    ## print(round(sum(as.numeric(lnL)), 10))
     lnL
 }
 
@@ -392,7 +428,6 @@ fit.simple.mhurdle <- function(X1, X2, y, dist = NULL){
         gradi <- cbind(gbX1 * X1, g2)
         vcov <- bdiag(vcov(probit) , vcov(lin))
     }
-    
     coef.names <- list(h1    = colnames(X1),
                        h2    = colnames(X2),
                        sd    = "sd")
@@ -420,143 +455,60 @@ fit.simple.mhurdle <- function(X1, X2, y, dist = NULL){
 # variables.  Full version with correlation ; not used because
 # identification problems
 
-if (FALSE){
-lnl.naive <- function(param, dist = c("ln", "tn", "n"), moments,
-                     h1 = TRUE, h3 = FALSE,
-                     which = c("all", "zero", "positive")){
-  dist <- match.arg(dist)
-  which <- match.arg(which)
-  n <- moments[1]
-  ym <- moments[2]
-  s2 <- moments[3]
-  if (h1){
-    alpha1 <- param[1]
-    alpha2 <- param[2]
-    param <- param[-c(1,2)]
-  }
-  else{
-    alpha2 <- param[1]
-    param <- param[-1]
-  }
-  if (h3){
-    alpha3 <- param[1]
-    param <- param[-1]
-  }
-  sigma <- param[1]
-  
-  if (length(param) == 2) rho <- param[2] else rho <- 0
-  if (rho < - 1) rho <- - 0.99
-  if (rho > 1) rho <- 0.99
-  rho1 <- rho
-  if (h1){
-    Phi1 <- pnorm(alpha1)
-    phi1 <- dnorm(alpha1)
-  }
-  else Phi1 <- 1
-  if (h3){
-    Phi3 <- pnorm(alpha3)
-    phi3 <- dnorm(alpha3)
-  }
-  else Phi3 <- 1
-  Phi2 <- pnorm(alpha2/sigma)
-  phi2 <- dnorm(alpha2/sigma)
-  scr <- ifelse(dist == "ln",
-                s2 + (ym + log(Phi3) - alpha2)^2,
-                Phi3^2*(s2 + (ym - alpha2/Phi3)^2)
-                )
-  if (!rho){
+lnl.naive <- function(param, dist = c("ln", "tn", "n", "ln2"), moments,
+                      h1 = TRUE, h3 = FALSE){
+    dist <- match.arg(dist)
+    n <- moments[1]
+    ym <- moments[2]
+    s2 <- moments[3]
+    if (h1){
+        alpha1 <- param[1]
+        alpha2 <- param[2]
+        param <- param[-c(1,2)]
+    }
+    else{
+        alpha2 <- param[1]
+        param <- param[-1]
+    }
+    if (h3){
+        alpha3 <- param[1]
+        param <- param[-1]
+    }
+    sigma <- param[1]
+    
+    if (h1){
+        Phi1 <- pnorm(alpha1)
+        phi1 <- dnorm(alpha1)
+    }
+    else Phi1 <- 1
+    if (h3){
+        Phi3 <- pnorm(alpha3)
+        phi3 <- dnorm(alpha3)
+    }
+    else Phi3 <- 1
+    Phi2 <- pnorm(alpha2/sigma)
+    phi2 <- dnorm(alpha2/sigma)
+    scr <- ifelse(dist == "ln",
+                  s2 + (ym + log(Phi3) - alpha2)^2,
+                  Phi3^2*(s2 + (ym - alpha2/Phi3)^2)
+                  )
     Pbiv <- Phi1 * Phi2
     Phi1bis <- Phi1
     s2term <- 0
-  }
-  else{
-    Pbiv <- mypbivnorm(alpha1, alpha2/sigma, rho)$f
-    zo <- switch(dist,
-                 "ln" = ym + log(Phi3) - alpha2 ,
-                 Phi3 * (ym - alpha2/Phi3)
+    P0 <- switch(dist,
+                 "ln" = 1 - Phi1 * Phi3,
+                 "ln2" = 1 - Phi1 * Phi3,
+                 "tn" = 1 - Pbiv/Phi2 * Phi3,
+                 "n" = 1 - Pbiv * Phi3
                  )
-    millso <- dnorm(zo)/pnorm(zo)
-    Phi1bis <-(alpha1 + rho/sigma * zo)/sqrt(1 - rho^2)
-    s2term <- 0.5 * s2 * (rho / (sigma * sqrt(1 - rho^2) * Phi3^(dist != "ln")))^2 *
-      millso * (zo + millso)
-  }
-  P0 <- switch(dist,
-               "ln" = 1 - Phi1 * Phi3,
-               "tn" = 1 - Pbiv/Phi2 * Phi3,
-               "n" = 1 - Pbiv * Phi3
-               )
-  lnPos <-
-    -log(sigma) - 0.5 * log(2*pi) -
-      scr/(2*sigma^2) +
-        log(Phi3) +
-          (log(Phi1bis)+s2term) * h1 -
-            ym * (dist == "ln") +
-              log(Phi3) * (dist != "ln") -
-                log(Phi2) * (dist == "tn")
-  switch(which,
-         "all" = n * log(P0) + (1 - n) * lnPos,
-         "zero" = n * log(P0),
-         "positive" = (1 - n) * lnPos)
-}
-}
-# Version without correlation
-
-if (TRUE){
-    lnl.naive <- function(param, dist = c("ln", "tn", "n", "ln2"), moments,
-                          h1 = TRUE, h3 = FALSE){
-        dist <- match.arg(dist)
-        n <- moments[1]
-        ym <- moments[2]
-        s2 <- moments[3]
-        if (h1){
-            alpha1 <- param[1]
-            alpha2 <- param[2]
-            param <- param[-c(1,2)]
-        }
-        else{
-            alpha2 <- param[1]
-            param <- param[-1]
-        }
-        if (h3){
-            alpha3 <- param[1]
-            param <- param[-1]
-        }
-        sigma <- param[1]
-        
-        if (h1){
-            Phi1 <- pnorm(alpha1)
-            phi1 <- dnorm(alpha1)
-        }
-        else Phi1 <- 1
-        if (h3){
-            Phi3 <- pnorm(alpha3)
-            phi3 <- dnorm(alpha3)
-        }
-        else Phi3 <- 1
-        Phi2 <- pnorm(alpha2/sigma)
-        phi2 <- dnorm(alpha2/sigma)
-        scr <- ifelse(dist == "ln",
-                      s2 + (ym + log(Phi3) - alpha2)^2,
-                      Phi3^2*(s2 + (ym - alpha2/Phi3)^2)
-                      )
-        Pbiv <- Phi1 * Phi2
-        Phi1bis <- Phi1
-        s2term <- 0
-        P0 <- switch(dist,
-                     "ln" = 1 - Phi1 * Phi3,
-                     "ln2" = 1 - Phi1 * Phi3,
-                     "tn" = 1 - Pbiv/Phi2 * Phi3,
-                     "n" = 1 - Pbiv * Phi3
-                     )
-        lnPos <-
-            -log(sigma) - 0.5 * log(2*pi) -
-                scr/(2*sigma^2) +
-                    log(Phi3) +
-                        (log(Phi1bis)+s2term) * h1 -
-                            ym * (dist == "ln") +
-                                log(Phi3) * (dist != "ln") -
-                                    log(Phi2) * (dist == "tn")
-        
-        n * log(P0) + (1 - n) * lnPos
-    }
+    lnPos <-
+        -log(sigma) - 0.5 * log(2*pi) -
+            scr/(2*sigma^2) +
+                log(Phi3) +
+                    (log(Phi1bis)+s2term) * h1 -
+                        ym * (dist == "ln") +
+                            log(Phi3) * (dist != "ln") -
+                                log(Phi2) * (dist == "tn")
+    
+    n * log(P0) + (1 - n) * lnPos
 }
