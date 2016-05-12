@@ -2,7 +2,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
                     start = NULL, dist = c("ln", "tn", "n", "bc", "ihs", "ln2", "bc2"),
                     corr = FALSE, robust = TRUE, ...){
     fitted = FALSE
-    check.grad = TRUE
+    check.grad = FALSE
     dots <- list(...)
     oldoptions <- options(warn = -1)
     on.exit(options(oldoptions))
@@ -191,8 +191,8 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
     if (! is.null(X4)) start.names$h4 <- paste("h4", start.names$h4, sep = ".")
     names(start) <- Reduce("c", start.names)
 
-    cat("Starting values:\n")
-    print(start)
+#    cat("Starting values:\n")
+#    print(start)
     
     f <- function(param) mhurdle.lnl(param, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
                                      gradient = TRUE, fitted = FALSE,
