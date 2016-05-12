@@ -1,61 +1,102 @@
-# Version du 10 mai ; pas normalisé
-# This function computes the log-likelihood for the hurdles models and
-# returns also as attributes, if required, the gradient, the fitted
-# values and the score vector.
-
+verbal <- FALSE
 mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
-                        fitted = FALSE, dist = NULL, corr = NULL, robust = TRUE){
+                        fitted = FALSE, dist = NULL, corr = FALSE, robust = TRUE){
     if (robust){
         frho <- function(x) atan(x) * 2 / pi
         grho <- function(x) 2 / pi / (1 +  x ^ 2)
         fmu <- function(x) exp(x)
         gmu <- function(x) exp(x)
+        fsd <- function(x) exp(x)
+        gsd <- function(x) exp(x)
     }
     else{
         frho <- function(x) x
-        grho <- function(x) 1
+        grho <- function(x) rep(1, length(x))
         fmu <- function(x) x
         gmu <- function(x) 1
+        fsd <- function(x) x
+        gsd <- function(x) 1
     }
-    
+
+    myeps <- 1E-07
     myInf <- 1000
     N <- length(y)
-    #  Extract the elements of the model
-    h1 <- !is.null(X1) ;  K1 <- ifelse(is.null(X1), 0, ncol(X1))
-    h3 <- !is.null(X3) ;  K3 <- ifelse(is.null(X3), 0, ncol(X3))
-    if (is.null(X4)) K4 <- 1 else K4 <- ncol(X4)
-
+    #  dummies for the existing equations hi and number of
+    #  coefficients Ki
+    h1 <- ! is.null(X1) ;  K1 <- ifelse(h1, ncol(X1), 0)
+    h3 <- ! is.null(X3) ;  K3 <- ifelse(h3, ncol(X3), 0)
+    h4 <- ! is.null(X4) ;  K4 <- ifelse(h4, ncol(X4), 0)
+    # KR is either 1 (h1 or h3) or 3 (h1 and h3)
+    KR <- ifelse(corr, h1 + h3 + h1 * h3, 0)
     K2 <- ncol(X2)
-    if (dist %in% c("bc", "bc2", "ihs")){
-        lambda <- param[K1 + K2 + K3 + K4 + (!is.null(corr)) + 1]
-        if (dist == "bc2"){
-            mu <- fmu(param[K1 + K2 + K3 + K4 + (!is.null(corr)) + 2])
-            gradientmu <- gmu(param[K1 + K2 + K3 + K4 + (!is.null(corr)) + 2])
+    
+    # shape and scale parameters for box-cox and ihs transformations
+    if (dist %in% c("ln2", "bc", "bc2", "ihs")){
+        lambda <- param[K1 + K2 + K3 + 1 + K4 + KR + 1]
+        if (dist %in% c("bc2", "ln2")){
+            if (dist == "bc2") posmu <- K1 + K2 + K3 + 1 + K4 + KR + 2
+            else posmu <- K1 + K2 + K3 + 1 + K4 + KR + 1
+            mu <- fmu(param[posmu])
+            gradientmu <- gmu(param[posmu])
         }
         if (dist == "bc") mu <- 0
     }
     if (dist %in% c("bc", "bc2")) sgn <- sign(lambda) else sgn <- + 1
-    if (dist == "ln2") mu <- param[K1 + K2 + K3 + K4 + (!is.null(corr)) + 1]
 
     # equation 1
     if (h1){
         beta1 <- param[1:K1]
         bX1 <- as.numeric(crossprod(t(X1), beta1))
         Phi1 <- pnorm(bX1) ; phi1 <- dnorm(bX1)
+        if (min(Phi1) < myeps){
+            nval <- as.numeric(table(Phi1 < myeps)[2])
+            if (verbal) cat(paste(nval, " null values of Phi1\n", sep = ""))
+            Phi1[Phi1 < myeps] <- myeps
+        }
     }
     else{
         bX1 <- rep(myInf, N) ; beta1 <- NULL
         Phi1 <- 1 ; phi1 <- 0;
     }
 
-    # equation 4
-    if (is.null(X4)) K4 <- 1 else K4 <- ncol(X4)
-    beta4 <- param[(K1 + K2 + K3 + 1):(K1 + K2 + K3 + K4)]
-    if (is.null(X4)) sigma <- beta4 else sigma <- as.numeric(exp(crossprod(t(X4), beta4)))
-    
     # equation 2
     beta2 <- param[(K1 + 1):(K1 + K2)]
     bX2 <- as.numeric(crossprod(t(X2), beta2))
+    Phi2 <- pnorm(bX2)
+
+    # equation 3
+    if (h3){
+        beta3 <- param[(K1 + K2 + 1):(K1 + K2 + K3)]
+        bX3 <- as.numeric(crossprod(t(X3), beta3))
+        Phi3 <- pnorm(bX3) ; phi3 <- dnorm(bX3)
+        if (min(Phi3) < myeps){
+            # ROB
+            nval <- table(Phi3 < myeps)
+            nval <- as.numeric(table(Phi3[[1]] < 1E-07)[2])
+            if (verbal) cat(paste(nval, "null values of Phi3\n", sep = ""))
+            Phi3[Phi3 < myeps] <- myeps
+        }
+    }
+    else{
+        bX3 <- rep(myInf, N) ; beta3 <- NULL
+        Phi3 <- 1 ; phi3 <- 0
+    }
+
+    # standard deviation
+    sd <- param[K1 + K2 + K3 + 1]
+    gradientsd <- gsd(sd)
+    sd <- fsd(sd)
+    # equation 4
+    if (h4){
+        beta4 <- param[(K1 + K2 + K3 + 2):(K1 + K2 + K3 + K4 + 1)]
+        bX4 <- as.numeric(crossprod(t(X4), beta4))
+        pbX4 <- pnorm(bX4)
+        sigma <- sd * pbX4
+    }
+    else{
+        sigma <- sd
+        pbX4 <- 1
+    }
     # ymin is the minimum value of y^*, which is 0 except for bc2 and
     # ln2. For box-cox, the minimum value of y^* is 0, T(0) = T(ymin) = - 1
     # /lambda if labmbda > 0 or -inf if lambda < 0
@@ -63,7 +104,7 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
                  "bc" = (- 1 / lambda) * (lambda > 0) - myInf * (lambda < 0),
                  "bc2" = (mu ^ lambda - 1) / lambda,
                  "ln" = - myInf,
-                 "ln2" = log(exp(mu)),
+                 "ln2" = log2(mu),
                  0)
 
     Tymin <- switch(dist,
@@ -76,96 +117,42 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
                     "bc" =  myInf * (lambda > 0) - (1 / lambda) * (lambda < 0),
                     "bc2" = myInf * (lambda > 0) - (1 / lambda) * (lambda < 0),
                     myInf)
-                    
-    # equation 3
-    if (h3){
-        beta3 <- param[(K1 + K2 + 1):(K1 + K2 + K3)]
-        bX3 <- as.numeric(crossprod(t(X3), beta3))
-        Phi3 <- pnorm(bX3) ; phi3 <- dnorm(bX3)
-    }
-    else{
-        bX3 <- rep(myInf, N) ; beta3 <- NULL
-        Phi3 <- 1 ; phi3 <- 0
-    }
-    
-    # correlation coefficients
-    rho1 <- rho3 <- 0
-    if (!is.null(corr)){
-        if (corr == 'h1'){
-            rho1 <- frho(param[K1 + K2 + K3 + K4 + 1])
-            if (! robust){
-                if (rho1 < -1) rho1 <- - 0.99
-                if (rho1 >  1) rho1 <-   0.99
-            }
-        }
-        if (corr == 'h3'){
-            rho3 <- frho(param[K1 + K2 + K3 + K4 + 1])
-            if (! robust){
-                if (rho3 < -1) rho3 <- - 0.99
-                if (rho3 >  1) rho3 <-   0.99
-            }
-        }
-        gradientrho <- grho(param[K1 + K2 + K3 + K4 + 1])
-    }
-    rho <- c(rho1, 0, rho3)
 
-    
-    # Compute the trivariate probability with the relevant derivatives
-    Phi123 <- function(x, rho){
-        Phi1 <- pnorm(x[, 1]) ; phi1 <- dnorm(x[, 1])
-        Phi2 <- pnorm(x[, 2]) ; phi2 <- dnorm(x[, 2])
-        Phi3 <- pnorm(x[, 3]) ; phi3 <- dnorm(x[, 3])
-        if (rho[1] == 0 & rho[3] == 0){
-            Pr <- Phi1 * Phi2 * Phi3
-            a <-  phi1 * Phi2 * Phi3
-            b <-  Phi1 * phi2 * Phi3
-            c <-  Phi1 * Phi2 * phi3
-            drho <- 0
+    # correlation coefficients
+    if (corr){
+        posrho <- (K1 + K2 + K3 + K4 + 2):(K1 + K2 + K3 + K4 + 1 + KR)
+        rho <- param[posrho]
+        # In case of only one correlation coefficient, use the whole
+        # vector with only one non-null component
+        if (h1 & ! h3) rho <- c(rho, 0, 0)
+        if (! h1 & h3) rho <- c(0, 0, rho)
+        gradientrho <- grho(rho)
+        rho <- frho(rho)
+        if (h1 & h3){
+            # In case of a trivariate normal distribution, check the
+            # joint relation of the three coefficients
+            rho3 <- function(rho) rho[1] * rho[2] + c(-1, 1) *
+                sqrt(1 + rho[1] ^ 2 * rho[2] ^ 2 - rho[1] ^ 2 - rho[2] ^ 2)
+            if (rho[3] < rho3(rho)[1]) rho[3] <- rho3(rho)[1] + 1E-04 
+            if (rho[3] > rho3(rho)[2]) rho[3] <- rho3(rho)[2] - 1E-04
         }
-        else{
-            if (rho[1] != 0){
-                P2 <-   p2norm(x[, 1], x[, 2], rho[1])
-                Pr <-   P2$f * Phi3
-                a <-    P2$a * Phi3
-                b <-    P2$b * Phi3
-                c <-    P2$f * phi3
-                drho <- P2$rho * Phi3
-            }
-            if (rho[3] != 0){
-                P2 <-   p2norm(x[, 2], x[, 3], rho[3])
-                Pr <-   P2$f * Phi1
-                a <-    P2$f * phi1
-                b <-    P2$a * Phi1
-                c <-    P2$b * Phi1
-                drho <- P2$rho * Phi1
-            }
-        }
-    list(f = Pr, a = a, b = b, c = c, rho = drho)
     }
-    
+    else rho <- rep(0, 3)
+
     # Transformation of the dependent variable
     Ty <- switch(dist,
                  "ln" = log2(y) + log(Phi3),
-                 "ln2" = log2(y * Phi3 + exp(mu)),
-                 "bc" = (exp(lambda * log(y * Phi3)) - 1) / lambda,#((y * Phi3) ^ lambda - 1) / lambda,
+                 "ln2" = log2(y * Phi3 + mu),
+                 "bc" = (exp(lambda * log(y * Phi3)) - 1) / lambda,
                  "bc2" = (exp(lambda * log(y * Phi3 + mu)) - 1) / lambda,
                  "ihs" = log(lambda * y * Phi3 + sqrt(1 + (lambda  * y * Phi3) ^ 2)) / lambda,
                  y * Phi3
                  )
-    # Inverse of the transformation
-    ITy <- switch(dist,
-                  "ln" = log2(y) + log(Phi3),
-                  "ln2" = log2(y * Phi3 + exp(mu)),
-                  "bc" = (exp(lambda * log(y * Phi3)) - 1) / lambda,#((y * Phi3) ^ lambda - 1) / lambda,
-                  "bc2" = (exp(lambda * log(y * Phi3 + mu)) - 1) / lambda,
-                  "ihs" = log(lambda * y * Phi3 + sqrt(1 + (lambda  * y * Phi3) ^ 2)) / lambda,
-                  y * Phi3
-                  )
     
     # logarithm of the jacobian
     lnJ <- switch(dist,
                   "ln" = - log2(y),
-                  "ln2" = log(Phi3) - log(exp(mu) + Phi3 * y),
+                  "ln2" = log(Phi3) - log(mu + Phi3 * y),
                   "bc" = (lambda - 1) * log2(y) + lambda * log(Phi3),
                   "bc2" = (lambda - 1) * log(Phi3 * y + mu) + log(Phi3),
                   "ihs" = - 0.5 * log(1 + (lambda * Phi3 * y) ^ 2) + log(Phi3),
@@ -180,60 +167,73 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
                     )
 
     # derivative of lnJ respective with mu
-    if (dist == "ln2") lnJmu <- - 1 / (exp(mu) + Phi3 * y) * exp(mu)
+    if (dist == "ln2") lnJmu <- - 1 / (mu + Phi3 * y)
     if (dist == "bc2") lnJmu <- (lambda - 1) / (Phi3 * y + mu)
-
+    
     # the  residual of the consumption equation
     resid <- (Ty - bX2)
-    # pb with bc and lambda < 0, for y = 0, resid = -inf and log(dnorm(resid)) = -inf
+    # problem with bc and lambda < 0, for y = 0, resid = -inf and
+    # log(dnorm(resid)) = -inf
     resid[y == 0] <- 0
-    
-    z <- function(x, resid, rho){
-        f <- (x + rho * resid / sigma) / sqrt(1 - rho ^ 2) 
-        g <- x * rho * (1 - rho ^ 2) ^ - 1.5 + ((1 - rho ^ 2) ^ - 0.5 + rho ^ 2 * (1 - rho ^ 2) ^ - 1.5) * resid / sigma
-        h <- x * ((1 - rho ^ 2) ^ -1.5 + 3 * rho ^ 2 * (1 - rho ^ 2) ^ -2.5) +
-            resid / sigma * (3 * rho * (1 - rho ^ 2) ^ -1.5 + 3 * rho ^ 3 * (1 - rho ^ 2) ^ -2.5)
-        result <- list(f = f, g = g, h = h)
-    }
-    z1 <- z(bX1, resid, rho1)
-    z3 <- z(bX3, resid, rho3)
+
+    # compute the relevant bivariate and trivariate cumulative normals
     Phi2 <- pnorm((bX2 - T0) / sigma)
     phi2 <- dnorm((bX2 - T0) / sigma)
-    Pr123A <- Phi123(cbind(bX1, (bX2 - T0   ) / sigma, bX3), rho)
-    Pr123B <- Phi123(cbind(bX1, (bX2 - Tymax) / sigma, bX3), rho)
+    Pr123A <- PHI3(bX1, (bX2 - T0   ) / sigma, bX3, rho)
+    Pr123B <- PHI3(bX1, (bX2 - Tymax) / sigma, bX3, rho)
+    Pr13 <- PHI2((bX1 + rho[1] * resid / sigma) / sqrt(1 - rho[1] ^ 2),
+                 (bX3 + rho[3] * resid / sigma) / sqrt(1 - rho[3] ^ 2),
+                 (rho[2] - rho[1] * rho[3]) / sqrt(1 - rho[1] ^ 2) / sqrt(1 - rho[3] ^ 2)
+                 )
+    if (min(Pr13$f) < myeps){
+        nval <- as.numeric(table(Pr13$f < 1E-07)[2])
+        if (verbal) cat(paste(nval, "null values of Phi13\n"))
+        Pr13$f[Pr13$f < myeps] <- myeps
+    }
+    # PI is the correction of the truncature
     PI <- pnorm( (bX2 - Tymin) / sigma) - pnorm( (bX2 - Tymax) / sigma)
-
-    Denom <- PI - Pr123A$f + Pr123B$f
-    lnL.null <- log(Denom) - log(PI)
+    Numerator <- PI - Pr123A$f + Pr123B$f
+    lnL.null <- log(Numerator) - log(PI)
+    lnL.null[y != 0] <- 0
     lnL.pos <-
         - log(sigma) +
             dnorm(resid / sigma, log = TRUE) +
-                    pnorm(z1$f, log.p = TRUE) +
-                        pnorm(z3$f, log.p = TRUE) +
-                            lnJ - log(PI)
-
+                log(Pr13$f) +
+                    lnJ - log(PI)
+    lnL.pos[y == 0] <- 0
+    
     lnL <- lnL.null * (y == 0) + lnL.pos * (y != 0)
+    if (any(is.na(lnL) | is.infinite(lnL))){
+        warnings("infinite or missing values of lnLi")
+    }
+
     if (gradient){
         gradi <- c()
+        
+        # derivatives respective to beta1
         if (h1){
-            lnL.beta1 <- (y == 0) * ( (- Pr123A$a + Pr123B$a) / Denom) +
-                (y != 0) * (mills(z1$f) / sqrt(1 - rho1 ^ 2))
+            lnL.beta1 <- (y == 0) * ( (- Pr123A$d1 + Pr123B$d1) / Numerator) +
+                (y != 0) * ( Pr13$d1 / sqrt(1 - rho[1] ^ 2) / Pr13$f)
             gradi <- cbind(gradi, lnL.beta1 * X1)
         }
         
+        # derivatives respective to beta2
         PI2 <-  (dnorm( (bX2 - Tymin) / sigma) - dnorm( (bX2 - Tymax) / sigma) ) / sigma
-        lnL.beta2 <- (y == 0) * ( (PI2 - Pr123A$b / sigma + Pr123B$b / sigma) / Denom - PI2 / PI) +
-            (y != 0) * ( resid / sigma ^ 2 - mills(z1$f) * rho1 / sqrt(1 - rho1 ^ 2) / sigma -
-                 mills(z3$f) * rho3 / sqrt(1 - rho3 ^ 2) / sigma - PI2 / PI
-                 )
+        lnL.beta2 <- (y == 0) * ( (PI2 - Pr123A$d2 / sigma + Pr123B$d2 / sigma) / Numerator -
+                                     PI2 / PI) +
+            (y != 0) * ( resid / sigma ^ 2 -
+                            ( Pr13$d1 * rho[1] / sigma / sqrt(1 - rho[1] ^ 2) +
+                                 Pr13$d2 * rho[3] / sigma / sqrt(1 - rho[3] ^ 2) ) / Pr13$f -
+                                     PI2 / PI)
         gradi <- cbind(gradi, lnL.beta2 * X2)
         
+        # derivatives respective to beta3
         if (h3){
             # derivative of T(Phi3 y) with bX3
             Ty3 <- switch(dist,
                           "ln" = mills(bX3),
-                          "ln2" = y * phi3 / (exp(mu) + y * Phi3),
-                          "bc" = exp(lambda * log(y * Phi3)) * mills(bX3),#(y * Phi3) ^ lambda  * mills(bX3),
+                          "ln2" = y * phi3 / (mu + y * Phi3),
+                          "bc" = exp(lambda * log(y * Phi3)) * mills(bX3),
                           "bc2" = exp((lambda - 1) * log(y * Phi3 + mu)) * phi3 * y, # a revoir
                           "ihs" = y * phi3 / sqrt( 1 + (lambda * y * Phi3) ^ 2),
                           y * phi3
@@ -241,41 +241,67 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
             # derivative of lnJ with bX3
             lnJ3 <- switch(dist,
                            "ln" = 0,
-                           "ln2" = mills(bX3) - y * phi3 / (exp(mu) + y * Phi3),
+                           "ln2" = mills(bX3) - y * phi3 / (mu + y * Phi3),
                            "bc" = lambda * mills(bX3),
                            "bc2" = (lambda - 1) * phi3 * y / (Phi3 * y + mu) + mills(bX3),
-                           "ihs" = - phi3 * Phi3 * lambda ^ 2 * y ^ 2 / (1 + (lambda * y * Phi3) ^ 2) + mills(bX3),
+                           "ihs" = - phi3 * Phi3 * lambda ^ 2 * y ^ 2 /
+                               (1 + (lambda * y * Phi3) ^ 2) + mills(bX3),
                            mills(bX3)
                           )
-
-            lnL.beta3 <- (y == 0) * (- Pr123A$c + Pr123B$c) / Denom + 
-                (y != 0) * (- resid / sigma ^ 2 * Ty3
-                     + mills(z1$f) * rho1 / sqrt(1 - rho1 ^ 2) / sigma * Ty3
-                     + mills(z3$f) * (1 + rho3 / sigma * Ty3) / sqrt(1 - rho3 ^ 2)
-                     + lnJ3
-                     )
+            
+            lnL.beta3 <- (y == 0) * (- Pr123A$d3 + Pr123B$d3) / Numerator + 
+                (y != 0) * (- resid / sigma ^ 2 * Ty3 +
+                                ( Pr13$d1 * Ty3 * rho[1] / sigma / sqrt(1 - rho[1] ^ 2) +
+                                     Pr13$d2 * (1 + Ty3 * rho[3] / sigma) /
+                                         sqrt(1 - rho[3] ^ 2) ) / Pr13$f +
+                                             lnJ3
+                            )
             gradi <- cbind(gradi, lnL.beta3 * X3)
         }
         
+        # derivatives respective to sigma
         PIs <- dnorm( (bX2 - Tymin) / sigma) * (- (bX2 - Tymin) / sigma ^ 2) -
             dnorm( (bX2 - Tymax) / sigma) * (- (bX2 - Tymax) / sigma ^ 2)
+        Pr123As <- Pr123A$d2 * (- (bX2 - T0) / sigma ^ 2)
+        Pr123Bs <- Pr123B$d2 * (- (bX2 - Tymax) / sigma ^ 2)
+        lnL.sigma <- (y == 0) * ( (PIs - Pr123As + Pr123Bs) / Numerator - PIs / PI) +
+            (y != 0) * (- 1 / sigma + resid ^ 2 / sigma ^ 3 +
+                            ( - Pr13$d1 * rho[1] * resid / sigma ^ 2 / sqrt(1 - rho[1] ^ 2) -
+                                 Pr13$d2 * rho[3] * resid / sigma ^ 2 /
+                                     sqrt(1 - rho[3] ^ 2))  / Pr13$f -
+                                         PIs / PI)
+        gradi <- cbind(gradi, sigma = lnL.sigma * pbX4  * gradientsd)
         
-        Pr123As <- Pr123A$b * (- (bX2 - T0) / sigma ^ 2)
-        Pr123Bs <- Pr123B$b * (- (bX2 - Tymax) / sigma ^ 2)
-
-        lnL.sigma <- (y == 0) * ( (PIs - Pr123As + Pr123Bs) / Denom - PIs / PI) +
-            (y != 0) * (- 1 / sigma + resid ^ 2 / sigma ^ 3 - mills(z1$f) * rho1 / sqrt(1 - rho1 ^ 2) * resid / sigma ^ 2 -
-                 mills(z3$f) * rho3 / sqrt(1 - rho3 ^ 2) * resid / sigma ^ 2 - PIs / PI)
-                 
-        if (!is.null(X4)) lnL.sigma <- lnL.sigma * sigma * X4
-        gradi <- cbind(gradi, lnL.sigma)
-
-        if (!is.null(corr)){
-            if (h1 & corr == 'h1') lnL.rho <- (y == 0) * ( - Pr123A$rho + Pr123B$rho) / Denom + (y != 0) * mills(z1$f) * z1$g
-            if (h3 & corr == 'h3') lnL.rho <- (y == 0) * ( - Pr123A$rho + Pr123B$rho) + (y != 0) * mills(z3$f) * z3$g
-            gradi <- cbind(gradi, rho = lnL.rho * gradientrho)
+        # derivatives respective to beta4
+        if (!is.null(X4)){
+            gradi <- cbind(gradi,  lnL.sigma * sd * dnorm(bX4) * X4)
         }
-        
+
+        # derivatives respective to rho
+        if (corr){
+            Drho12 <- (rho[1] * rho[2] - rho[3]) / (1 - rho[1] ^ 2) ^ 1.5  / sqrt(1 - rho[3] ^ 2)
+            Drho13 <- 1 / sqrt(1 - rho[1] ^ 2) / sqrt(1 - rho[3] ^ 2)
+            Drho23 <- (rho[3] * rho[2] - rho[1]) / (1 - rho[3] ^ 2) ^ 1.5  / sqrt(1 - rho[1] ^ 2)
+            lnL.rho12 <- (y == 0) * (- Pr123A$dr[, 1] + Pr123B$dr[, 1]) / Numerator  +
+                (y != 0) * ( Pr13$d1 * (resid / sigma + rho[1] / (1 - rho[1] ^ 2) *
+                                            (bX1 + rho[1] * resid / sigma) ) / (1 - rho[1] ^ 2) ^ 0.5 +
+                                                Pr13$dr * Drho12) / Pr13$f
+            lnL.rho13 <- (y == 0) * (- Pr123A$dr[, 2] + Pr123B$dr[, 2]) / Numerator  +
+                (y != 0) * ( Pr13$dr * Drho13) / Pr13$f
+            lnL.rho23 <- (y == 0) * (- Pr123A$dr[, 3] + Pr123B$dr[, 3]) / Numerator  +
+                (y != 0) * ( Pr13$d2 * (resid / sigma + rho[3] / (1 - rho[3] ^ 2) *
+                                            (bX3 + rho[3] * resid / sigma) ) / (1 - rho[3] ^ 2) ^ 0.5 +
+                                                Pr13$dr * Drho23) / Pr13$f
+            # return one or three derivates whether there are two or
+            # three equations
+            lnL.rho <- c()
+            if (h1) lnL.rho <- cbind(lnL.rho, rho12 = lnL.rho12 * gradientrho[1])
+            if (h1 & h3) lnL.rho <- cbind(lnL.rho, rho13 = lnL.rho13 * gradientrho[2])
+            if (h3) lnL.rho <- cbind(lnL.rho, rho23 = lnL.rho23 * gradientrho[3])
+            gradi <- cbind(gradi, lnL.rho)
+        }
+
+        # derivative respective to lambda
         if (dist %in% c("bc", "bc2")){
             Tylb <- (log(Phi3 * y + mu) * (Phi3 * y + mu) ^ lambda - Ty) / lambda
             if (mu == 0) T0lb <- ( 1 / lambda ^ 2 * (lambda > 0) + 0 * (lambda < 0))
@@ -283,9 +309,13 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
             Tymaxlb <- 0 * (lambda > 0) + (1 / lambda ^ 2) * (lambda < 0)
             PIl <- - sign(lambda) * dnorm( (bX2 + 1 / lambda) / sigma ) / (sigma * lambda ^ 2)
             lnL.lambda <- vector(mode = "numeric", length = length(y))
-            lnL.lambda[y == 0] <- ( (PIl - Pr123A$b * (- T0lb /  sigma) + Pr123B$b * (- Tymaxlb / sigma)) / Denom - PIl / PI)[y == 0]
-            lnL.lambda[y > 0] <- (( - resid / sigma ^ 2 +  mills(z1$f) * rho1 / sigma / sqrt(1 - rho1 ^ 2) +
-                                   mills(z3$f) * rho3 / sigma / sqrt(1 - rho3 ^ 2) ) * Tylb + lnJlb - PIl / PI)[y > 0]
+            
+            lnL.lambda[y == 0] <- ( (PIl - Pr123A$d2 * (- T0lb /  sigma) + Pr123B$d2 * (- Tymaxlb / sigma)) / Numerator - PIl / PI)[y == 0]
+
+            
+            lnL.lambda[y > 0] <- ( (- resid / sigma ^ 2 + (Pr13$d1 * rho[1] / sqrt(1 - rho[1] ^ 2) / sigma +
+                                                               Pr13$d2 * rho[3] / sqrt(1 - rho[3] ^ 2) / sigma) / Pr13$f ) * Tylb +
+                                                                   lnJlb - PIl / PI)[y > 0]
             gradi <- cbind(gradi, tr = lnL.lambda)
         }
 
@@ -293,222 +323,41 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
             Tymu <- (Phi3 * y + mu) ^ (lambda - 1)
             T0mu <- mu ^ (lambda - 1)
             lnL.mu <- vector(mode = "numeric", length = length(y))
-            lnL.mu[y == 0] <- (- Pr123A$b * (- T0mu / sigma) / Denom)[y == 0]
-            lnL.mu[y > 0] <- (( - resid / sigma ^ 2 +  mills(z1$f) * rho1 / sigma / sqrt(1 - rho1 ^ 2)  +
-                               mills(z3$f) * rho3 / sigma / sqrt(1 - rho3 ^ 2) ) * Tymu + lnJmu)[y != 0]
+            lnL.mu[y == 0] <- (- Pr123A$d2 * (- T0mu / sigma) / Numerator)[y == 0]
+            lnL.mu[y > 0] <- (( - resid / sigma ^ 2 +
+                                   (Pr13$d1 * rho[1] / sqrt(1 - rho[1] ^ 2) / sigma +
+                                        Pr13$d2 * rho[3] / sqrt(1 - rho[3] ^ 2) / sigma) / Pr13$f
+                               ) * Tymu + lnJmu)[y != 0]
             gradi <- cbind(gradi, mu = lnL.mu * gradientmu)
         }
 
         if (dist == "ihs"){
             Tylb <- (y * Phi3) / lambda / sqrt(1 + (lambda * y * Phi3) ^ 2) - Ty / lambda
             lnL.lambda <- vector(mode = "numeric", length = length(y))
-            lnL.lambda[y != 0] <- (( -resid / sigma ^ 2 +  mills(z1$f) * rho1 / sigma / sqrt(1 - rho1 ^ 2) +
-                           mills(z3$f) * rho3 / sigma / sqrt(1 - rho3 ^ 2) ) * Tylb + lnJlb)[y != 0]
+            ## lnL.lambda[y != 0] <- (( -resid / sigma ^ 2 +  mills(z1$f) * rho1 / sigma / sqrt(1 - rho1 ^ 2) +
+            ##                             mills(z3$f) * rho3 / sigma / sqrt(1 - rho3 ^ 2) ) * Tylb + lnJlb)[y != 0]
+            lnL.lambda[y != 0]
             gradi <- cbind(gradi, lnL.lambda)
         }
-
+        
         if (dist == "ln2"){
-            Tymu <- 1 / (exp(mu) + Phi3 * y) * exp(mu)
+            Tymu <- 1 / (mu + Phi3 * y)
+            T0mu <- 1 / mu
             lnL.mu <- vector(mode = "numeric", length = length(y))
-            lnL.mu[y == 0] <- ( Pr123$b / Denom * (- 1 / (sigma * exp(mu)) ))[y == 0] * exp(mu)
-            lnL.mu[y != 0] <- (( -resid / sigma ^ 2 +  mills(z1$f) * rho1 / sigma / sqrt(1 - rho1 ^ 2) +
-                           mills(z3$f) * rho3 / sigma / sqrt(1 - rho3 ^ 2) ) * Tymu + lnJmu)[y != 0]
-            gradi <- cbind(gradi, lnL.mu)
+            lnL.mu[y == 0] <- ( - Pr123A$d2 * (- T0mu / sigma ) / Numerator)[y == 0]
+            lnL.mu[y != 0] <- (( - resid / sigma ^ 2 +
+                                    (Pr13$d1 * rho[1] / sqrt(1 - rho[1] ^ 2) / sigma +
+                                         Pr13$d2 * rho[3] / sqrt(1 - rho[3] ^ 2) / sigma) / Pr13$f
+                                ) * Tymu + lnJmu)[y != 0]
+            gradi <- cbind(gradi, mu = lnL.mu * gradientmu)
+        }
+        
+        if (any(is.na(gradi))){
+            warnings("NA values in the gradient\n")
         }
         attr(lnL, "gradient") <- gradi
     }
-    if (fitted){
-        P0 <- exp(lnL.null)
-        if (dist %in% c("ln", "n", "tn")){
-            if (dist != "ln"){
-                if (h3) Psi23 <- rho3 * phi3 * pnorm( (bX2 / sigma - rho3 * bX3) / sqrt(1 - rho3 ^ 2)) +
-                    phi2 * pnorm( (bX3 - rho3 * bX2 / sigma) / sqrt(1 - rho3 ^ 2))
-                else Psi23 <- phi2
-                if (h1) Psi21 <- rho1 * phi1 * pnorm( (bX2 / sigma - rho1 * bX1) / sqrt(1 - rho1 ^ 2)) +
-                    phi2 * pnorm( (bX1 - rho1 * bX2 / sigma) / sqrt(1 - rho1 ^ 2))
-                else Psi21 <- phi2
-                # PAS MODIFI2 PAR FLEMME !!!!!!!!
-                Phi12 <- mypbivnorm(bX1, bX2  / sigma , rho1)
-                Phi23 <- mypbivnorm( bX2 / sigma, bX3, rho3)
-                Econd <- bX2 / Phi3 + sigma * (Psi23 * Psi21 * Phi2) / (Phi12$f * Phi23$f * Phi3 * phi2)
-            }
-            else{
-                if (h3) Psi23 <- pnorm(bX3 + sigma * rho3) else Psi23 <- 1
-                if (h1) Psi21 <- pnorm(bX1 + sigma * rho1) else Psi21 <- 1
-                Econd <- exp(bX2 + sigma ^ 2 / 2) * Psi21 * Psi23 / (Phi1 * Phi3 ^ 2)
-            }
-#            print(head(Econd))
-        }
-        TI <- function(z, dist, EXO){
-            abX2 <- EXO[1]
-            abX3 <- EXO[2]
-            switch(dist,
-                   "ln"  = exp(abX2 + sigma * z) / pnorm(abX3),
-                   "n"   = (abX2 + sigma * z) / pnorm(abX3),
-                   "bc"  = (lambda * (abX2 + sigma * z) + 1) ^ (1 / lambda) / pnorm(abX3),
-                   "bc2" = ( (lambda * (abX2 + sigma * z) + 1) ^ (1 / lambda) - mu )/ pnorm(abX3),
-                   "ln2" = (exp(abX2 + sigma * z) - mu)/ pnorm(abX3),
-                   "tn"  = (abX2 + sigma * z) / pnorm(abX3)
-                   )
-        }
-        toInt <- function(z, EXO){
-            abX1 <- EXO[1]
-            abX2 <- EXO[2]
-            abX3 <- EXO[3]
-            pnorm( (abX1 + rho1 * z) / sqrt(1 - rho1 ^ 2) ) *
-                pnorm( (abX3 + rho3 * z) / sqrt(1 - rho3 ^ 2) ) *
-                    TI(z, dist, c(abX2, abX3)) * 
-                        dnorm(z)
-        }
-        MatEXO <- cbind(bX1, bX2, bX3)
-        ## Ey <- apply(MatEXO, 1, function(x){
-        ##     af <- function(z) toInt(z, EXO = x) ;
-        ##     integrate(af,
-        ##               lower = (T0- x[2]) / sigma,
-        ##               upper = (Tymax - x[2]) / sigma)$value})
-        ## Econd<- Ey / (1 - P0) / PI
-#        print(head(Econd))
-#        attr(lnL, "fitted") <- cbind("P(y=0)" = P0, "E(y|y>0)" = Econd)
-    }
-    ## print(head(as.numeric(lnL)))
-    ## print(round(sum(as.numeric(lnL)), 10))
+
+    fitted <- FALSE
     lnL
-}
-
-# Compute the estimation of hurdle models in the cases where it can be
-# done using two independent estimations (a binomial logit model and a
-# normal/log-normal/truncated linear model). This is relevant for
-# uncorrelated models with selection
-
-fit.simple.mhurdle <- function(X1, X2, y, dist = NULL){
-    probit <- glm(y != 0 ~ X1 - 1, family = binomial(link = "probit"))
-    # Computation of the likelihood for zero observations
-    beta1 <- coef(probit)
-    bX1 <- as.numeric(crossprod(beta1, t(X1)))
-    mills1 <- mills(bX1)
-    mills1m <- mills(- bX1)
-    L.null <- (y == 0) * log(1 - pnorm(bX1))
-    gbX1 <- (y == 0) * (- mills1m) + (y != 0) * mills1
-    
-    # Computation of the likelihood for positive observations for (log-)normal distribution
-    if (dist %in% c("ln", "n")){
-        if (dist == "ln") lin <- lm(log(y) ~ X2 - 1, subset = y != 0)
-        else lin <- lm(y ~ X2 - 1, subset = y != 0)
-        beta2 <- coef(lin)[1:ncol(X2)]
-        bX2 <- as.numeric(crossprod(beta2, t(X2)))
-        logy <- rep(0, length(y))
-        logy[y != 0] <- log(y[y != 0])
-        if (dist == "ln"){
-            resid <- (logy - bX2)
-        }
-        else resid <- y - bX2
-        df <- df.residual(lin)
-        np <- sum(y != 0)
-        scr <- sum(resid[y != 0] ^ 2)
-        sigma <- sqrt(scr / np)
-        L.pos <- (y != 0) * (pnorm(bX1, log.p = TRUE) + dnorm(resid / sigma, log = TRUE) - log(sigma) -
-                      (dist == "ln") * logy)
-        gbX2 <- (y != 0) * (resid / sigma ^ 2)
-        gsigma <- (y != 0) * (resid ^ 2 / sigma ^ 3 - 1 / sigma)
-        gradi <- cbind(gbX1 * X1, gbX2 * X2, as.numeric(gsigma))
-        dss <- - 3 * scr / sigma ^ 4 + sum(y != 0) / sigma ^ 2
-        vcov <- bdiag(vcov(probit), vcov(lin) / np * df, - 1 / dss)
-        coef <- c(coef(probit), coef(lin), sigma)
-        fit <- cbind(zero = bX1, pos = bX2)
-    }
-    else{
-        if (dist == "tn") lin <- truncreg(y ~ X2 - 1, subset = y != 0)
-        if (dist == "bc") lin <- boxcoxreg(y ~ X2 - 1, subset = y != 0)
-        L.pos <- as.numeric(logLik(lin)) + sum( (y != 0) * (pnorm(bX1, log.p = TRUE)))
-        vcov <- bdiag(vcov(probit), vcov(lin))
-        coef <- c(coef(probit), coef(lin))
-        fit <- cbind(zero = bX1, pos = fitted(lin))
-        g2 <- matrix(0, nrow = length(y), ncol = ncol(lin$gradient))
-        g2[y != 0, ] <- lin$gradient
-        gradi <- cbind(gbX1 * X1, g2)
-        vcov <- bdiag(vcov(probit) , vcov(lin))
-    }
-    coef.names <- list(h1    = colnames(X1),
-                       h2    = colnames(X2),
-                       sd    = "sd")
-    if (dist == "bc") coef.names <- c(coef.names, tr = "tr")
-
-    fitted <- attr(mhurdle.lnl(coef, X1 = X1, X2 = X2, X3 = NULL, X4 = NULL, y = y,
-                               gradient = FALSE, fitted = TRUE,
-                               dist = dist, corr = NULL), "fitted")
-    logLik <- structure(sum(L.null) + sum(L.pos), df = length(coef), nobs = length(y), class = "logLik")
-    result <- list(coefficients = coef, 
-                   vcov = vcov,
-                   fitted.values = fitted,
-                   logLik = logLik,
-                   gradient = gradi,
-                   model = NULL,
-                   formula = NULL,
-                   coef.names = coef.names,
-                   call = NULL
-                   )
-    class(result) <- c("mhurdle","maxLik")
-    result
-}
-
-# Compute the "naive" model, i.e. a model with no explanatory
-# variables.  Full version with correlation ; not used because
-# identification problems
-
-lnl.naive <- function(param, dist = c("ln", "tn", "n", "ln2"), moments,
-                      h1 = TRUE, h3 = FALSE){
-    dist <- match.arg(dist)
-    n <- moments[1]
-    ym <- moments[2]
-    s2 <- moments[3]
-    if (h1){
-        alpha1 <- param[1]
-        alpha2 <- param[2]
-        param <- param[-c(1,2)]
-    }
-    else{
-        alpha2 <- param[1]
-        param <- param[-1]
-    }
-    if (h3){
-        alpha3 <- param[1]
-        param <- param[-1]
-    }
-    sigma <- param[1]
-    
-    if (h1){
-        Phi1 <- pnorm(alpha1)
-        phi1 <- dnorm(alpha1)
-    }
-    else Phi1 <- 1
-    if (h3){
-        Phi3 <- pnorm(alpha3)
-        phi3 <- dnorm(alpha3)
-    }
-    else Phi3 <- 1
-    Phi2 <- pnorm(alpha2/sigma)
-    phi2 <- dnorm(alpha2/sigma)
-    scr <- ifelse(dist == "ln",
-                  s2 + (ym + log(Phi3) - alpha2)^2,
-                  Phi3^2*(s2 + (ym - alpha2/Phi3)^2)
-                  )
-    Pbiv <- Phi1 * Phi2
-    Phi1bis <- Phi1
-    s2term <- 0
-    P0 <- switch(dist,
-                 "ln" = 1 - Phi1 * Phi3,
-                 "ln2" = 1 - Phi1 * Phi3,
-                 "tn" = 1 - Pbiv/Phi2 * Phi3,
-                 "n" = 1 - Pbiv * Phi3
-                 )
-    lnPos <-
-        -log(sigma) - 0.5 * log(2*pi) -
-            scr/(2*sigma^2) +
-                log(Phi3) +
-                    (log(Phi1bis)+s2term) * h1 -
-                        ym * (dist == "ln") +
-                            log(Phi3) * (dist != "ln") -
-                                log(Phi2) * (dist == "tn")
-    
-    n * log(P0) + (1 - n) * lnPos
 }

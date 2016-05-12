@@ -18,11 +18,11 @@
 mhurdle(formula, data, subset, weights, na.action,
      start = NULL,
      dist = c("ln","tn","n", "bc", "ihs", "ln2", "bc2"),
-     corr = NULL, ...)
+     corr = FALSE, robust = TRUE, ...)
 \method{coef}{mhurdle}(object,
-   which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"), ...)
+   which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"), ...)
 \method{vcov}{mhurdle}(object,
-   which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"), ...)
+   which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"), ...)
 \method{logLik}{mhurdle}(object, naive = FALSE, ...)
 \method{print}{mhurdle}(x, digits = max(3, getOption("digits") - 2),
                      width = getOption("width"), ...)
@@ -43,14 +43,16 @@ mhurdle(formula, data, subset, weights, na.action,
   \item{weights}{see \code{\link{lm}},}
   \item{na.action}{see \code{\link{lm}},}
   \item{start}{starting values,}
-  \item{dist}{the distribution of the error of the consumption
-    equation: one of \code{"n"} (normal), \code{"l"} (log-normal) or \code{"t"} (truncated
-    normal),}
-  \item{corr}{indicates whether the errors of the different equations
-   are correlated. For models with two equations, this can be either
-   \code{"d"} for dependent and \code{"i"} for independent. For models
-   with three equations, this should be a character of length three
-   containing values of "i" and "d",}
+  \item{dist}{the distribution of the error of the consumption equation:
+    one of \code{"n"} (normal), \code{"ln"} and \code{"ln2"} (log-normal
+    with one or two parameters), \code{"t"} (truncated normal),
+    \code{"bc"} and \code{"bc2"} (box-cox normal with one or two
+    parameters) and \code{"ihs"} (inverse hyperbolic sinus
+    transformation)}
+   \item{corr}{a boolean indicating whether the errors of the different
+     equations are correlated or not,}
+   \item{robust}{transformation of the structural parameters in order to
+   avoid numerical problems,}
   \item{naive}{a boolean, it \code{TRUE}, the likelihood of the naive
     model is returned,}
   \item{object,x}{an object of class \code{"mhurdle"},}
@@ -65,14 +67,14 @@ mhurdle(formula, data, subset, weights, na.action,
   \item{\dots}{further arguments.}
   
 }
+
 \value{
   
-
   an object of class \code{c("mhurdle", "maxLik")}.
     
   A \code{"mhurdle"} object has the following elements :
   
-  %  \describe{
+\describe{
   \item{coefficients}{the vector of coefficients,}
   \item{vcov}{the covariance matrix of the coefficients,}
   \item{fitted.values}{a matrix of fitted.values, the first column being
@@ -90,6 +92,7 @@ mhurdle(formula, data, subset, weights, na.action,
   \item{call}{the call,}
   \item{rho}{the lagrange multiplier test of no correlation.}
     
+}
 }
 
 \details{
@@ -145,17 +148,30 @@ or a double hurdle model if \code{dist="n"}.
 % \seealso{
 % }
 \examples{
+
+# a small subset of the Intview data
+set.seed(1)
+data("Intview", package = "mhurdle")
+SIntview <- Intview[sample(1:nrow(Intview), 1E+03), ]
+
 data("tobin", package = "survival")
+
 #  tobit model
-model010 <- mhurdle(durable ~ 0 | age + quant | 0, tobin, dist = "n")
-#  independent double hurdle model
-model110i <- mhurdle(durable ~ age |  quant | 0, tobin,  dist = "n")
-# Cragg log-normal single hurdle model
-model100il <- mhurdle(durable ~ age |  quant | 0, tobin, dist = "ln")
-# Cragg truncated-normal single hurdle model
-model100it <- update(model100il, dist = "tn")
-# a double-hurdle p-tobit
-model011i <- mhurdle(durable ~ 0 |  quant | age, tobin,  dist = "n")
+tm <- mhurdle(vacations ~ 0 | lincu + lincu2 + lincu3 | 0, SIntview,
+              dist = "n", method = "bfgs")
+
+# independent double hurdle model
+idhm <- mhurdle(vacations ~ car + size | lincu + lincu2 + lincu3 | 0, SIntview,
+              dist = "ln2", method = "bfgs")
+
+# dependent double hurdle model
+ddhm <- mhurdle(vacations ~ car + size | lincu + lincu2 + lincu3 | 0, SIntview,
+              dist = "ln2", method = "bfgs", corr = TRUE)
+
+# a double hurdle p-tobit model
+ptm <- mhurdle(vacations ~ 0 | lincu + lincu2 + lincu3 | car + size, SIntview,
+              dist = "ln2", method = "bfgs", corr = TRUE)
+
 }
 % \author{}
 \keyword{regression}

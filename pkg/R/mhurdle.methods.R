@@ -13,22 +13,23 @@
 ## rsq
 
 nm.mhurdle <- function(object,
-                       which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"),
+                       which = c("all", "h1", "h2", "h3", "sd", "h4", "corr", "tr", "pos"),
                        ...){
     coefnames <- object$coef.names
     which <- match.arg(which)
     K <- sapply(coefnames,length)
     if (which == "all"){
         h2.names <- paste("h2", coefnames$h2,sep = ".")
-        h1.names <- h3.names <- NULL
+        h1.names <- h3.names <- h4.names <- NULL
         if (! is.null(coefnames$h1)) h1.names <- paste("h1", coefnames$h1,sep = ".")
         if (! is.null(coefnames$h3)) h3.names <- paste("h3", coefnames$h3,sep = ".")
         if (length(coefnames$sd) == 1) sd.names <- "sd"
+        if (! is.null(coefnames$h4)) h4.names <- paste("h4", coefnames$h4,sep = ".")
         else sd.names <- paste("sd", coefnames$sd, sep = ".")
         corr.names <- coefnames$corr
         tr.names <- coefnames$tr
-        mu.names <- coefnames$mu
-        result <- c(h1.names, h2.names, h3.names, sd.names, corr.names, tr.names, mu.names)
+        mu.names <- coefnames$pos
+        result <- c(h1.names, h2.names, h3.names, sd.names, h4.names, corr.names, tr.names, mu.names)
     }
     else{
         result <- coefnames[[which]]
@@ -38,24 +39,27 @@ nm.mhurdle <- function(object,
 }
 
 sub.mhurdle <- function(object,
-                        which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"),
+                        which = c("all", "h1", "h2", "h3", "sd", "h4", "corr", "tr", "pos"),
                         ...){
   # there is no need to check if the coefficient is relevant at it has
   # been checked previously by the nm.mhurdle function
-  which <- match.arg(which)
-  K <- sapply(object$coef.names, length)
-  if (which == "all")  sub <- 1:length(object$coefficients)
-  if (which == "h2")   sub <- (K[[1]] + 1):(K[[1]] + K[[2]])
-  if (which == "h1")   sub <- 1:K[[1]]
-  if (which == "h3")   sub <- (K[[1]] + K[[2]] + 1):(K[[1]] + K[[2]] + K[[3]])
-  if (which == "corr") sub <- K[[1]] + K[[2]] + K[[3]] + K[[4]] + 1
-  if (which == "sd")   sub <- (K[[1]] + K[[2]] + K[[3]] + 1):(K[[1]] + K[[2]] + K[[3]] + K[[4]])
-  if (which == "tr")   sub <- (K[[1]] + K[[2]] + K[[3]] + K[[4]])
-  sub
+    which <- match.arg(which)
+    if (class(object) == "mhurdle") K <- lapply(object$coef.names, length)
+    else K <- lapply(object, length)
+    if (which == "all")  sub <- 1:sum(Reduce("c", K))
+    if (which == "h2")   sub <- (K$h1 + 1):(K$h1 + K$h2)
+    if (which == "h1")   sub <- 1:K$h1
+    if (which == "h3")   sub <- (K$h1 + K$h2 + 1):(K$h1 + K$h2 + K$h3)
+    if (which == "sd")   sub <- (K$h1 + K$h2 + K$h3 + 1)
+    if (which == "h4")   sub <- (K$h1 + K$h2 + K$h3 + 1 + 1):(K$h1 + K$h2 + K$h3 + 1 + K$h4)
+    if (which == "corr") sub <- (K$h1 + K$h2 + K$h3 + 1 + K$h4 + 1) : (K$h1 + K$h2 + K$h3 + 1 + K$h4 + K$corr)
+    if (which == "tr")   sub <- (K$h1 + K$h2 + K$h3 + 1 + K$h4 + K$corr + 1)
+    if (which == "pos")  sub <- K$h1 + K$h2 + K$h3 + 1 + K$h4 + K$corr + K$tr + 1
+    sub
 }
 
 coef.mhurdle <- function(object,
-                        which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"),
+                        which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"),
                       ...){
   which <- match.arg(which)
   nm <- nm.mhurdle(object, which)
@@ -66,7 +70,7 @@ coef.mhurdle <- function(object,
 }
 
 vcov.mhurdle <- function(object,
-                        which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "mu"),
+                        which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"),
                       ...){
   which <- match.arg(which)
   nm <- nm.mhurdle(object, which)
@@ -119,7 +123,7 @@ summary.mhurdle <- function (object,...){
 
 
 coef.summary.mhurdle <- function(object,
-                                 which = c("all", "h1", "h2", "h3", "sd", "corr", "tr"),
+                                 which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "pos"),
                                  ...){
   which <- match.arg(which)
   sub <- sub.mhurdle(object, which)
@@ -177,17 +181,14 @@ predict.mhurdle <- function(object, newdata = NULL, ...){
         cl <- object$call
         dist <- ifelse(is.null(cl$dist), TRUE, cl$dist)
         corr <- ifelse(is.null(cl$corr), FALSE, cl$corr)
+        robust <- FALSE
         m <- model.frame(formula(object), newdata)
         X1 <- model.matrix(formula(object), m, rhs = 1)
         X2 <- model.matrix(formula(object), m, rhs = 2)
-        X3 <- model.matrix(formula(object), m, rhs = 3)
-        if (length(formula(object))[2] == 4)
-            X4 <- model.matrix(formula(object), m, rhs = 4)
-        else X4 <- numeric(0)
+        if (length(formula(object))[2] > 2) X3 <- model.matrix(formula(object), m, rhs = 3) else X3 <- NULL
+        if (length(formula(object))[2] == 4) X4 <- model.matrix(formula(object), m, rhs = 4) else X4 <- NULL
         y <- model.response(m)
         if (length(X1) == 0) X1 <- NULL
-        if (length(X3) == 0) X3 <- NULL
-        if (length(X4) == 0) X4 <- NULL
         result <- attr(mhurdle.lnl(coef(object), X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
                                    gradient = FALSE, fitted = TRUE,
                                    dist = dist, corr = corr), "fitted")
@@ -270,31 +271,7 @@ rsq <- function(object,
     R2
 }
 
-extract.mhurdle <- function(model){
-    s <- summary(model)
-    names <- rownames(s$coefficients)
-    co <- s$coefficients[, 1]
-    se <- s$coefficients[, 2]
-    pval <- s$coefficients[, 4]
-    rs1 <- s$r.squared[1]
-    rs2 <- s$r.squared[2]
-    lnL <- logLik(model)
-    lnL0 <- logLik(model, naive = TRUE)
-    n <- nrow(model.frame(model))
-    print(AIC(model))
-    gof <- c(rs1, rs2, lnL, lnL0, AIC(model), BIC(model), n)
-    print(gof)
-    gof.names <- c("R$ 2$", "lratio", "logLik", "logLik Null",
-                   "AIC", "BIC", "Num.\\ obs.")
-    tr <- createTexreg(
-        coef.names = names,
-        coef = co,
-        se = se,
-        pvalues = pval,
-        gof.names = gof.names,
-        gof = gof)
-    return(tr)
-}
 
-setMethod("extract", signature = className("mhurdle", "mhurdle"),
-          definition = extract.mhurdle)
+nobs.mhurdle <- function(object, ...){
+    nrow(object$model)
+}
