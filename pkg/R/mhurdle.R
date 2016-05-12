@@ -14,12 +14,12 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     cl.save <- cl
     dist <- match.arg(dist)
     isMu <- dist == "bc2"
-    if (robust){
-        if (! (isMu | corr)){
-            robust <- FALSE
-            cat("robust irrelevant\n")
-        }
-    }
+    ## if (robust){
+    ##     if (! (isMu | corr)){
+    ##         robust <- FALSE
+    ##         cat("robust irrelevant\n")
+    ##     }
+    ## }
 
     # 1. Compute the model.frame and the model.matrix
 
