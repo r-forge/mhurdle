@@ -44,7 +44,7 @@ sub.mhurdle <- function(object,
   # there is no need to check if the coefficient is relevant at it has
   # been checked previously by the nm.mhurdle function
     which <- match.arg(which)
-    if (class(object) == "mhurdle") K <- lapply(object$coef.names, length)
+    if ("mhurdle" %in% class(object)) K <- lapply(object$coef.names, length)
     else K <- lapply(object, length)
     if (which == "all")  sub <- 1:sum(Reduce("c", K))
     if (which == "h2")   sub <- (K$h1 + 1):(K$h1 + K$h2)

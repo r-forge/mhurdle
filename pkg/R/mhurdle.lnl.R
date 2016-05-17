@@ -1,3 +1,4 @@
+REPLACE <- TRUE
 verbal <- FALSE
 mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
                         fitted = FALSE, dist = NULL, corr = FALSE, robust = TRUE){
@@ -185,10 +186,13 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
                  (bX3 + rho[3] * resid / sigma) / sqrt(1 - rho[3] ^ 2),
                  (rho[2] - rho[1] * rho[3]) / sqrt(1 - rho[1] ^ 2) / sqrt(1 - rho[3] ^ 2)
                  )
-    if (min(Pr13$f) < myeps){
-        nval <- as.numeric(table(Pr13$f < 1E-07)[2])
-        if (verbal) cat(paste(nval, "null values of Phi13\n"))
-        Pr13$f[Pr13$f < myeps] <- myeps
+    if (REPLACE){
+        Pr13$f[is.na(Pr13$f)] <- myeps ; if (verbal) cat("some NA values of P13 replaced by 0\n")
+        if (min(Pr13$f) < myeps){
+            nval <- as.numeric(table(Pr13$f < 1E-07)[2])
+            if (verbal) cat(paste(nval, "null values of Phi13 replaced by eps\n"))
+            Pr13$f[Pr13$f < myeps] <- myeps
+        }
     }
     # PI is the correction of the truncature
     PI <- pnorm( (bX2 - Tymin) / sigma) - pnorm( (bX2 - Tymax) / sigma)

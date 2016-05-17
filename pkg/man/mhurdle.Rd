@@ -1,5 +1,4 @@
-\name{mhurdle}
-\alias{mhurdle}
+\name{mhurdle}{mhurdle}
 \alias{coef.mhurdle}
 \alias{vcov.mhurdle}
 \alias{logLik.mhurdle}
@@ -150,15 +149,10 @@ or a double hurdle model if \code{dist="n"}.
 \examples{
 
 # a small subset of the Intview data
+
 set.seed(1)
 data("Intview", package = "mhurdle")
 SIntview <- Intview[sample(1:nrow(Intview), 1E+03), ]
-
-data("tobin", package = "survival")
-
-#  tobit model
-tm <- mhurdle(vacations ~ 0 | lincu + lincu2 + lincu3 | 0, SIntview,
-              dist = "n", method = "bfgs")
 
 # independent double hurdle model
 idhm <- mhurdle(vacations ~ car + size | lincu + lincu2 + lincu3 | 0, SIntview,

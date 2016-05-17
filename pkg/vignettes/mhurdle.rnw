@@ -2238,7 +2238,7 @@ we call \code{m110d}. We keep the income and the size of the
 household as covariates for the desired consumption equation and move the
 other covariates to the first part of the formula.
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 m110d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
                  I(log(incum)^2) + I(log(incum)^3) + size | 0,
                  data = Comics, corr = TRUE, dist = "n", method = 'bfgs')
@@ -2248,7 +2248,7 @@ The same model without correlation is called \code{m110i}, and can
 easily be obtained by updating \code{m110d} :
 
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 m110i <- update(m110d, corr = FALSE)
 @
 
@@ -2258,13 +2258,13 @@ that a log-normal distribution is introduced. This can be done easily
 by updating the previous model and this leads to a model called
 \code{m100d} :
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 m100d <- update(m110d, dist = "ln")
 @
 
 The independent version is then easily obtained :
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 m100i <- update(m100d, corr = FALSE)
 @
 
@@ -2272,10 +2272,10 @@ The last model we estimate is a dependent triple hurdle model ;
 compared to the double hurdle model previously estimated, we move the
 \code{age} covariate from the selection to the purchasing equation :
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 m111dii <- mhurdle(comics ~ gender + educ  |  log(incum) +
                    I(log(incum)^2) + I(log(incum)^3) + size | age,
-                   data = Comics, corr = TRUE, dist = "n", method = 'bfgs')
+                   data = Comics, corr = TRUE, dist = "n", method = 'bhhh', iterlim = 200)
 @
 
 
@@ -2284,7 +2284,7 @@ m111dii <- mhurdle(comics ~ gender + educ  |  log(incum) +
 A \code{summary} method is provided for \code{mhurdle} objects :
 
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 summary(m111dii)
 @
 
@@ -2301,7 +2301,7 @@ likelihood estimators are extracted using the usual \code{coef} and
 argument indicating which subset has to be returned (the default is to
 return all).
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 coef(m111dii, "h2")
 coef(m110d, "h1")
 coef(m110d, "sd")
@@ -2313,7 +2313,7 @@ Log-likelihood may be obtained for the estimated model or for a
 ``naive'' model, defined as a model without covariates :
 
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 logLik(m110d)
 logLik(m110d, naive = TRUE)
 @
@@ -2324,7 +2324,7 @@ censoring $\mbox{P}(y=0)$ and the estimated expected value of an
 uncensored dependent variable observation $\mbox{E}(y|y>0)$.
 
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 head(fitted(m110d))
 @
 
@@ -2372,7 +2372,7 @@ parametrisation, in order to allow model comparisons with the same
 or with a different number of parameters.
 
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 rsq(m110d, type = "lratio", adj = TRUE)
 @
 
@@ -2385,7 +2385,7 @@ of Figure 1\footnote{Note that Vuong tests for strictly non-nested
   some specific count data models.} :
 
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 vuongtest(m110d, m111dii)
 @
 
@@ -2409,7 +2409,7 @@ first case, the p-value is computed using the standard chi square
 distribution, whereas in the second case a weighted chi square
 distribution is used.
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 vuongtest(m100d, m100i, type = 'nested', hyp = TRUE)
 vuongtest(m100d, m100i, type = 'nested', hyp = FALSE)
 @
@@ -2425,7 +2425,7 @@ classical Wald test, using the t-statistic or the p-value of the
 correlation coefficient estimate presented in the table of parameter
 estimates of the dependent model (\code{m100d}).
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 coef(summary(m100d), "corr")
 @
 
@@ -2438,7 +2438,7 @@ between two overlapping models, we consider a slightly different Tobit
 model obtained by removing the \code{age} covariate and adding the
 \code{empl} and \code{area} covariates :
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 m010bis <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
                    I(log(incum)^3)  + gender + educ + age +
                    empl+area| 0, data = Comics, dist = "n", method = 'bfgs')
@@ -2448,7 +2448,7 @@ In this case, the Vuong test is performed in two steps. Firstly a test
 of the null hypothesis $\omega^2=0$, meaning that the two models are
 equivalent, is undertaken.
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 vuongtest(m010, m010bis, type="overlapping")
 @
 
@@ -2456,7 +2456,7 @@ This null hypothesis is here strongly rejected. Therefore, we can test
 the equivalence of these two models as if they were strictly
 non-nested.
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 vuongtest(m010, m010bis, type="non-nested")
 @
 
@@ -2467,7 +2467,7 @@ If one of two overlapping models is assumed to be correctly specified,
 we can bypass the first step of this Voung test (the variance test) and
 proceed as if we had to discriminate between two nested models.
 
-<<eval = FALSE>>=
+<<eval = TRUE>>=
 vuongtest(m010bis, m010, type="overlapping", hyp=TRUE)
 @
 
