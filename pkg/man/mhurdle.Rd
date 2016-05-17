@@ -1,4 +1,5 @@
-\name{mhurdle}{mhurdle}
+\name{mhurdle}
+\alias{mhurdle}
 \alias{coef.mhurdle}
 \alias{vcov.mhurdle}
 \alias{logLik.mhurdle}

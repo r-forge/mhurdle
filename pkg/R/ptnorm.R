@@ -1,5 +1,5 @@
-system("R CMD SHLIB ~/Dropbox/Forge/mhurdle/pkg/src/ptnorm.f")
-dyn.load("~/Dropbox/Forge/mhurdle/pkg/src/ptnorm.so")
+## system("R CMD SHLIB ~/Dropbox/Forge/mhurdle/pkg/src/ptnorm.f")
+## dyn.load("~/Dropbox/Forge/mhurdle/pkg/src/ptnorm.so")
 
 REPLACE = TRUE
 verbal <- FALSE
