@@ -12,7 +12,7 @@
 \usepackage{threeparttable}
 \usepackage{amssymb, amsfonts}
 \usepackage{longtable, lscape}
-
+\newcommand{\change}[1]{#1}
 
 %\VignetteIndexEntry{Multiple Hurdle Models in R: the mhurdle Package}
 %\VignetteDepends{Formula, truncreg, maxLik}
@@ -184,7 +184,7 @@ a linear function of explanatory variables and of a normal random
 disturbance, with a possible correlation between the disturbances of
 different latent variables in order to account for a 
 possible simultaneity of the decisions modelled by censoring mechanisms.
-\textcolor{red}{To model possible departures of the observed dependent 
+\change{To model possible departures of the observed dependent 
 variable to normality, we use flexible transformations allowing 
 to rescale skewed or leptokurtic random variables to normality.}   
 By combining part or the whole set of
@@ -443,7 +443,7 @@ Some of \pkg{mhurdle} models have already been used in applied
 econometric literature. In particular, model \code{100} is a
 single-hurdle good selection model originated by \citet{CRAGG/71}
 by assuming independence between disturbances $\epsilon_1$ and $\epsilon_2$.
-\textcolor{red}{The dependent version of this model
+\change{The dependent version of this model
 may be viewed as a sample selection model in which only the desired consumption 
 is observed, but it diffears from this model
 populazied by Heckman (1979) to illustrate linear regression model estimation
@@ -881,7 +881,7 @@ and the log-likelihood for the entire random sample:
 
 \subsection{Heteroscedasticity and nonnormality}
 
-\textcolor{red}{
+\change{
 Contrary to the classical linear regression model which estimation 
 is robust with respect to deviations from the assumptions of homoscedasticity
 and normality of disturbances, the maximum likelihood estimation of a Tobit model
@@ -2510,7 +2510,7 @@ both of two competing models are misspecified.
 Tests of \pkg{mhurdle} computing procedures with a wide variety of
 simulated and observational data have proved the performance and
 robustness of \pkg{mhurdle} package. Still, extensions and
-improvements of the software are \textcolor{red}{continuing}.
+improvements of the software are \change{continuing}.
 
 %% Other desirable extensions, like the use of more general functional
 %% forms of the desired consumption relation\footnote{See
