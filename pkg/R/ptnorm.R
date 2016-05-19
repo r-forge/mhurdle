@@ -1,5 +1,5 @@
-## system("R CMD SHLIB ~/Dropbox/Forge/mhurdle/pkg/src/ptnorm.f")
-## dyn.load("~/Dropbox/Forge/mhurdle/pkg/src/ptnorm.so")
+system("R CMD SHLIB ~/Dropbox/Forge/mhurdle/pkg/src/ptnorm.f")
+dyn.load("~/Dropbox/Forge/mhurdle/pkg/src/ptnorm.so")
 
 REPLACE = TRUE
 verbal <- FALSE
@@ -164,5 +164,3 @@ PHI3 <- function(z1, z2, z3, rho){
     list(f = PT, d1 = d1, d2 = d2, d3 = d3, dr = dr)
 }
 
-## 06 92 94 55 53
-## 06 93 30 21 08

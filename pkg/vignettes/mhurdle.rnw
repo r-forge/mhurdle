@@ -2012,7 +2012,7 @@ library("Formula")
 f <- Formula(y ~ x11 + x12  | x21 + x22 | x31 + x32)
 @
 
-\subsection{Starting values}
+\subsection{Starting values and optimisation}
 \label{sec:startvalues}
 
 For the models we consider, the log-likelihood function will be, in
@@ -2044,54 +2044,55 @@ probit model, followed by the ordinary least-squares estimation of a
 linear, log-linear or linear-truncated regression model. In the last
 case, package \pkg{truncreg} \citep{TRUNCR/09} is used.
 
-For correlated single hurdle 1 model \code{100}, the maximum
-likelihood estimate of the parameters of the corresponding
-uncorrelated model ($\rho_{12}=0$) is used as starting values.
+%% For correlated single hurdle 1 model \code{100}, the maximum
+%% likelihood estimate of the parameters of the corresponding
+%% uncorrelated model ($\rho_{12}=0$) is used as starting values.
 
-For P-Tobit models (\code{001} and \code{011}), the starting values
-are computed using an Heckman-like two step procedure. In the first
-step, parameters $\beta_3$ are estimated using a simple probit. In the
-second step, a linear regression model is estimated by ordinary least
-squares using the sub-sample of uncensored observations and, as
-dependent variable: $y_i\Phi(\hat{\beta}_3^{\top}x_{3i})$ in the case
-of a normal specification and $\ln y_i +\ln
-\Phi(\hat{\beta}_3^{\top}x_{3i})$ in the case of a log-normal
-specification.
+%% For P-Tobit models (\code{001} and \code{011}), the starting values
+%% are computed using an Heckman-like two step procedure. In the first
+%% step, parameters $\beta_3$ are estimated using a simple probit. In the
+%% second step, a linear regression model is estimated by ordinary least
+%% squares using the sub-sample of uncensored observations and, as
+%% dependent variable: $y_i\Phi(\hat{\beta}_3^{\top}x_{3i})$ in the case
+%% of a normal specification and $\ln y_i +\ln
+%% \Phi(\hat{\beta}_3^{\top}x_{3i})$ in the case of a log-normal
+%% specification.
 
-For Tobit model \code{010}, the least squares estimate of the linear regression
-model is used as starting values.
+%% For Tobit model \code{010}, the least squares estimate of the linear regression
+%% model is used as starting values.
 
-For double hurdle model \code{110}, the starting values for $\beta_1$
-are obtained by estimating a probit model and those for $\beta_2$
-using a least squares estimate with the truncated sample of a linear
-regression model assuming $\rho_{12}=0$.
+%% For double hurdle model \code{110}, the starting values for $\beta_1$
+%% are obtained by estimating a probit model and those for $\beta_2$
+%% using a least squares estimate with the truncated sample of a linear
+%% regression model assuming $\rho_{12}=0$.
 
-Finally, for models involving hurdles 1 and 3 (models \code{101} and
-\code{111}), we use two probit models to get starting values for
-$\beta_1$ and $\beta_2$. Then, we estimate a linear regression model
-by ordinary least squares with the sub-sample of uncensored
-observations, as dependent variable, and assuming no correlation
-between the desired consumption equation and these two hurdles:
-$y_i\Phi(\hat{\beta}_3^{\top}x_{3i})$, in the case of a normal
-specification and $\ln y_i +\ln \Phi(\hat{\beta}_3^{\top}x_{3i})$ in
-the case of a log-normal specification.
+%% Finally, for models involving hurdles 1 and 3 (models \code{101} and
+%% \code{111}), we use two probit models to get starting values for
+%% $\beta_1$ and $\beta_2$. Then, we estimate a linear regression model
+%% by ordinary least squares with the sub-sample of uncensored
+%% observations, as dependent variable, and assuming no correlation
+%% between the desired consumption equation and these two hurdles:
+%% $y_i\Phi(\hat{\beta}_3^{\top}x_{3i})$, in the case of a normal
+%% specification and $\ln y_i +\ln \Phi(\hat{\beta}_3^{\top}x_{3i})$ in
+%% the case of a log-normal specification.
 
-\subsection{Optimisation}
-\label{sec:optimisation}
+%% \subsection{Optimisation}
+%% \label{sec:optimisation}
 
 Two kinds of algorithms are currently used for maximum likelihood
-estimation. The first kind of algorithms can be called ``Newton-like'' methods.
-With these algorithms, at each iteration, the Hessian
-matrix of the log-likelihood is computed, using either the second derivatives
-of the log-likelihood (Newton-Raphson method) or the outer product of the
-gradient (Berndt, Hall, Hall, Hausman or \textsc{bhhh} method). This approach
-is very powerful if the log-likelihood is well-behaved, but it may
-perform poorly otherwise and fail after a few iterations.
+estimation. The first kind of algorithms can be called ``Newton-like''
+methods.  With these algorithms, at each iteration, the Hessian matrix
+of the log-likelihood is computed, using either the second derivatives
+of the log-likelihood (Newton-Raphson method) or the outer product of
+the gradient (Berndt, Hall, Hall, Hausman or \textsc{bhhh}
+method). This approach is very powerful if the log-likelihood is
+well-behaved, but it may perform poorly otherwise and fail after a few
+iterations.
 
 The second algorithm, called Broyden, Fletcher, Goldfarb, Shanno or
 \textsc{bfgs} method, updates at each iteration an estimate of the
-Hessian matrix of the log-likelihood. It is often more robust and may perform
-better in cases where the formers don't work.
+Hessian matrix of the log-likelihood. It is often more robust and may
+perform better in cases where the formers don't work.
 
 Two optimisation functions are included in core \proglang{R}:
 \code{nlm}, which uses the Newton-Raphson method, and \code{optim} ,
@@ -2122,55 +2123,59 @@ The package is loaded using:
 library("mhurdle")
 @
 
-To illustrate the use of \pkg{mhurdle}, we use the \code{Comics} data
-frame which contains data about the readings of comics. It is part of
-a survey conducted by the \textsc{insee} (the French national
-statistical institute) in 2003 about cultural and sportive
-practises\footnote{The data is available at
-  \url{http://insee.fr/fr/themes/detail.asp?reg_id=0&ref_id=fd-parcul03}. Main
-  results are presented in \citet{MULL/05}.}. The explained variable
-is the number of comics read during the last 12 months by one
-(randomly chosen) member of the household. There are 5159
-observations.
 
-
-We emphasise that the observed censored variable to be explained is
-not an expenditure but a service derived from the use of a durable
-good, namely the comic book library to which the comic book reader has
-access. Therefore, hurdles 2 and 3 of our modelling paradigm must be
-reinterpreted as mechanisms describing the process of building up the
-comic book library and that of planning the intensity of use of the
-library, respectively.  Note also that \pkg{mhurdle} treats the
-dependent variable as a continuous quantitative variable, while it is
-in fact a discrete count variable. However, the high number of
-readings during a year by a comic book reader fully justifies this
-numerical approximation.
-
+To illustrate the use of \pkg{plm}, , we use two surveys conducted by
+the Bureau of Labour Statistics of the U.S. Department of Labour. The
+first survey, called "Dairy Survey", collects data from 10’351
+households on frequently purchased goods, especially food, on a two
+weeks basis. The second survey, called "Interview Survey", collects
+data from 25’813 households on all expenditure, on a quarterly
+basis. The micro-data 16files are publicly available on the website of
+the Bureau of Labour Statistics, and may be downloaded and used
+without permission.
 
 <<>>=
-data("Comics", package = "mhurdle")
-head(Comics, 3)
-mean(Comics$comics == 0)
-max(Comics$comics)
+data("Intview", package = "mhurdle")
+head(Intviewu, 3)
+mean(Intview$vacations == 0)
+max(Intview$vacations)
 @
 
 The number of comics read is zero for about 78\% of the sample and the
 maximum value is 520. The covariates of this data frame are :
 
+
 \begin{description}
-\item[area:] one of \code{rural}, \code{small}, \code{medium},
+\item[income] the net income,
+\item[uc] the number of consumption units,
+\item[urban]{does the household live in an urban area (\code{yes} or \code{no}),}
+\item[smsa]{does the household live in a SMSA (\code{yes} or \code{no}),}
+\item[region]{the region of residence of the household, one of \code{northeast}, \code{midwest}, \code{south} and \code{west},}
+\item[age]{the age of the reference person of the household,}
+\item[educ]{the number of year of education of the reference person of the household,}
+\item[sex]{the sex of the reference person of the household (\code{male} and \code{female}),}
+\item[race]{the race of the head of the household, one of \code{white}, \code{black}, \code{indian}, \code{asian}, \code{pacific} and \code{multirace},}
+\item[hispanic]{is the reference person of the household is hispanic (\code{no} or \code{yes}),}
+\item[size]{the number of persons in the household,}
+\item[less18]{the number of persons less than 18 years old in the household,}
+\item[income]{the income of the household for the 12 month before the interview,}
+\item[month]{the month of the interview (between 1 and 12),}
+\end{description}
+
+\begin{description}
+\item[area] one of \code{rural}, \code{small}, \code{medium},
   \code{large} and \code{paris}
-\item[income:] the income of the household (in thousands of euros per
+\item[income] the income of the household (in thousands of euros per
   month),
-\item[cu:] the number of consumption units (one for the first two
+\item[cu] the number of consumption units (one for the first two
   adults, one half for other members of the household),
-\item[size :] the number of persons in the household,
-\item[age : ] the age of the person,
-\item[empl : ] the kind of occupation, a qualitative factor with 9 levels,
-\item[gender: ] one of \code{male} and \code{female},
-\item[couple,] "does the person live in couple ?", a qualitative factor with
+\item[size] the number of persons in the household,
+\item[age] the age of the person,
+\item[empl] the kind of occupation, a qualitative factor with 9 levels,
+\item[gender] one of \code{male} and \code{female},
+\item[couple] "does the person live in couple ?", a qualitative factor with
   levels \code{yes} and \code{no},
-\item[educ : ] the number of years of education.
+\item[educ] the number of years of education.
 \end{description}
 
 
@@ -2219,13 +2224,13 @@ divided by the number of consumption units and then by its sample
 mean. Powers up to three for the log of income are introduced.
 
 <<>>=
-Comics$incu <- with(Comics, income / cu)
-Comics$incum <- with(Comics, incu / mean(incu))
+Intview$incu <- with(Intview, income / cu)
+Intview$incum <- with(Intview, incu / mean(incu))
 
 
-m010 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
+m010 <- mhurdle(vacations ~ 0 | log(incum) + I(log(incum)^2) +
                 I(log(incum)^3) + age  + gender + educ +
-                size| 0, data = Comics, dist = "n", method = 'bfgs')
+                size| 0, data = Intview, dist = "n", method = 'bfgs')
 @
 
 Note that the first and the third part of the formula are 0,

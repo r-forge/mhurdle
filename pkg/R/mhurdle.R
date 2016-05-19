@@ -1,31 +1,31 @@
 mhurdle <- function(formula, data, subset, weights, na.action,
                     start = NULL, dist = c("ln", "tn", "n", "bc", "ihs", "ln2", "bc2"),
-                    corr = FALSE, robust = TRUE, ...){
+                    corr = FALSE, robust = TRUE, check.grad = FALSE, ...){
     fitted = FALSE
-    check.grad = FALSE
     dots <- list(...)
     oldoptions <- options(warn = -1)
     on.exit(options(oldoptions))
     cl <- match.call()
-    posT <- as.list(cl) == "T"
-    posF <- as.list(cl) == "F"
-    cl[posT] <- TRUE
-    cl[posF] <- FALSE
+    posT <- as.list(cl) == "T" ; posF <- as.list(cl) == "F"
+    cl[posT] <- TRUE           ; cl[posF] <- FALSE
     cl.save <- cl
     dist <- match.arg(dist)
-    isMu <- dist == "bc2"
-    ## if (robust){
-    ##     if (! (isMu | corr)){
-    ##         robust <- FALSE
-    ##         cat("robust irrelevant\n")
-    ##     }
-    ## }
 
     # 1. Compute the model.frame and the model.matrix
 
-    if (!inherits(formula, "Formula")) formula <- Formula(formula)
+    if (! inherits(formula, "Formula")) formula <- Formula(formula)
     if (length(formula)[2] > 4) stop("at most 4 rhs should be provided in the formula")
-    mf <- match.call(expand.dots = FALSE) 
+    mf <- match.call(expand.dots = FALSE)
+    ## print(mf)
+    ## mf2 <- match.call(expand.dots = TRUE)
+    ## print(mf2)
+    ## mmxL <- match(c("print.level", "method", "iterlim", "bhhhHessian"), names(mf2), 0L)
+    ## optionsmaxLik <- mf2[names(mf2)[mmxL]]
+    ## print(mmxL)
+    ## print(optionsmaxLik)
+    ## print(as.list(mf2))
+    ## stop()
+    
     m <- match(c("formula", "data", "subset", "na.action", "weights"),
                names(mf), 0L)
     mf <- mf[c(1L, m)]
@@ -111,37 +111,29 @@ mhurdle <- function(formula, data, subset, weights, na.action,
             if (dist == "ihs") dist.start <- "n"
             start <- start.mhurdle(X1, X2, X3, y, dist.start)
         }
+        
         # in case of heteroscedasctic model, add K4 zeros to the start
         # vector and the intercept should be ln(sigma_o) (not sigma_o)
         # because of the exp form
-        
         sd.pos <- ifelse(h1, ncol(X1), 0) + ncol(X2) + ifelse(h3, ncol(X3), 0) + 1
+        ## WHAT ABOUT THE HOMOSCEDASTIC CASE ?
         start[sd.pos] <- log(start[sd.pos])
-        
-        if (!is.null(X4)){
-#            start <- c(start[1:sd.pos], rep(0, ncol(X4)))
-            start <- c(start[1:sd.pos], rnorm(ncol(X4), sd = 0.001))
-        }
+        if (! is.null(X4)) start <- c(start[1:sd.pos], rep(0, ncol(X4)))
         
         # add shape and/or scale parameters
         if (corr){
-            if (robust) rhoinit <- tan(0.0 * pi / 2) else rhoinit <- 0.01
-            if (h1 + h3 == 2){
-                start <- c(start, rho12 = rhoinit, rho13 = rhoinit, rho23 = rhoinit)
-            }
+            if (robust) rhoinit <- tan(0.0 * pi / 2) else rhoinit <- 0
+            if (h1 + h3 == 2) start <- c(start, rho12 = rhoinit, rho13 = rhoinit, rho23 = rhoinit)
             else start <- c(start, rho = rhoinit)
         }
-        if (dist == "bc") start <- c(start, tr = start.lambda)
-        if (dist == "bc2") start <- c(start, tr = 0.01, pos = 0.1)
-        if (dist == "ihs") start <- c(start, tr = 0.01)
-        if (dist == "ln2") start <- c(start, pos = 1)
+        if (dist %in% c("bc", "bc2", "ihs")) start <- c(start, tr = 0.01)
+        if (dist %in% c("bc2", "ln2")) start <- c(start, pos = 1)
     }
     result <- mhurdle.fit(start, X1, X2, X3, X4, y,
                           gradient = TRUE, fit = FALSE,
                           dist = dist, corr = corr,
                           robust = robust, fitted = fitted,
                           check.grad = check.grad, ...)
-    cat("\n\n")
     result$naive <- naive
     result$call <- cl.save
     result$formula <- formula
@@ -154,22 +146,17 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
                         corr = FALSE, robust = TRUE,  fitted = FALSE,
                         check.grad = FALSE, ...){
     start.time <- proc.time()
+    h1 <- ! is.null(X1)
+    h3 <- ! is.null(X3)
+    h4 <- ! is.null(X4)
+    KR <- corr * (h1 + h3 + h1 * h3)
     
     # fancy coefficients names
-    if (corr){
-        nbeqs <- 1 + (! is.null(X1)) + (! is.null(X3))
-        KR <- ifelse(nbeqs == 2, 1, 3)
-    }
-    else KR <- 0
-
     sd.names <- "sd"
     
     if (corr){
         if (KR == 3) rho.names <- c("corr12", "corr13", "corr23")
-        else{
-            if (! is.null(X1)) rho.names <- c("corr12")
-            else rho.names <- c("corr23")
-        }
+        else rho.names <- c("corr")
     }
     else rho.names <- NULL
     if (dist %in% c("bc", "bc2", "ihs")) tr.names <- "tr" else tr.names <- NULL
@@ -185,15 +172,12 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
                        pos   = mu.names)
 
     start.names <- coef.names
-    if (! is.null(X1)) start.names$h1 <- paste("h1", start.names$h1, sep = ".")
+    if (h1) start.names$h1 <- paste("h1", start.names$h1, sep = ".")
     start.names$h2 <- paste("h2", start.names$h2, sep = ".")
-    if (! is.null(X3)) start.names$h3 <- paste("h3", start.names$h3, sep = ".")
-    if (! is.null(X4)) start.names$h4 <- paste("h4", start.names$h4, sep = ".")
+    if (h3) start.names$h3 <- paste("h3", start.names$h3, sep = ".")
+    if (h4) start.names$h4 <- paste("h4", start.names$h4, sep = ".")
     names(start) <- Reduce("c", start.names)
 
-#    cat("Starting values:\n")
-#    print(start)
-    
     f <- function(param) mhurdle.lnl(param, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
                                      gradient = TRUE, fitted = FALSE,
                                      dist = dist, corr = corr,
@@ -211,50 +195,22 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
         }
         print(cbind(start, agrad, ngrad))
         print(as.numeric(sum(fo)))
+        stop()
     }
 
     maxl <- maxLik(f, start = start,...)
     nb.iter <- maxl$iterations
     convergence.OK <- maxl$code <= 2
     coefficients <- maxl$estimate
-    if (corr){
-        nbeqs <- 1 + (! is.null(X1)) + (! is.null(X3))
-        KR <- ifelse(nbeqs == 2, 1, 3)
-    }
-    else KR <- 0
-#    if (robust){
-    if (FALSE){
-        N4 <- ifelse(is.null(X4), 1, ncol(X4))
-        if (! is.null(corr)){
-            firstCorr <- sum(c(ncol(X1), ncol(X2), ncol(X3), N4)) + 1
-            posCorr <- firstCorr:(firstCorr + KR - 1)
-            coefficients[posCorr] <- atan(coefficients[posCorr]) * 2 / pi
-        }
-        
-        if (dist %in% c("bc2", "ln2")){
-            if (dist == "bc2") posMu <- sum(c(ncol(X1), ncol(X2), ncol(X3), N4)) + KR + 2
-            else  posMu <- sum(c(ncol(X1), ncol(X2), ncol(X3), N4)) + KR + 1
-            coefficients[posMu] <- exp(coefficients[posMu])
-        }
-        f <- function(param) mhurdle.lnl(param, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
-                                         gradient = TRUE, fitted = FALSE,
-                                         dist = dist, corr = corr,
-                                         robust = FALSE)
-        maxl <- maxLik(f, start = coefficients, iterlim = 0, ...)
-   }
 
-
-
-    
-    if (fitted){
-        fitted.values <- attr(mhurdle.lnl(coefficients, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
-                                          gradient = FALSE, fitted = TRUE, robust = FALSE,
-                                          dist = dist, corr = corr), "fitted")
-    }
+    KR <- corr * (h1 + h3 + h1 * h3)
+    if (fitted) fitted.values <- attr(mhurdle.lnl(coefficients, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
+                                                  gradient = FALSE, fitted = TRUE, robust = FALSE,
+                                                  dist = dist, corr = corr), "fitted")
     else fitted.values <- NULL
 
-    # La ligne ci-dessous renvoie la contribution de chaque obs a la
-    # vraisemblance et au gradient (en attribut)
+    # contribution of every single observation to the likelihood and
+    # its gradient (as an attribute)
     logLik <- f(coefficients)
     gradi <- attr(logLik, "gradi")
     logLik <- structure(as.numeric(logLik), df = length(coefficients),
@@ -269,21 +225,22 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
                      message = maxl$message
                      )
     class(est.stat) <- "est.stat"
-    ocoef <- coefficients
     gtheta <- rep(1, length(coefficients))
-    if (corr){
-        poscor <- sub.mhurdle(coef.names, "corr")
-        gtheta[poscor] <- 2 / pi / (1 + coefficients[poscor] ^ 2)
-        coefficients[poscor] <- atan(coefficients[poscor]) * 2 / pi
+    if (robust){
+        if (corr){
+            poscor <- sub.mhurdle(coef.names, "corr")
+            gtheta[poscor] <- 2 / pi / (1 + coefficients[poscor] ^ 2)
+            coefficients[poscor] <- atan(coefficients[poscor]) * 2 / pi
+        }
+        if (dist %in% c("bc2", "ln2")){
+            posmu <- sub.mhurdle(coef.names, "pos")
+            gtheta[posmu] <- exp(coefficients[posmu])
+            coefficients[posmu] <- exp(coefficients[posmu])
+        }
+        possd <- sub.mhurdle(coef.names, "sd")
+        gtheta[possd] <- exp(coefficients[possd])
+        coefficients[possd] <- exp(coefficients[possd])
     }
-    if (dist %in% c("bc2", "ln2")){
-        posmu <- sub.mhurdle(coef.names, "pos")
-        gtheta[posmu] <- exp(coefficients[posmu])
-        coefficients[posmu] <- exp(coefficients[posmu])
-    }
-    possd <- sub.mhurdle(coef.names, "sd")
-    gtheta[possd] <- exp(coefficients[possd])
-    coefficients[possd] <- exp(coefficients[possd])
     result <- list(coefficients  = coefficients,
                    vcov          = diag(gtheta) %*% (- solve(maxl$hessian) ) %*% diag(gtheta),
                    fitted.values = fitted.values,
