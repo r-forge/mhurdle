@@ -48,7 +48,8 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     
     #  2. One equation models
 
-    if (!h1 && !h3 && dist != "n"){
+    if (!h1 && !h3 && dist %in% c("ln", "tn", "bc")){
+        stop("the specified model doesn't allow zero observations")
         if (dist == "ln") result <- lm( log(y) ~ X2 - 1, subset = y > 0)
         if (dist == "tn") result <- truncreg(y ~ X2 - 1, scaled = TRUE, subset = y > 0)
         if (dist == "bc") result <- boxcoxreg(y ~ X2 - 1, subset = y > 0)
@@ -95,6 +96,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     # 5. Compute the starting values if not provided (use the linear
     # specification as the starting value for ihs and the log-linear
     # specification for Box-Cox)
+
     if (is.null(start)){
         # for (100d), use the results of (100i) as starting values
         if (h1 && !h3 & (dist %in% c("ln", "bc", "tn"))){
@@ -256,4 +258,5 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
     if (ncol(X2) > 1) class(result) <- c("mhurdle")
     result
 }
+
 
