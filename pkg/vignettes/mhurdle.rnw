@@ -2126,15 +2126,23 @@ library("mhurdle")
 
 To illustrate the use of \pkg{plm}, , we use two surveys conducted by
 the Bureau of Labour Statistics of the U.S. Department of Labour. The
-first survey, called "Dairy Survey", collects data from 10’351
+first survey, called "Dairy Survey", collects data from 10351
 households on frequently purchased goods, especially food, on a two
 weeks basis. The second survey, called "Interview Survey", collects
-data from 25’813 households on all expenditure, on a quarterly
+data from 25813 households on all expenditure, on a quarterly
 basis. The micro-data 16files are publicly available on the website of
 the Bureau of Labour Statistics, and may be downloaded and used
 without permission.
 
-<<>>=
+
+<<eval = TRUE>>=
+data("Comics", package = "mhurdle")
+head(Comics, 3)
+mean(Comics$comics == 0)
+max(Comics$comics)
+@
+
+<<eval = FALSE>>=
 data("Intview", package = "mhurdle")
 head(Intviewu, 3)
 mean(Intview$vacations == 0)
@@ -2145,22 +2153,22 @@ The number of comics read is zero for about 78\% of the sample and the
 maximum value is 520. The covariates of this data frame are :
 
 
-\begin{description}
-\item[income] the net income,
-\item[uc] the number of consumption units,
-\item[urban]{does the household live in an urban area (\code{yes} or \code{no}),}
-\item[smsa]{does the household live in a SMSA (\code{yes} or \code{no}),}
-\item[region]{the region of residence of the household, one of \code{northeast}, \code{midwest}, \code{south} and \code{west},}
-\item[age]{the age of the reference person of the household,}
-\item[educ]{the number of year of education of the reference person of the household,}
-\item[sex]{the sex of the reference person of the household (\code{male} and \code{female}),}
-\item[race]{the race of the head of the household, one of \code{white}, \code{black}, \code{indian}, \code{asian}, \code{pacific} and \code{multirace},}
-\item[hispanic]{is the reference person of the household is hispanic (\code{no} or \code{yes}),}
-\item[size]{the number of persons in the household,}
-\item[less18]{the number of persons less than 18 years old in the household,}
-\item[income]{the income of the household for the 12 month before the interview,}
-\item[month]{the month of the interview (between 1 and 12),}
-\end{description}
+%% \begin{description}
+%% \item[income] the net income,
+%% \item[uc] the number of consumption units,
+%% \item[urban]{does the household live in an urban area (\code{yes} or \code{no}),}
+%% \item[smsa]{does the household live in a SMSA (\code{yes} or \code{no}),}
+%% \item[region]{the region of residence of the household, one of \code{northeast}, \code{midwest}, \code{south} and \code{west},}
+%% \item[age]{the age of the reference person of the household,}
+%% \item[educ]{the number of year of education of the reference person of the household,}
+%% \item[sex]{the sex of the reference person of the household (\code{male} and \code{female}),}
+%% \item[race]{the race of the head of the household, one of \code{white}, \code{black}, \code{indian}, \code{asian}, \code{pacific} and \code{multirace},}
+%% \item[hispanic]{is the reference person of the household is hispanic (\code{no} or \code{yes}),}
+%% \item[size]{the number of persons in the household,}
+%% \item[less18]{the number of persons less than 18 years old in the household,}
+%% \item[income]{the income of the household for the 12 month before the interview,}
+%% \item[month]{the month of the interview (between 1 and 12),}
+%% \end{description}
 
 \begin{description}
 \item[area] one of \code{rural}, \code{small}, \code{medium},
@@ -2223,7 +2231,16 @@ simple Tobit model, which we call \code{m010} ; the income is first
 divided by the number of consumption units and then by its sample
 mean. Powers up to three for the log of income are introduced.
 
-<<>>=
+<<>>= 
+Comics$incu <- with(Comics, income / cu)
+Comics$incum <- with(Comics, incu / mean(incu))
+m010 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
+                    I(log(incum)^3) + age + gender + educ +
+                        size| 0, data = Comics, dist = "n", method = 'bfgs')
+@ 
+
+
+<<eval = FALSE>>=
 Intview$incu <- with(Intview, income / cu)
 Intview$incum <- with(Intview, incu / mean(incu))
 

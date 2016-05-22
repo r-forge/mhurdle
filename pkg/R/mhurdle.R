@@ -1,7 +1,8 @@
 mhurdle <- function(formula, data, subset, weights, na.action,
                     start = NULL, dist = c("ln", "tn", "n", "bc", "ihs", "ln2", "bc2"),
-                    corr = FALSE, robust = TRUE, check.grad = FALSE, ...){
+                    corr = FALSE, robust = TRUE, ...){
     fitted = FALSE
+    check.grad <- FALSE
     dots <- list(...)
     oldoptions <- options(warn = -1)
     on.exit(options(oldoptions))
@@ -134,8 +135,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     result <- mhurdle.fit(start, X1, X2, X3, X4, y,
                           gradient = TRUE, fit = FALSE,
                           dist = dist, corr = corr,
-                          robust = robust, fitted = fitted,
-                          check.grad = check.grad, ...)
+                          robust = robust, fitted = fitted, ...)
     result$naive <- naive
     result$call <- cl.save
     result$formula <- formula
@@ -145,8 +145,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
 
 mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
                         dist = c("ln", "n", "tn", "bc", "ihs", "bc2", "ln2"),
-                        corr = FALSE, robust = TRUE,  fitted = FALSE,
-                        check.grad = FALSE, ...){
+                        corr = FALSE, robust = TRUE,  fitted = FALSE, ...){
     start.time <- proc.time()
     h1 <- ! is.null(X1)
     h3 <- ! is.null(X3)
@@ -184,6 +183,7 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
                                      gradient = TRUE, fitted = FALSE,
                                      dist = dist, corr = corr,
                                      robust = robust)
+    check.grad <- FALSE
     if (check.grad){
         ngrad <- c()
         oparam <- start
