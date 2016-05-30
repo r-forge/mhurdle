@@ -101,7 +101,7 @@ E-mail: \email{stephane.hoareau@univ-reunion.fr}
 
 
 \section{Introduction}
-<<echo=FALSE,results=hide>>=
+<<echo=FALSE,results=hide, label = init>>=
 options(prompt= "R> ", useFancyQuotes = FALSE)
 @
 Data collected by means of households' expenditure survey may present
@@ -2007,7 +2007,7 @@ equation, \texttt{x21} and \texttt{x22} two covariates for the desired
 consumption equation, and \texttt{x31} and \texttt{x32} two covariates
 for the purchasing equation, we use the following commands :
 
-<<>>=
+<<label = Formula>>=
 library("Formula")
 f <- Formula(y ~ x11 + x12  | x21 + x22 | x31 + x32)
 @
@@ -2118,72 +2118,50 @@ function to compute the bivariate normal cdf.
 
 The package is loaded using:
 
-
-<<>>=
+<<label = Library>>=
 library("mhurdle")
 @
 
+To illustrate the use of \pkg{mhurdle}, we use one surveys conducted
+by the Bureau of Labour Statistics of the U.S. Department of Labour,
+called the "Interview Survey". Data from 25813 households on all
+expenditures are collected, on a quarterly basis. The micro-data files
+are publicly available on the website of the Bureau of Labour
+Statistics, and may be downloaded and used without permission.  We use
+a small subset of 1000 randomly selected households. The total
+expenditure is divided in 14 main chapters (food, alcool, housing,
+apparel, transport, health, entertainment, personal care, reading,
+eduction, tobacco, miscellanous expenditures, cash contributions and
+insurance) and we also report expenditures on fees and admissions
+(called \code{shows}) which is part of the entertainment chapter and
+trip expenditures (called \code{vacations} on the data set).
 
-To illustrate the use of \pkg{plm}, , we use two surveys conducted by
-the Bureau of Labour Statistics of the U.S. Department of Labour. The
-first survey, called "Dairy Survey", collects data from 10351
-households on frequently purchased goods, especially food, on a two
-weeks basis. The second survey, called "Interview Survey", collects
-data from 25813 households on all expenditure, on a quarterly
-basis. The micro-data 16files are publicly available on the website of
-the Bureau of Labour Statistics, and may be downloaded and used
-without permission.
+All the expenditures are in tousands of USD, measured on an annual
+basis and are divided by the number of consumption units (obtained by
+counting for one the first adult of the household, 0.7 the subsequent
+adults and 0.5 every other person aged under 18).
 
 
-<<eval = TRUE>>=
-data("Comics", package = "mhurdle")
-head(Comics, 3)
-mean(Comics$comics == 0)
-max(Comics$comics)
+<<eval = TRUE, label = Data>>=
+data("Interview", package = "mhurdle")
+head(Interview, 3)
+mean(Interview$shows == 0)
+max(Interview$shows)
 @
 
-<<eval = FALSE>>=
-data("Intview", package = "mhurdle")
-head(Intviewu, 3)
-mean(Intview$vacations == 0)
-max(Intview$vacations)
-@
-
-The number of comics read is zero for about 78\% of the sample and the
-maximum value is 520. The covariates of this data frame are :
-
-
-%% \begin{description}
-%% \item[income] the net income,
-%% \item[uc] the number of consumption units,
-%% \item[urban]{does the household live in an urban area (\code{yes} or \code{no}),}
-%% \item[smsa]{does the household live in a SMSA (\code{yes} or \code{no}),}
-%% \item[region]{the region of residence of the household, one of \code{northeast}, \code{midwest}, \code{south} and \code{west},}
-%% \item[age]{the age of the reference person of the household,}
-%% \item[educ]{the number of year of education of the reference person of the household,}
-%% \item[sex]{the sex of the reference person of the household (\code{male} and \code{female}),}
-%% \item[race]{the race of the head of the household, one of \code{white}, \code{black}, \code{indian}, \code{asian}, \code{pacific} and \code{multirace},}
-%% \item[hispanic]{is the reference person of the household is hispanic (\code{no} or \code{yes}),}
-%% \item[size]{the number of persons in the household,}
-%% \item[less18]{the number of persons less than 18 years old in the household,}
-%% \item[income]{the income of the household for the 12 month before the interview,}
-%% \item[month]{the month of the interview (between 1 and 12),}
-%% \end{description}
+The covariates are :
 
 \begin{description}
-\item[area] one of \code{rural}, \code{small}, \code{medium},
-  \code{large} and \code{paris}
-\item[income] the income of the household (in thousands of euros per
-  month),
-\item[cu] the number of consumption units (one for the first two
-  adults, one half for other members of the household),
-\item[size] the number of persons in the household,
-\item[age] the age of the person,
-\item[empl] the kind of occupation, a qualitative factor with 9 levels,
-\item[gender] one of \code{male} and \code{female},
-\item[couple] "does the person live in couple ?", a qualitative factor with
-  levels \code{yes} and \code{no},
-\item[educ] the number of years of education.
+\item[income] the anual net income by consumption unit,
+\item[smsa]{does the household live in a SMSA (\code{yes} or
+    \code{no}),}
+\item[age]{the age of the reference person of the household,}
+\item[educ]{the number of year of education of the reference person of
+    the household,}
+\item[sex]{the sex of the reference person of the household
+    (\code{male} and \code{female}),}
+\item[size]{the number of persons in the household,}
+\item[month]{the month of the interview (between 1 and 12),}
 \end{description}
 
 
@@ -2202,112 +2180,87 @@ has the following arguments:
 \item[data:] a data frame containing the observations of the variables
   present in the formula.
 \item[subset, weights, na.action:] these are arguments passed on to
-  the model.frame function in order to extract the data suitable for
-  the model. These arguments are present in the \code{lm} function and
-  in most of the estimation functions.
+  the \code{model.frame} function in order to extract the data
+  suitable for the model. These arguments are present in the \code{lm}
+  function and in most of the estimation functions.
 \item[start:] the starting values. If \code{NULL}, the starting values
   are computed as described in section 4.2.
 \item[dist:] this argument indicates the functional form of the
   desired consumption equation, which may be either log-normal
-  \code{"ln"} (the default), normal \code{"n"}, truncated normal
-  \code{"tn"}, Box-Cox \code{"bc"} or inverse Hyperbolic Sine
-  \code{"ihs"},
-\item[corr:] this argument indicates whether the disturbance of the
-  different equations are correlated. For models with two equations,
-  this can be either \code{"d"} for dependent and \code{"i"} for
-  independent. For models with three equations, this should be a
-  character of length three containing values of \code{"i"} and
-  \code{"d"}. Note that the current version of the package only deals
-  with the estimation of only one of the three coefficients of
-  correlation ($\rho_{12}$ or $\rho_{13}$), so that \code{corr} can
-  only be \code{"dii"} or \code{"iid"}. The default value is
-  \code{NULL} which means no correlation,
+  \code{"ln"} (the default), two-parameters log-normal \code{"ln2"},
+  normal \code{"n"}, truncated normal \code{"tn"}, Box-Cox
+  \code{"bc"}, two-parameters Box-Cox \code{"bc2"} or inverse
+  Hyperbolic Sine \code{"ihs"},
+\item[scaled:] if \code{TRUE}, the dependent variable is divided by
+  the geometric mean of the positive values,
+\item[corr:] this boolean argument indicates whether the disturbance
+  of the different equations are correlated, the default value is
+  \code{FALSE},
+\item[robust:] if \code{TRUE}, transformations of some parameters are
+  used, so that they lie in the required range (positive values for
+  the standard deviation and for the position parameter, between -1
+  and +1 for the coefficients of correlation),
 \item[...] further arguments that are passed to the optimisation
   function \code{maxLik}.
 \end{description}
 
-To illustrate the use of \pkg{mhurdle} package, we first estimate a
-simple Tobit model, which we call \code{m010} ; the income is first
-divided by the number of consumption units and then by its sample
-mean. Powers up to three for the log of income are introduced.
 
-<<>>= 
-Comics$incu <- with(Comics, income / cu)
-Comics$incum <- with(Comics, incu / mean(incu))
-m010 <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
-                    I(log(incum)^3) + age + gender + educ +
-                        size| 0, data = Comics, dist = "n", method = 'bfgs')
+To illustrate the use of \code{mhurdle}, we estimate several models
+explaining the expenditure on fees and admission. The expenditure is
+supposed to depends on income and its square, age and its square,
+education, the size of the household and the fact that the household
+lives in a smsa. We first estimate a triple hurdle model, using
+\code{educ} and \code{size} as covariates for the selection equation
+and \code{age} and \code{smsa} as covariates for the purchasing
+equation. We use a two-parameter log-normal distribution and a general
+structure of correlation between the errors of the three equations is
+estimated.
+
+<<label = ThreeHurdlesDep>>=
+H3D <- mhurdle(shows ~ educ + size | linc + linc2 | age + age2 + smsa, 
+               Interview, dist = "ln2", corr = TRUE, method = "bhhh")
 @ 
 
+The independent version of the same model is obtained by setting the
+\code{corr} argument to \code{FALSE}.
 
-<<eval = FALSE>>=
-Intview$incu <- with(Intview, income / cu)
-Intview$incum <- with(Intview, incu / mean(incu))
+<<label = ThreeHurdlesInd>>=
+H3I <- update(H3D, corr = FALSE)
+@ 
 
+A three equation - two hurdles model is obtained by choosing a
+distribution only defined for positive values of the response, 
+\emph{e.g.} the \code{ln} distribution.
 
-m010 <- mhurdle(vacations ~ 0 | log(incum) + I(log(incum)^2) +
-                I(log(incum)^3) + age  + gender + educ +
-                size| 0, data = Intview, dist = "n", method = 'bfgs')
-@
+<<label = TwoHurdlesThreeEqs>>=
+H2D <- update(H3D, dist = "ln")
+@ 
 
-Note that the first and the third part of the formula are 0,
-as there is no good selection and no purchasing equations.
+We then estimate a double-hurdle selection model by using a two-part
+formula with \code{educ}, \code{size}, \code{age} and \code{smsa} in
+the first part which describe the selection process:
 
-Consider now that some covariates explain the fact that the good is
-selected, and not the level of consumption if the good is chosen. In
-this case, we estimate the following dependent double hurdle model, which
-we call \code{m110d}. We keep the income and the size of the
-household as covariates for the desired consumption equation and move the
-other covariates to the first part of the formula.
+<<label = Selection>>=
+S2D <- mhurdle(shows ~ educ + size + age + age2 + smsa | linc + linc2, 
+               Interview, dist = "ln2", corr = TRUE, method = "bhhh")
+@ 
 
-<<eval = TRUE>>=
-m110d <- mhurdle(comics ~ gender + educ + age |  log(incum) +
-                 I(log(incum)^2) + I(log(incum)^3) + size | 0,
-                 data = Comics, corr = TRUE, dist = "n", method = 'bfgs')
-@
+Finaly, we estimate a double-hurdle p-tobit model, all the covariates
+which were in the first part of the formula being moved to the third
+part:
 
-The same model without correlation is called \code{m110i}, and can
-easily be obtained by updating \code{m110d} :
-
-
-<<eval = TRUE>>=
-m110i <- update(m110d, corr = FALSE)
-@
-
-If one wants that zeros only arise from the selection mechanism,
-one has to switch the \code{dist} argument to \code{"ln"}, so
-that a log-normal distribution is introduced. This can be done easily
-by updating the previous model and this leads to a model called
-\code{m100d} :
-
-<<eval = TRUE>>=
-m100d <- update(m110d, dist = "ln")
-@
-
-The independent version is then easily obtained :
-
-<<eval = TRUE>>=
-m100i <- update(m100d, corr = FALSE)
-@
-
-The last model we estimate is a dependent triple hurdle model ;
-compared to the double hurdle model previously estimated, we move the
-\code{age} covariate from the selection to the purchasing equation :
-
-<<eval = TRUE>>=
-m111dii <- mhurdle(comics ~ gender + educ  |  log(incum) +
-                   I(log(incum)^2) + I(log(incum)^3) + size | age,
-                   data = Comics, corr = TRUE, dist = "n", method = 'bhhh', iterlim = 200)
-@
-
+<<label = Ptobit>>=
+P2D <- mhurdle(shows ~ 0 | linc + linc2 | educ + size + age + age2 + smsa, 
+               Interview, dist = "ln2", corr = TRUE, method = "bhhh")
+@ 
 
 \subsection{Methods}
 
 A \code{summary} method is provided for \code{mhurdle} objects :
 
 
-<<eval = TRUE>>=
-summary(m111dii)
+<<eval = TRUE, label = Summary>>=
+summary(H3D)
 @
 
 This method displays the percentage of 0 in the sample, the
@@ -2323,21 +2276,21 @@ likelihood estimators are extracted using the usual \code{coef} and
 argument indicating which subset has to be returned (the default is to
 return all).
 
-<<eval = TRUE>>=
-coef(m111dii, "h2")
-coef(m110d, "h1")
-coef(m110d, "sd")
-coef(summary(m111dii), "h3")
-vcov(m111dii, "h3")
+<<eval = TRUE, label = Methods>>=
+coef(H3D, "h2")
+coef(H3D, "h1")
+coef(H3D, "sd")
+coef(summary(H3D), "h3")
+vcov(H3D, "h3")
 @
 
 Log-likelihood may be obtained for the estimated model or for a
 ``naive'' model, defined as a model without covariates :
 
 
-<<eval = TRUE>>=
-logLik(m110d)
-logLik(m110d, naive = TRUE)
+<<eval = TRUE, label = LogLik>>=
+logLik(H3D)
+logLik(H3D, naive = TRUE)
 @
 
 Fitted values are obtained using the \code{fitted} method.  The output
@@ -2346,16 +2299,16 @@ censoring $\mbox{P}(y=0)$ and the estimated expected value of an
 uncensored dependent variable observation $\mbox{E}(y|y>0)$.
 
 
-<<eval = TRUE>>=
-head(fitted(m110d))
+<<eval = FALSE, label = Fitted>>=
+head(fitted(H3D))
 @
 
 A \code{predict} function is also provided, which returns the same
 two columns for given values of the covariates.
 
 
-<<eval = FALSE>>=
-predict(m110d,
+<<eval = FALSE, label = Predict>>=
+predict(H3D,
         newdata = data.frame(
             comics = c(0, 1, 2),
             gender = c("female", "female", "male"),
@@ -2381,8 +2334,8 @@ whereas the adjusted version of this coefficient is suited for
 comparing model specifications with a different number of parameters.
 
 
-<<eval = FALSE>>=
-rsq(m110d, type = "coefdet")
+<<eval = FALSE, label = Rsq1>>=
+rsq(H3D, type = "coefdet")
 @
 
 The second measure is an extension to limited dependent variable
@@ -2394,8 +2347,8 @@ parametrisation, in order to allow model comparisons with the same
 or with a different number of parameters.
 
 
-<<eval = TRUE>>=
-rsq(m110d, type = "lratio", adj = TRUE)
+<<eval = TRUE, label = Rsq2>>=
+rsq(H3D, type = "lratio", adj = TRUE)
 @
 
 The Vuong test based on the $T_{LR}$ statistic, as presented in
@@ -2407,93 +2360,93 @@ of Figure 1\footnote{Note that Vuong tests for strictly non-nested
   some specific count data models.} :
 
 
-<<eval = TRUE>>=
-vuongtest(m110d, m111dii)
+<<eval = TRUE, label = VuongUnnested>>=
+vuongtest(S2D, P2D)
 @
 
 According to this outcome, the null hypothesis stating the equivalence
-between the two models is strongly rejected in favour of the alternative
-hypothesis stating that \code{m110d} is better than \code{m111dii}.
+between the two models is rejected in favour of the alternative
+hypothesis stating that \code{P2D} is better than \code{S2D}.
 
 Testing the hypothesis of no correlation between the good selection
-mechanism and the desired consumption equation can be performed as a
-Vuong test of selection between two nested models, differing only with
-respect to the value of the correlation coefficient $\rho_{12}$,
-namely the test of the hypothesis $H_0: \rho_{12}=0$, specifying an
-independent mhurdle model, against the alternative hypothesis $H_a:
-\rho_{12}\neq0$, specifying a corresponding dependent mhurdle
-model. This test is performed using the log-likelihood ratio (LR)
-statistic (\ref{eq45}). As explained in section 3.3, the critical
-value or the p-value to be used to perform this test is not the same
-depending on the model builder believes or not that his unrestricted
-model, assuming $-1<\rho_{12}<1$, is correctly specified.  In the
-first case, the p-value is computed using the standard chi square
+mechanism, the purchasing mechanism and the desired consumption
+equation can be performed as a Vuong test of selection between two
+nested models, differing only with respect to the value of the
+correlation coefficients, namely the test of the hypothesis
+$H_0: \rho_{12}=\rho_{13}=\rho_{23}=0$, specifying an independent
+mhurdle model, against the alternative hypothesis specifying a
+corresponding dependent mhurdle model. This test is performed using
+the log-likelihood ratio (LR) statistic (\ref{eq45}). As explained in
+section 3.3, the critical value or the p-value to be used to perform
+this test is not the same depending on the model builder believes or
+not that his unrestricted model is correctly specified.  In the first
+case, the p-value is computed using the standard chi square
 distribution, whereas in the second case a weighted chi square
 distribution is used.
 
-<<eval = TRUE>>=
-vuongtest(m100d, m100i, type = 'nested', hyp = TRUE)
-vuongtest(m100d, m100i, type = 'nested', hyp = FALSE)
+<<eval = TRUE, label = VuongNested>>=
+vuongtest(H3D, H3I, type = 'nested', hyp = TRUE)
+vuongtest(H3D, H3I, type = 'nested', hyp = FALSE)
 @
 
 According to these outcomes, the null hypothesis of zero correlation
-is accepted or rejected at almost the same significance level, which
-must be set higher than 0.066 for acceptance and lower than 0.061 for
-rejection.
+is rejected if the unrestricted model is assumed to be correctly
+specified and accepted otherwise.
 
-Testing this hypothesis of no correlation by assuming the unrestricted
-model correctly specified, can be also performed by means of the
-classical Wald test, using the t-statistic or the p-value of the
-correlation coefficient estimate presented in the table of parameter
-estimates of the dependent model (\code{m100d}).
+%% ## Testing this hypothesis of no correlation by assuming the unrestricted
+%% ## model correctly specified, can be also performed by means of the
+%% ## classical Wald test, using the t-statistic or the p-value of the
+%% ## correlation coefficient estimate presented in the table of parameter
+%% ## estimates of the dependent model (\code{m100d}).
 
-<<eval = TRUE>>=
-coef(summary(m100d), "corr")
-@
+%% <<eval = TRUE>>=
+%% coef(summary(m100d), "corr")
+%% @
 
-According to this test outcome, the hypothesis of zero correlation
-is accepted at a little less stringent significance level than with
-a Vuong test.
+%% According to this test outcome, the hypothesis of zero correlation
+%% is accepted at a little less stringent significance level than with
+%% a Vuong test.
 
 Finally, to illustrate the use of the Vuong test for discriminating
-between two overlapping models, we consider a slightly different Tobit
-model obtained by removing the \code{age} covariate and adding the
-\code{empl} and \code{area} covariates :
+between two overlapping models, we consider a slightly different
+selection model obtained by removing the \code{age} covariate and
+adding the \code{sex} covariate :
 
-<<eval = TRUE>>=
-m010bis <- mhurdle(comics ~ 0 | log(incum) + I(log(incum)^2) +
-                   I(log(incum)^3)  + gender + educ + age +
-                   empl+area| 0, data = Comics, dist = "n", method = 'bfgs')
-@
+<<eval = TRUE, label = SelectionBis>>=
+S2Db <- mhurdle(shows ~ educ + size + sex + smsa | linc + linc2, 
+                Interview, dist = "ln2", corr = TRUE, method = "bhhh")
+@ 
 
 In this case, the Vuong test is performed in two steps. Firstly a test
 of the null hypothesis $\omega^2=0$, meaning that the two models are
 equivalent, is undertaken.
 
-<<eval = TRUE>>=
-vuongtest(m010, m010bis, type="overlapping")
+<<eval = TRUE, label = VuongOverlap>>=
+vuongtest(S2D, S2Db, type="overlapping")
 @
 
-This null hypothesis is here strongly rejected. Therefore, we can test
-the equivalence of these two models as if they were strictly
-non-nested.
+The null hypothesis is not rejected. 
 
-<<eval = TRUE>>=
-vuongtest(m010, m010bis, type="non-nested")
-@
+%% This null hypothesis is here strongly rejected. Therefore, we can test
+%% the equivalence of these two models as if they were strictly
+%% non-nested.
 
-According to the outcome of this second test, we conclude that these two
-model specifications cannot be empirically discriminated.
+%% <<eval = TRUE>>=
+%% vuongtest(m010, m010bis, type="non-nested")
+%% @
+
+%% According to the outcome of this second test, we conclude that these two
+%% model specifications cannot be empirically discriminated.
 
 If one of two overlapping models is assumed to be correctly specified,
 we can bypass the first step of this Voung test (the variance test) and
 proceed as if we had to discriminate between two nested models.
 
-<<eval = TRUE>>=
-vuongtest(m010bis, m010, type="overlapping", hyp=TRUE)
+<<eval = TRUE, label = VuongOverlap2>>=
+vuongtest(S2D, S2Db, type="overlapping", hyp=TRUE)
 @
 
-Once again, the equivalence of the two models is not rejected.
+%Once again, the equivalence of the two models is not rejected.
 
 \section{Conclusion}
 \label{sec:conclusion}

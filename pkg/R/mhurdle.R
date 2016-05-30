@@ -1,6 +1,6 @@
 mhurdle <- function(formula, data, subset, weights, na.action,
                     start = NULL, dist = c("ln", "tn", "n", "bc", "ihs", "ln2", "bc2"),
-                    corr = FALSE, robust = TRUE, ...){
+                    scaled = TRUE, corr = FALSE, robust = TRUE, ...){
     fitted = FALSE
     check.grad <- FALSE
     dots <- list(...)
@@ -39,6 +39,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     X3 <- model.matrix(formula, data = mf, rhs = 3)
     X4 <- model.matrix(formula, data = mf, rhs = 4)
     y <- model.response(mf)
+    if (scaled) y <- y / exp(mean(log(y[y > 0])))
     n <- length(y)
     if (length(X1) == 0) X1 <- NULL
     if (length(X2) == 0) stop("the second hurdle (consumption equation) is mandatory")
@@ -125,11 +126,11 @@ mhurdle <- function(formula, data, subset, weights, na.action,
         
         # add shape and/or scale parameters
         if (corr){
-            if (robust) rhoinit <- tan(0.0 * pi / 2) else rhoinit <- 0
+            if (robust) rhoinit <- tan(0.1 * pi / 2) else rhoinit <- 0.1
             if (h1 + h3 == 2) start <- c(start, rho12 = rhoinit, rho13 = rhoinit, rho23 = rhoinit)
             else start <- c(start, rho = rhoinit)
         }
-        if (dist %in% c("bc", "bc2", "ihs")) start <- c(start, tr = 0.01)
+        if (dist %in% c("bc", "bc2", "ihs")) start <- c(start, tr = -0.1)
         if (dist %in% c("bc2", "ln2")) start <- c(start, pos = 1)
     }
     result <- mhurdle.fit(start, X1, X2, X3, X4, y,
@@ -199,8 +200,7 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
         print(as.numeric(sum(fo)))
         stop()
     }
-
-    maxl <- maxLik(f, start = start,...)
+    maxl <- maxLik(f, start = start, finalHessian = "bhhh", ...)
     nb.iter <- maxl$iterations
     convergence.OK <- maxl$code <= 2
     coefficients <- maxl$estimate
@@ -260,3 +260,26 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
 }
 
 
+sanitize <- function(x, myeps = 1E-07, mymax = 1E02, string = c("", ""), replace = TRUE, verbal = TRUE){
+    string <- paste("of", string[1], "in", string[2])
+    if (replace){
+        if (any(is.na(x))){
+            if (verbal) cat(paste(sum(is.na(x)), "NA values", string, "replaced by 0\n"))
+            x[is.na(x)] <- 0
+        }
+        if ( any(x > 0 & x < myeps)){
+            if (verbal) cat(paste(sum(x > 0 & x < myeps), "values", string, "lower than",  myeps,"replaced by", myeps, "\n"))
+            x[x > 0 & x < myeps] <- myeps
+        }
+        if (any(x < - mymax)){
+            if (verbal) cat(paste(sum(x < - mymax), "values", string, "lower than", - mymax, "replaced by", - mymax, "\n"))
+            x[x < - mymax] <- - mymax
+        }
+        if (any(x > mymax)){
+            if (verbal) cat(paste(sum(x >  mymax), "values", string, "greater than",  mymax, "replaced by", mymax, "\n"))
+            x[x > mymax] <- mymax
+        }
+    }
+    x
+}
+    

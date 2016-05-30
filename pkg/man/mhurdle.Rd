@@ -18,6 +18,7 @@
 mhurdle(formula, data, subset, weights, na.action,
      start = NULL,
      dist = c("ln","tn","n", "bc", "ihs", "ln2", "bc2"),
+     scaled = TRUE,
      corr = FALSE, robust = TRUE, ...)
 \method{coef}{mhurdle}(object,
    which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"), ...)
@@ -49,6 +50,8 @@ mhurdle(formula, data, subset, weights, na.action,
     \code{"bc"} and \code{"bc2"} (box-cox normal with one or two
     parameters) and \code{"ihs"} (inverse hyperbolic sinus
     transformation)}
+  \item{scaled}{if \code{TRUE}, the dependent variable is divided by its
+    geometric mean,}
    \item{corr}{a boolean indicating whether the errors of the different
      equations are correlated or not,}
    \item{robust}{transformation of the structural parameters in order to
@@ -149,22 +152,18 @@ or a double hurdle model if \code{dist="n"}.
 % }
 \examples{
 
-# a small subset of the Intview data
-
-set.seed(1)
-data("Intview", package = "mhurdle")
-SIntview <- Intview[sample(1:nrow(Intview), 1E+03), ]
+data("Interview", package = "mhurdle")
 
 # independent double hurdle model
-idhm <- mhurdle(vacations ~ car + size | lincu + lincu2 + lincu3 | 0, SIntview,
+idhm <- mhurdle(vacations ~ car + size | linc + linc2 | 0, Interview,
               dist = "ln2", method = "bfgs")
 
 # dependent double hurdle model
-ddhm <- mhurdle(vacations ~ car + size | lincu + lincu2 + lincu3 | 0, SIntview,
+ddhm <- mhurdle(vacations ~ car + size | linc + linc2  | 0, Interview,
               dist = "ln2", method = "bfgs", corr = TRUE)
 
 # a double hurdle p-tobit model
-ptm <- mhurdle(vacations ~ 0 | lincu + lincu2 + lincu3 | car + size, SIntview,
+ptm <- mhurdle(vacations ~ 0 | linc + linc2 | car + size, Interview,
               dist = "ln2", method = "bfgs", corr = TRUE)
 
 }

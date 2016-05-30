@@ -39,10 +39,11 @@ rsq(object, type = c("coefdet", "lratio"),
  
 }
 \examples{
-data("tobin", package = "survival")
-#  independent double hurdle model
-model110i <- mhurdle(durable ~ age |  quant | 0, tobin,  dist = "n")
-rsq(model110i, type = "lratio")
-rsq(model110i, type = "coefdet", r2pos = "rss")
+data("Interview", package = "mhurdle")
+# independent double hurdle model
+idhm <- mhurdle(vacations ~ car + size | linc + linc2 | 0, Interview,
+              dist = "ln2", method = "bfgs")
+rsq(idhm, type = "lratio")
+rsq(idhm, type = "coefdet", r2pos = "rss")
 }
 \keyword{htest}

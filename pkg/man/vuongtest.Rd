@@ -37,18 +37,14 @@ vuongtest(x, y,
   \code{vuong} in package \code{pscl}.
 }
 \examples{
-# a small subset of the Intview data
-set.seed(1)
-data("Intview", package = "mhurdle")
-SIntview <- Intview[sample(1:nrow(Intview), 1E+03), ]
-
+data("Interview", package = "mhurdle")
 # dependent double hurdle model
-dhm <- mhurdle(vacations ~ car + size | lincu + lincu2 + lincu3 | 0, SIntview,
-              dist = "ln2", method = "bfgs", corr = TRUE)
+dhm <- mhurdle(vacations ~ car + size | linc + linc2 | 0, Interview,
+              dist = "ln2", method = "bhhh", corr = TRUE)
 
 # a double hurdle p-tobit model
-ptm <- mhurdle(vacations ~ 0 | lincu + lincu2 + lincu3 | car + size, SIntview,
-              dist = "ln2", method = "bfgs", corr = TRUE)
+ptm <- mhurdle(vacations ~ 0 | linc + linc2 | car + size, Interview,
+              dist = "ln2", method = "bhhh", corr = TRUE)
 vuongtest(dhm, ptm)
 }
 \keyword{htest}
