@@ -1,7 +1,7 @@
 mhurdle <- function(formula, data, subset, weights, na.action,
-                    start = NULL, dist = c("ln", "tn", "n", "bc", "ihs", "ln2", "bc2"),
+                    start = NULL, dist = c("ln", "n", "bc", "ihs"), h2 = FALSE,
                     scaled = TRUE, corr = FALSE, robust = TRUE, ...){
-    fitted = FALSE
+    fitted = TRUE
     check.grad <- FALSE
     dots <- list(...)
     oldoptions <- options(warn = -1)
@@ -9,27 +9,22 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     cl <- match.call()
     posT <- as.list(cl) == "T" ; posF <- as.list(cl) == "F"
     cl[posT] <- TRUE           ; cl[posF] <- FALSE
-    cl.save <- cl
     dist <- match.arg(dist)
 
+    if (dist == "ln" & h2) dist <- "ln2"
+    if (dist == "n" & ! h2) dist <- "tn"
+    if (dist == "bc" & h2) dist <- "bc2"
+    
     # 1. Compute the model.frame and the model.matrix
 
     if (! inherits(formula, "Formula")) formula <- Formula(formula)
     if (length(formula)[2] > 4) stop("at most 4 rhs should be provided in the formula")
     mf <- match.call(expand.dots = FALSE)
-    ## print(mf)
-    ## mf2 <- match.call(expand.dots = TRUE)
-    ## print(mf2)
-    ## mmxL <- match(c("print.level", "method", "iterlim", "bhhhHessian"), names(mf2), 0L)
-    ## optionsmaxLik <- mf2[names(mf2)[mmxL]]
-    ## print(mmxL)
-    ## print(optionsmaxLik)
-    ## print(as.list(mf2))
-    ## stop()
+    mc <- match.call(expand.dots = TRUE)
     
     m <- match(c("formula", "data", "subset", "na.action", "weights"),
-               names(mf), 0L)
-    mf <- mf[c(1L, m)]
+               names(mc), 0L)
+    mf <- mc[c(1L, m)]
     mf$drop.unused.levels <- TRUE
     mf[[1L]] <- as.name("model.frame")
     mf$formula <- formula
@@ -38,8 +33,16 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     X2 <- model.matrix(formula, data = mf, rhs = 2)
     X3 <- model.matrix(formula, data = mf, rhs = 3)
     X4 <- model.matrix(formula, data = mf, rhs = 4)
+    # Remove the intercept if any for the heteroscedastic model
+    if (ncol(X4)){
+        int4 <- attr(terms(formula, data = mf, rhs = 4), "intercept")
+        X4 <- X4[, - 1, drop = FALSE]
+    }
     y <- model.response(mf)
-    if (scaled) y <- y / exp(mean(log(y[y > 0])))
+    if (scaled){
+        geomean <- exp(mean(log(y[y > 0])))
+        y <- y / geomean
+    }
     n <- length(y)
     if (length(X1) == 0) X1 <- NULL
     if (length(X2) == 0) stop("the second hurdle (consumption equation) is mandatory")
@@ -49,19 +52,69 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     h3 <- ! is.null(X3)
     
     #  2. One equation models
-
-    if (!h1 && !h3 && dist %in% c("ln", "tn", "bc")){
-        stop("the specified model doesn't allow zero observations")
-        if (dist == "ln") result <- lm( log(y) ~ X2 - 1, subset = y > 0)
-        if (dist == "tn") result <- truncreg(y ~ X2 - 1, scaled = TRUE, subset = y > 0)
-        if (dist == "bc") result <- boxcoxreg(y ~ X2 - 1, subset = y > 0)
-        if (dist != "ln") names(result$coefficients) <- c(colnames(X2), "sigma")
-        else names(result$coefficients) <- colnames(X2)
+    if (!h1 && !h3){
+        result <- onequation.mhurdle(X2, y, dist)
+        result$naive <- NULL#naive
+        result$call <- cl
+        result$model <- mf
+        result$formula <- formula
+        return(result)
+    }
+    
+    # 3. Selection single hurdle models without correlation that can
+    # be estimated simply in two parts using seperate.mhurdle()
+    if (h1 && !h3  && ! corr && !h2){
+        result <- seperate.mhurdle(X1, X2, y, dist = dist)
+        result$naive <- NULL#naive
+        result$call <- cl
+        result$model <- mf
+        result$formula <- formula
         return(result)
     }
 
+    # 5. Compute the starting values if not provided (use the linear
+    # specification as the starting value for ihs and the log-linear
+    # specification for Box-Cox)
+
+    if (is.null(start)){
+        dist.start <- dist
+        if (dist %in% c("bc", "bc2", "ln2")) dist.start <- "ln"
+        if (dist == "ihs") dist.start <- "n"
+        start <- start.mhurdle(X1, X2, X3, y, dist.start)
+        
+        # in case of heteroscedasctic model, add K4 zeros to the start
+        # vector and the intercept should be ln(sigma_o) (not sigma_o)
+        # because of the exp form
+        sd.pos <- getindex(X1, X2, X3, X4, corr, dist, which = "sd")
+        if (robust) start[sd.pos] <- log(start[sd.pos])
+        if (! is.null(X4)) start <- c(start[1:sd.pos], rep(0, ncol(X4)))
+        
+        # add shape and/or scale parameters
+        if (corr){
+            if (robust) rhoinit <- tan(0.1 * pi / 2) else rhoinit <- 0.1
+            if (h1 + h3 == 2) start <- c(start, rho12 = rhoinit, rho13 = rhoinit, rho23 = rhoinit)
+            else start <- c(start, rho = rhoinit)
+        }
+        if (dist %in% c("bc", "bc2", "ihs")) start <- c(start, tr = -0.1)
+        if (dist %in% c("bc2", "ln2")) start <- c(start, pos = 1)
+    }
+    else{
+        if (robust){
+            sd.pos <- getindex(X1, X2, X3, X4, corr, dist, which = "sd")
+            mu.pos <- getindex(X1, X2, X3, X4, corr, dist, which = "pos")
+            rho.pos <- getindex(X1, X2, X3, X4, corr, dist, which = "corr")
+            start[c(sd.pos, mu.pos)] <- log(start[c(sd.pos, mu.pos)])
+            start[rho.pos] <- tan(start[rho.pos] * pi / 2)
+        }
+    }
+    result <- mhurdle.fit(start, X1, X2, X3, X4, y,
+                          gradient = TRUE, dist = dist, corr = corr,
+                          robust = robust, fitted = fitted, ...)
+    if (fitted & scaled) result$fitted.values[, 2] <- result$fitted.values[, 2] * geomean
+    
     # 3. Compute the naive model
 
+#    if (FALSE){
     Pnull <- mean(y == 0)
     if (dist != "ln"){
         Ec <- mean(y[y > 0])
@@ -82,63 +135,11 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     logLik.naive <- structure(naive$max * n, nobs = length(y),
                               df = length(coef.naive), class = "logLik")
     naive <- list(coefficients = coef.naive, logLik = logLik.naive, code = naive$code)
+#}
+#    else naive <- NULL
 
-    # 4. Selection single hurdle models without correlation that can
-    # be estimated simply in two parts using fit.simple.mhurdle()
-
-    if (h1 && !h3 && (dist %in% c("ln", "bc", "tn")) && ! corr){
-        result <- fit.simple.mhurdle(X1, X2, y, dist = dist)
-        result$naive <- naive
-        result$call <- cl.save
-        result$model <- mf
-        result$formula <- formula
-        return(result)
-    }
-
-    # 5. Compute the starting values if not provided (use the linear
-    # specification as the starting value for ihs and the log-linear
-    # specification for Box-Cox)
-
-    if (is.null(start)){
-        # for (100d), use the results of (100i) as starting values
-        if (h1 && !h3 & (dist %in% c("ln", "bc", "tn"))){
-            start <- coef(fit.simple.mhurdle(X1, X2, y, dist = dist))
-            if (dist == "bc"){
-                start.lambda <- start[length(start)]
-                start <- start[- length(start)]
-            }
-        }
-        else{
-            dist.start <- dist
-            if (dist %in% c("bc", "bc2", "ln2")) dist.start <- "ln"
-            if (dist == "bc") start.lambda <- 0.01
-            if (dist == "ihs") dist.start <- "n"
-            start <- start.mhurdle(X1, X2, X3, y, dist.start)
-        }
-        
-        # in case of heteroscedasctic model, add K4 zeros to the start
-        # vector and the intercept should be ln(sigma_o) (not sigma_o)
-        # because of the exp form
-        sd.pos <- ifelse(h1, ncol(X1), 0) + ncol(X2) + ifelse(h3, ncol(X3), 0) + 1
-        ## WHAT ABOUT THE HOMOSCEDASTIC CASE ?
-        start[sd.pos] <- log(start[sd.pos])
-        if (! is.null(X4)) start <- c(start[1:sd.pos], rep(0, ncol(X4)))
-        
-        # add shape and/or scale parameters
-        if (corr){
-            if (robust) rhoinit <- tan(0.1 * pi / 2) else rhoinit <- 0.1
-            if (h1 + h3 == 2) start <- c(start, rho12 = rhoinit, rho13 = rhoinit, rho23 = rhoinit)
-            else start <- c(start, rho = rhoinit)
-        }
-        if (dist %in% c("bc", "bc2", "ihs")) start <- c(start, tr = -0.1)
-        if (dist %in% c("bc2", "ln2")) start <- c(start, pos = 1)
-    }
-    result <- mhurdle.fit(start, X1, X2, X3, X4, y,
-                          gradient = TRUE, fit = FALSE,
-                          dist = dist, corr = corr,
-                          robust = robust, fitted = fitted, ...)
     result$naive <- naive
-    result$call <- cl.save
+    result$call <- cl
     result$formula <- formula
     result$model <- mf
     result
@@ -151,13 +152,12 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
     h1 <- ! is.null(X1)
     h3 <- ! is.null(X3)
     h4 <- ! is.null(X4)
-    KR <- corr * (h1 + h3 + h1 * h3)
     
     # fancy coefficients names
     sd.names <- "sd"
     
     if (corr){
-        if (KR == 3) rho.names <- c("corr12", "corr13", "corr23")
+        if (h1 & h3) rho.names <- c("corr12", "corr13", "corr23")
         else rho.names <- c("corr")
     }
     else rho.names <- NULL
@@ -200,14 +200,13 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
         print(as.numeric(sum(fo)))
         stop()
     }
-    maxl <- maxLik(f, start = start, finalHessian = "bhhh", ...)
+    maxl <- maxLik(f, start = start, ...)
     nb.iter <- maxl$iterations
     convergence.OK <- maxl$code <= 2
     coefficients <- maxl$estimate
 
-    KR <- corr * (h1 + h3 + h1 * h3)
     if (fitted) fitted.values <- attr(mhurdle.lnl(coefficients, X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
-                                                  gradient = FALSE, fitted = TRUE, robust = FALSE,
+                                                  gradient = FALSE, fitted = TRUE, robust = robust,
                                                   dist = dist, corr = corr), "fitted")
     else fitted.values <- NULL
 
@@ -255,8 +254,9 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
                    est.stat      = est.stat,
                    naive         = NULL
                    )
-    if (ncol(X2) > 1) class(result) <- c("mhurdle")
+    class(result) <- c("mhurdle", class(result))
     result
+    
 }
 
 

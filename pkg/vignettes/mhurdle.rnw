@@ -2204,6 +2204,109 @@ has the following arguments:
   function \code{maxLik}.
 \end{description}
 
+\subsubsection{One equation models}
+
+We start with models that only contain the consumption equation. In
+this case, the only source of null consumption is the lack of
+ressources. In this case, the distribution of $y^*$ must admit
+negative values, this is the case for the two-parameters box-cox
+normal distribution, the log-normal distribution with a position
+parameter and the normal distribution (this later case corresponds to
+the standard tobit model). We use the expenditures on vacation as an
+exemple and the results are presented in table~\ref{tab:oneq}, using
+the \pkg{texreg} library.
+
+<<label = onequation>>=
+Sn <- mhurdle(vacations ~ 0 | I(car > 0) + size + linc + linc2 + age + age2,
+              Interview, dist = "n", h2 = TRUE, corr = FALSE,
+              method = "bhhh", print.level = 0)
+Sbc <- update(Sn, dist = "bc")
+Sln <- update(Sn, dist = "ln")
+library(texreg)
+@ 
+
+<<eval = FALSE, echo = TRUE, results = hide>>=
+texreg(list(Sn, Sbc, Sln), 
+       custom.model.names = c("normal tobit", "log-normal tobit", "box-cox tobit"), 
+       caption = "Estimation of one-equation models", 
+       label = "tab:oneq", pos = "ht")
+@ 
+
+<<echo = FALSE, results = tex>>=
+texreg(list(Sn, Sbc, Sln), 
+       custom.model.names = c("normal tobit", "log-normal tobit", "box-cox tobit"), 
+       caption = "Estimation of one-equation models", 
+       label = "tab:oneq", pos = "ht")
+@ 
+
+\subsubsection{Simple selection models}
+
+The original independent single hurdle models proposed by
+\citet{CRAGG/71} required the distinct estimation of two models : a
+probit to explain the null \emph{vs} the positive observations and an
+estimation on the truncated sample in order to explain the level of
+consumption of those who consume the good. This latter estimation can
+be realised with the hypothesis that the distribution of the errors
+are truncated normal, log-normal or box-cox normal. We use the
+expenditure on food-away as an exemple and the results are presented
+in table~\ref{tab:sep}.
+
+<<label = selection>>=
+Stn <- mhurdle(foodaway ~ size + smsa + age + age2 | linc + linc2, Interview, 
+               dist = "n", h2 = FALSE, corr = FALSE, method = "bhhh", print.level = 0)
+Sbc <- update(Stn, dist = "bc")
+Sln <- update(Stn, dist = "ln")
+@ 
+
+The dependent model is easily obtained by setting the \code{corr}
+argument to \code{TRUE}. For the log-normal model, we obtain :
+
+<<>>=
+Slnd <- update(Sln, corr = TRUE)
+coef(summary(Slnd), "corr")
+@ 
+
+The coefficient of correlation between the selection and the
+consumption is in this case highly significant.
+
+
+<<eval = FALSE, echo = TRUE, results = hide>>=
+texreg(list(Stn, Sbc, Sln), 
+       custom.model.names = c("truncated-normal", "log-normal", "box-cox"), 
+       caption = "Estimation of single hurdle selection models", 
+       label = "tab:sep", pos = "ht")
+@ 
+
+
+<<echo = FALSE, results = tex>>=
+texreg(list(Stn, Sbc, Sln), 
+       custom.model.names = c("truncated-normal", "log-normal", "box-cox"), 
+       caption = "Estimation of single hurdle selection models", 
+       label = "tab:sep", pos = "ht")
+@ 
+
+
+
+\subsubsection{P-tobit model}
+
+Apparel is a good candidate to illustrate the estimation of a P-tobit
+model as the infrequency of purchase is clearly the only source of
+null expenditure in this case. To explain the probability of
+purchasing during the quarter of the survey, we use the month (as
+expenditures in apparels can be concentrated on certain periods during
+the year because of the sales) and the fact that the household lives
+in a \textsc{smsa}. No corner solution is allowed as the good is
+consumed even for households with low ressources, so we choose a
+log-normal distribution.
+
+<<ptobit>>=
+ptobit <- mhurdle(apparel ~ 0 | linc + linc2 | factor(month) + smsa,
+                  Interview, corr = TRUE, dist = "ln", h2 = FALSE,
+                  method = "bhhh")
+summary(ptobit)
+@ 
+
+
 
 To illustrate the use of \code{mhurdle}, we estimate several models
 explaining the expenditure on fees and admission. The expenditure is
@@ -2218,7 +2321,7 @@ estimated.
 
 <<label = ThreeHurdlesDep>>=
 H3D <- mhurdle(shows ~ educ + size | linc + linc2 | age + age2 + smsa, 
-               Interview, dist = "ln2", corr = TRUE, method = "bhhh")
+               Interview, dist = "ln", h2 = TRUE, corr = TRUE, method = "bhhh")
 @ 
 
 The independent version of the same model is obtained by setting the
@@ -2228,12 +2331,11 @@ The independent version of the same model is obtained by setting the
 H3I <- update(H3D, corr = FALSE)
 @ 
 
-A three equation - two hurdles model is obtained by choosing a
-distribution only defined for positive values of the response, 
-\emph{e.g.} the \code{ln} distribution.
+A three equation - two hurdles model is obtained by making the second
+hurdle ineffective,
 
 <<label = TwoHurdlesThreeEqs>>=
-H2D <- update(H3D, dist = "ln")
+H2D <- update(H3D, h2 = FALSE)
 @ 
 
 We then estimate a double-hurdle selection model by using a two-part
@@ -2242,7 +2344,7 @@ the first part which describe the selection process:
 
 <<label = Selection>>=
 S2D <- mhurdle(shows ~ educ + size + age + age2 + smsa | linc + linc2, 
-               Interview, dist = "ln2", corr = TRUE, method = "bhhh")
+               Interview, dist = "ln", h2 = TRUE, corr = TRUE, method = "bhhh")
 @ 
 
 Finaly, we estimate a double-hurdle p-tobit model, all the covariates
@@ -2251,7 +2353,7 @@ part:
 
 <<label = Ptobit>>=
 P2D <- mhurdle(shows ~ 0 | linc + linc2 | educ + size + age + age2 + smsa, 
-               Interview, dist = "ln2", corr = TRUE, method = "bhhh")
+               Interview, dist = "ln", h2 = TRUE, corr = TRUE, method = "bhhh")
 @ 
 
 \subsection{Methods}
@@ -2414,7 +2516,7 @@ adding the \code{sex} covariate :
 
 <<eval = TRUE, label = SelectionBis>>=
 S2Db <- mhurdle(shows ~ educ + size + sex + smsa | linc + linc2, 
-                Interview, dist = "ln2", corr = TRUE, method = "bhhh")
+                Interview, dist = "ln", h2 = TRUE, corr = TRUE, method = "bhhh")
 @ 
 
 In this case, the Vuong test is performed in two steps. Firstly a test
@@ -2496,6 +2598,7 @@ improvements of the software are \change{continuing}.
 %% empirical applications. Research is continuing in this direction.
 
 
+
 \bibliography{bibliomhurdle}
 
 \end{document}
@@ -2530,10 +2633,56 @@ $\exp\left\{\beta_2^{\top} x_2 + \frac{\sigma^2}{2}\right\}\frac{\Phi\left(\beta
 + \sigma \frac{\Psi_{2|3}}{\Phi_{23} \Phi_3}$  \\ \hline\hline
 \end{tabular}
 
-BC <- mhurdle(comics ~ gender + educ + age |  log(incum) +
-                 I(log(incum)^2) + I(log(incum)^3) + size | 0,
-                 data = Comics, corr = "d", dist = "bc", method = 'bfgs', print.level = 3)
+%% BC <- mhurdle(comics ~ gender + educ + age |  log(incum) +
+%%                  I(log(incum)^2) + I(log(incum)^3) + size | 0,
+%%                  data = Comics, corr = "d", dist = "bc", method = 'bfgs', print.level = 3)
                  
-IHS <- mhurdle(comics ~ gender + educ + age |  log(incum) +
-                 I(log(incum)^2) + I(log(incum)^3) + size | 0,
-                 data = Comics, corr = "d", dist = "ihs", method = 'bfgs', print.level = 3)                 
+%% IHS <- mhurdle(comics ~ gender + educ + age |  log(incum) +
+%%                  I(log(incum)^2) + I(log(incum)^3) + size | 0,
+%%                  data = Comics, corr = "d", dist = "ihs", method = 'bfgs', print.level = 3)                 
+
+                 
+%% <<label = onequation>>=
+%% Sn <- mhurdle(vacations ~ 0 | linc,# + linc2,# + size + smsa,
+%%               Interview, dist = "n", h2 = TRUE, corr = FALSE,
+%%               method = "bhhh", print.level = 0)
+%% Sbc <- update(Sn, dist = "bc")
+%% Sln <- update(Sn, dist = "ln")
+%% library(texreg)
+%% @ 
+%% <<eval = FALSE, echo = TRUE, results = hide>>=
+%% texreg(list(Sn, Sln, Sbc), 
+%%        custom.model.names = c("normal tobit", "log-normal tobit", "box-cox tobit"), 
+%%        caption = "Estimation of one-equation models", 
+%%        label = "tab:oneq", pos = "ht")
+%% @ 
+
+                
+%% <<label = onequation>>=
+%% Sn <- mhurdle(tobacco ~ age + educ | linc,# + linc2,# + size + smsa,
+%%               Interview, dist = "n", h2 = FALSE, corr = FALSE,
+%%               method = "bhhh", print.level = 0)
+%% Sbc <- update(Sn, dist = "bc")
+%% Sln <- update(Sn, dist = "ln")
+%% library(texreg)
+%% @ 
+%% <<eval = FALSE, echo = TRUE, results = hide>>=
+%% texreg(list(Sn, Sln, Sbc), 
+%%        custom.model.names = c("normal tobit", "log-normal tobit", "box-cox tobit"), 
+%%        caption = "Estimation of one-equation models", 
+%%        label = "tab:oneq", pos = "ht", single.row=TRUE)
+%% @ 
+
+%% <<label = onequation>>=
+%% Sn <- mhurdle(apparel ~ 0 | linc|smsa, Interview, dist = "ln", 
+%%               h2 = FALSE, corr = FALSE,      method = "bfgs", print.level = 0)
+%% Sbc <- update(Sn, dist = "bc")
+%% Sln <- update(Sn, dist = "ln")
+%% library(texreg)
+%% @ 
+%% <<eval = FALSE, echo = TRUE, results = hide>>=
+%% texreg(list(Sn, Sln, Sbc), 
+%%        custom.model.names = c("normal tobit", "log-normal tobit", "box-cox tobit"), 
+%%        caption = "Estimation of one-equation models", 
+%%        label = "tab:oneq", pos = "ht", single.row=TRUE)
+%% @ 

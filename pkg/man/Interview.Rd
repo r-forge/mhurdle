@@ -67,7 +67,7 @@ data(Interview)
   }    
 }
 \source{ Consumer Expenditure Survey (CE), program of the US Bureau of
-    Labor Statistics \url{http://www.bls.gov/cex/}, diary survey.
+    Labor Statistics \url{http://www.bls.gov/cex/}, interview survey.
 }
 
 \keyword{datasets}

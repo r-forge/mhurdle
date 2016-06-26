@@ -349,7 +349,8 @@ ml.boxcox <- function(param, X, y, gradient, truncated, robust){
             stop("NA values in lnL")
         }
         if (any(abs(lnL) > myInf)){
-            stop("Huge values of lnL")
+            lnL[abs(lnL) > myInf] <- sign(lnL[abs(lnL) > myInf]) * myInf
+            warning("Huge values of lnL")
         }
         if (gradient){
             lnL.beta <- lnL.sigma <- lnL.lambda <- lnL.alpha <- vector(mode = "numeric", length = length(y))

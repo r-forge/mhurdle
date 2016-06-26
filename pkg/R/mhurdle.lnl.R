@@ -40,7 +40,7 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
         if (dist == "bc") mu <- 0
     }
     if (dist %in% c("bc", "bc2")) sgn <- sign(lambda) else sgn <- + 1
-
+    if (dist == "ln") mu <- 0
     # equation 1
     if (h1){
         beta1 <- param[1:K1]
@@ -107,7 +107,6 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
         }
     }
     else rho <- rep(0, 3)
-
     # Transformation of the dependent variable
     Ty <- switch(dist,
                  "ln"  = log2(y) + log(Phi3),
@@ -151,6 +150,8 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
     mzn <- + Inf
     if (dist %in% c("bc", "bc2") && lambda > 0) mzn <- (1 / lambda + bX2) / sigma
     if (dist == "tn") mzn <- - bX2 / sigma
+    # A verifier
+    if (dist == "tn") mzn <- bX2 / sigma
 
     mzx <- - Inf
     if (dist %in% c("bc", "bc2") && lambda < 0) mzx <- (1 / lambda + bX2) / sigma
@@ -175,8 +176,8 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
                        verbal = FALSE, replace = TRUE)
     # PI is the correction of the truncature
     PI <- punorm(mzn) - punorm(mzx)
+    Pplus <- (Pr123A$f - Pr123B$f) / PI
     Numerator <- PI - Pr123A$f + Pr123B$f
-
     lnL.null <- log(Numerator) - log(PI)
     lnL.null[y != 0] <- 0
     lnL.pos <-
@@ -362,13 +363,82 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
             gradi <- cbind(gradi, mu = lnL.mu * gradientmu)
         }
 
-        if (any(is.na(gradi))){
-#            cat("NA values in the gradient\n")
-            gradi[is.na(gradi)] <- 0
-        }
+        if (any(is.na(gradi))) gradi[is.na(gradi)] <- 0
         attr(lnL, "gradient") <- gradi
     }
-#    print(proc.time() - otime)
-    fitted <- FALSE
+    if (fitted){
+        if (dist %in% c("bc", "bc2")){
+            if (length(mzn) == 1) mzn <- rep(mzn, length(y))
+            if (length(mzx) == 1) mzx <- rep(mzx, length(y))
+            if (length(Phi3) == 1) Phi3 <- rep(Phi3, length(y))
+            if (length(Phi1) == 1) Phi1 <- rep(Phi1, length(y))
+            
+            resid <- function(z, index){
+                switch(dist,
+                       "ln"  = log2(z) + log(Phi3[index]),
+                       "ln2" = log2(z * Phi3[index] + mu),
+                       "bc"  = (exp(lambda * log(z * Phi3[index])) - 1) / lambda,
+                       "bc2" = (exp(lambda * log(z * Phi3[index] + mu)) - 1) / lambda,
+                       "ihs" = log(lambda * z * Phi3[index] + sqrt(1 + (lambda  * z * Phi3[index]) ^ 2)) / lambda,
+                       z * Phi3[index]
+                       ) - bX2[index]
+            }
+            lnJ <- function(z, index){
+                switch(dist,
+                       "ln"  = - log2(z),
+                       "ln2" = log(Phi3[index]) - log(mu + Phi3[index] * z),
+                       "bc"  = (lambda - 1) * log2(z) + lambda * log(Phi3[index]),
+                       "bc2" = (lambda - 1) * log(Phi3[index] * z + mu) + log(Phi3[index]),
+                       "ihs" = - 0.5 * log(1 + (lambda * Phi3[index] * z) ^ 2) + log(Phi3[index]),
+                       log(Phi3[index])
+                       )
+            }
+            
+            arg1 <- function(z, index) if (h1) (bX1[index] + rho[1] * resid(z, index) / sigma) / sqrt(1 - rho[1] ^ 2) else Inf
+            arg3 <- function(z, index) if (h3) (bX3[index] + rho[3] * resid(z, index) / sigma) / sqrt(1 - rho[3] ^ 2) else Inf
+            Pr13 <- function(z, index) PHI2(arg1(z, index), arg3(z, index),
+                                            (rho[2] - rho[1] * rho[3]) / sqrt(1 - rho[1] ^ 2) / sqrt(1 - rho[3] ^ 2))$f
+            # Pbnorm plante et pas PHI2        
+            PI <- function(index) punorm(mzn[index]) - punorm(mzx[index])
+            fplus <- function(z, index){
+                x <- z * exp(- log(sigma) + dnorm(resid(z, index) / sigma, log = TRUE) + log(Pr13(z, index)) + lnJ(z, index) - log(PI(index)))
+                x
+            }        
+            if (dist %in% c("bc", "bc2") && lambda < 0) maxint <- max(y) * 3
+            else maxint <- +Inf
+            E <- sapply(seq_len(length(y)), function(i) integrate(function(x) fplus(x, i), 0, maxint)$value)
+        }
+
+        if (dist %in% c("ln", "ln2")){
+            if (h1) arg1 <- bX1 + rho[1] * sigma else arg1 <- + Inf
+            if (h3) arg3 <- bX3 + rho[3] * sigma else arg3 <- + Inf
+            E <- exp(bX2 + 0.5 * sigma ^ 2) / Phi3 * ptnorm(arg1, mz0 + sigma, arg3, rho) / Pplus -
+                mu / Phi3
+        }
+        if (dist %in% c("n", "tn")){
+            phi2 <- dnorm(bX2 / sigma)
+            phi1 <- dnorm(bX1)
+            phi3 <- dnorm(bX3)
+            Pr13 <- pbnorm((bX1 - rho[1] * bX2 / sigma) / sqrt(1 - rho[1] ^ 2),
+                           (bX3 - rho[3] * bX2 / sigma) / sqrt(1 - rho[3] ^ 2),
+                           (rho[2] - rho[1] * rho[3]) / sqrt( (1 - rho[1] ^ 2) * (1 - rho[3] ^ 2)))
+            Pr23 <- pbnorm((bX2 / sigma - rho[1] * bX1) / sqrt(1 - rho[1] ^ 2),
+                           (bX3         - rho[2] * bX1) / sqrt(1 - rho[2] ^ 2),
+                           (rho[3] - rho[1] * rho[2]) / sqrt( (1 - rho[1] ^ 2) * (1 - rho[2] ^ 2)))
+            
+            Pr12 <- pbnorm((bX1         - rho[2] * bX3) / sqrt(1 - rho[2] ^ 2),
+                           (bX2 / sigma - rho[3] * bX3) / sqrt(1 - rho[3] ^ 2),
+                           (rho[1] - rho[2] * rho[3]) / sqrt(1 - rho[2] ^ 2) / sqrt(1 - rho[3] ^ 2)
+                           )
+            E <- bX2 / Phi3 + sigma / (Phi3 * Pplus) * (phi2 * Pr13 +
+                                                                rho[1] * phi1 * Pr23 / sqrt( (1 - rho[1] ^ 2) * (1 - rho[3] ^ 2)) +
+                                                                    rho[3] * phi3 * Pr12 / sqrt( (1 - rho[2] ^ 2) * (1 - rho[3] ^ 2)))
+
+            E <- bX2 / Phi3 + sigma / (Phi3 * Pplus) * (phi2 * Pr13 + rho[1] * phi1 * Pr23 + rho[3] * phi3 * Pr12)
+
+        }
+        attr(lnL, "fitted") <- cbind(zero = 1 - Pplus, 
+                                     pos = E / Pplus)
+    }
     lnL
 }

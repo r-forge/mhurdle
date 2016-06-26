@@ -17,7 +17,8 @@
 \usage{
 mhurdle(formula, data, subset, weights, na.action,
      start = NULL,
-     dist = c("ln","tn","n", "bc", "ihs", "ln2", "bc2"),
+     dist = c("ln", "n", "bc", "ihs"),
+     h2 = FALSE,
      scaled = TRUE,
      corr = FALSE, robust = TRUE, ...)
 \method{coef}{mhurdle}(object,
@@ -45,11 +46,10 @@ mhurdle(formula, data, subset, weights, na.action,
   \item{na.action}{see \code{\link{lm}},}
   \item{start}{starting values,}
   \item{dist}{the distribution of the error of the consumption equation:
-    one of \code{"n"} (normal), \code{"ln"} and \code{"ln2"} (log-normal
-    with one or two parameters), \code{"t"} (truncated normal),
-    \code{"bc"} and \code{"bc2"} (box-cox normal with one or two
-    parameters) and \code{"ihs"} (inverse hyperbolic sinus
-    transformation)}
+    one of \code{"n"} (normal), \code{"ln"} (log-normal) \code{"bc"}
+    (box-cox normal) and \code{"ihs"} (inverse hyperbolic sinus
+    transformation),}
+  \item{h2}{if \code{TRUE} the second hurdle is effective, it is not otherwise,}
   \item{scaled}{if \code{TRUE}, the dependent variable is divided by its
     geometric mean,}
    \item{corr}{a boolean indicating whether the errors of the different
@@ -156,15 +156,15 @@ data("Interview", package = "mhurdle")
 
 # independent double hurdle model
 idhm <- mhurdle(vacations ~ car + size | linc + linc2 | 0, Interview,
-              dist = "ln2", method = "bfgs")
+              dist = "ln", h2 = TRUE, method = "bfgs")
 
 # dependent double hurdle model
 ddhm <- mhurdle(vacations ~ car + size | linc + linc2  | 0, Interview,
-              dist = "ln2", method = "bfgs", corr = TRUE)
+              dist = "ln", h2 = TRUE, method = "bfgs", corr = TRUE)
 
 # a double hurdle p-tobit model
 ptm <- mhurdle(vacations ~ 0 | linc + linc2 | car + size, Interview,
-              dist = "ln2", method = "bfgs", corr = TRUE)
+              dist = "ln", h2 = TRUE, method = "bfgs", corr = TRUE)
 
 }
 % \author{}

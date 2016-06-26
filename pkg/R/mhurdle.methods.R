@@ -275,3 +275,115 @@ rsq <- function(object,
 nobs.mhurdle <- function(object, ...){
     nrow(object$model)
 }
+
+
+getindex <- function(X1, X2, X3, X4, corr, dist, which){
+    K1 <- ifelse(is.null(X1), 0, ncol(X1))
+    K2 <- ncol(X2)
+    K3 <- ifelse(is.null(X3), 0, ncol(X3))
+    K4 <- ifelse(is.null(X4), 0, ncol(X4))
+    cumul <- 0
+
+    if (which == "h1"){
+        if (K1 == 0) return(numeric(0)) else return(1:K1)
+    }
+    cumul <- cumul + K1
+
+    if (which == "h2") return( (cumul + 1):(cumul + K2) )
+    cumul <- cumul + K2
+
+    if (which == "h3"){
+        if (K3 == 0) return(numeric(0)) else return( (cumul + 1) : (cumul + K3) )
+    }
+    cumul <- cumul + K3
+
+    if (which == "sd") return(cumul + 1)
+    cumul <- cumul + 1
+
+    if (which == "h4"){
+        if (K4 == 0) return(numeric(0)) else return( (cumul + 1) : (cumul + K4) )
+    }
+    cumul <- cumul + K4
+
+    if (corr){
+        h1 <- K1 > 0
+        h3 <- K3 > 0
+        if (! h1 & ! h3) return(numeric(0))
+        else{
+            if (h1 + h3 == 2){
+                if (which == "corr") return( (cumul + 1) : (cumul + 3) )
+                cumul <- cumul + 3
+            }
+            else{
+                if (which == "corr") return( (cumul + 1) )
+                cumul <- cumul + 1
+            }
+        }
+    }
+    else{
+        if (which == "corr") return(numeric(0))
+    }
+
+    if (dist %in% c("ihs", "bc", "bc2")){
+        if (which == "tr") return(cumul + 1)
+        cumul <- cumul + 1
+    }
+    else{
+        if (which == "tr") return(numeric(0))
+    }
+    
+    if (dist %in% c("ln2", "bc2")){
+        if (which == "pos") return(cumul + 1)
+        cumul <- cumul + 1
+    }
+    else{
+        if (which == "pos") return(numeric(0))
+    }
+}
+
+
+## extract.maxLik <- function (model, include.nobs = TRUE, ...){
+##     s <- summary(model, ...)
+##     names <- rownames(s$estimate)
+##     class(names) <- "character"
+##     co <- s$estimate[, 1]
+##     se <- s$estimate[, 2]
+##     pval <- s$estimate[, 4]
+##     class(co) <- class(se) <- class(pval) <- "numeric"
+##     n <- nrow(model$gradientObs)
+##     lik <- logLik(model)
+##     gof <- numeric()
+##     gof.names <- character()
+##     gof.decimal <- logical()
+##     gof <- c(gof, n, lik)
+##     gof.names <- c(gof.names, "Num. obs.", "Log Likelihood")
+##     gof.decimal <- c(gof.decimal, FALSE, TRUE)
+##     tr <- createTexreg(coef.names = names, coef = co, se = se, pvalues = pval,
+##                        gof.names = gof.names, gof = gof, gof.decimal = gof.decimal)
+##     return(tr)
+## }
+
+## setMethod("extract", signature = className("maxLik", "maxLik"), definition = extract.maxLik)
+
+extract.mhurdle <- function (model, include.nobs = TRUE, ...){
+    s <- summary(model, ...)
+    names <- rownames(s$coefficients)
+    class(names) <- "character"
+    co <- s$coefficients[, 1]
+    se <- s$coefficients[, 2]
+    pval <- s$coefficients[, 4]
+    class(co) <- class(se) <- class(pval) <- "numeric"
+    n <- nobs(model)
+    lik <- logLik(model)
+    gof <- numeric()
+    gof.names <- character()
+    gof.decimal <- logical()
+    gof <- c(gof, n, lik)
+    gof.names <- c(gof.names, "Num. obs.", "Log Likelihood")
+    gof.decimal <- c(gof.decimal, FALSE, TRUE)
+    tr <- createTexreg(coef.names = names, coef = co, se = se, pvalues = pval,
+                       gof.names = gof.names, gof = gof, gof.decimal = gof.decimal)
+    return(tr)
+}
+
+setMethod("extract", signature = className("mhurdle", "mhurdle"), definition = extract.mhurdle)

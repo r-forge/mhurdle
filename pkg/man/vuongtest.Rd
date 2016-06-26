@@ -40,11 +40,11 @@ vuongtest(x, y,
 data("Interview", package = "mhurdle")
 # dependent double hurdle model
 dhm <- mhurdle(vacations ~ car + size | linc + linc2 | 0, Interview,
-              dist = "ln2", method = "bhhh", corr = TRUE)
+              dist = "ln", h2 = TRUE, method = "bhhh", corr = TRUE)
 
 # a double hurdle p-tobit model
 ptm <- mhurdle(vacations ~ 0 | linc + linc2 | car + size, Interview,
-              dist = "ln2", method = "bhhh", corr = TRUE)
+              dist = "ln", h2 = TRUE, method = "bhhh", corr = TRUE)
 vuongtest(dhm, ptm)
 }
 \keyword{htest}
