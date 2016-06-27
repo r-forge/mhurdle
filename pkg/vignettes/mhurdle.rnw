@@ -2271,7 +2271,7 @@ consumption is in this case highly significant.
 
 
 <<eval = FALSE, echo = TRUE, results = hide>>=
-texreg(list(Stn, Sbc, Sln), 
+texreg(list(Stn, Sln, Sbc), 
        custom.model.names = c("truncated-normal", "log-normal", "box-cox"), 
        caption = "Estimation of single hurdle selection models", 
        label = "tab:sep", pos = "ht")
@@ -2279,7 +2279,7 @@ texreg(list(Stn, Sbc, Sln),
 
 
 <<echo = FALSE, results = tex>>=
-texreg(list(Stn, Sbc, Sln), 
+texreg(list(Stn, Sln, Sbc), 
        custom.model.names = c("truncated-normal", "log-normal", "box-cox"), 
        caption = "Estimation of single hurdle selection models", 
        label = "tab:sep", pos = "ht")
