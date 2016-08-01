@@ -2251,39 +2251,39 @@ are truncated normal, log-normal or box-cox normal. We use the
 expenditure on food-away as an exemple and the results are presented
 in table~\ref{tab:sep}.
 
-## <<label = selection>>=
-## Stn <- mhurdle(foodaway ~ size + smsa + age + age2 | linc + linc2, Interview, 
-##                dist = "n", h2 = FALSE, corr = FALSE, method = "bhhh", print.level = 0)
-## Sbc <- update(Stn, dist = "bc")
-## Sln <- update(Stn, dist = "ln")
-## @ 
+%% <<label = selection>>=
+%% Stn <- mhurdle(foodaway ~ size + smsa + age + age2 | linc + linc2, Interview, 
+%%                dist = "n", h2 = FALSE, corr = FALSE, method = "bhhh", print.level = 0)
+%% Sbc <- update(Stn, dist = "bc")
+%% Sln <- update(Stn, dist = "ln")
+%% @ 
 
-## The dependent model is easily obtained by setting the \code{corr}
-## argument to \code{TRUE}. For the log-normal model, we obtain :
+%% The dependent model is easily obtained by setting the \code{corr}
+%% argument to \code{TRUE}. For the log-normal model, we obtain :
 
-## <<>>=
-## Slnd <- update(Sln, corr = TRUE)
-## coef(summary(Slnd), "corr")
-## @ 
+%% <<>>=
+%% Slnd <- update(Sln, corr = TRUE)
+%% coef(summary(Slnd), "corr")
+%% @ 
 
-## The coefficient of correlation between the selection and the
-## consumption is in this case highly significant.
-
-
-## <<eval = FALSE, echo = TRUE, results = hide>>=
-## texreg(list(Stn, Sln, Sbc), 
-##        custom.model.names = c("truncated-normal", "log-normal", "box-cox"), 
-##        caption = "Estimation of single hurdle selection models", 
-##        label = "tab:sep", pos = "ht")
-## @ 
+%% The coefficient of correlation between the selection and the
+%% consumption is in this case highly significant.
 
 
-## <<echo = FALSE, results = tex>>=
-## texreg(list(Stn, Sln, Sbc), 
-##        custom.model.names = c("truncated-normal", "log-normal", "box-cox"), 
-##        caption = "Estimation of single hurdle selection models", 
-##        label = "tab:sep", pos = "ht")
-## @ 
+%% <<eval = FALSE, echo = TRUE, results = hide>>=
+%% texreg(list(Stn, Sln, Sbc), 
+%%        custom.model.names = c("truncated-normal", "log-normal", "box-cox"), 
+%%        caption = "Estimation of single hurdle selection models", 
+%%        label = "tab:sep", pos = "ht")
+%% @ 
+
+
+%% <<echo = FALSE, results = tex>>=
+%% texreg(list(Stn, Sln, Sbc), 
+%%        custom.model.names = c("truncated-normal", "log-normal", "box-cox"), 
+%%        caption = "Estimation of single hurdle selection models", 
+%%        label = "tab:sep", pos = "ht")
+%% @ 
 
 
 
