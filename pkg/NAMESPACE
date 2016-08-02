@@ -8,7 +8,7 @@ importFrom("stats", "binomial", "coef", "cor", "df.residual", "dnorm",
            "ecdf", "fitted", "formula", "glm", "lm", "lm.fit",
            "logLik", "model.frame", "model.matrix", "model.response",
            "pchisq", "pnorm", "printCoefmat", "quantile", "rnorm",
-           "update", "var", "vcov")
+           "update", "var", "vcov", "integrate", "nobs", "terms")
 importFrom("survival", "survreg")
 importFrom("texreg", "extract", "createTexreg")
 S3method("coef", "mhurdle")

@@ -77,7 +77,6 @@ onequation.mhurdle <- function(X2, y, dist = NULL){
         # the tobit model, efficiently estimated using Survreg from
         # the survival package
         tobit <- survreg(Surv(y, y > 0, type = "left") ~ X2 - 1, dist = "gaussian")
-        print(summary(tobit))
         beta <- coef(tobit)
         bX <- as.numeric(crossprod(t(X2), beta))
         resid <- y - bX
@@ -132,8 +131,6 @@ onequation.mhurdle <- function(X2, y, dist = NULL){
     }
     if (dist == "bc2"){
         result <- boxcox.fit(X2, y, lambda = 0, alpha = 1, robust = TRUE, start = NULL, check.gradient = FALSE, truncated = FALSE)
-        print(names(result))
-        print(result$est.stat)
     }
 
     coef.names <- list(h1    = NULL,

@@ -2258,13 +2258,20 @@ in table~\ref{tab:sep}.
 %% Sln <- update(Stn, dist = "ln")
 %% @ 
 
-%% The dependent model is easily obtained by setting the \code{corr}
-%% argument to \code{TRUE}. For the log-normal model, we obtain :
+<<label = selection>>=
+Sbc <- mhurdle(foodaway ~ size + smsa + age + age2 | linc + linc2, Interview, 
+               dist = "bc", h2 = FALSE, corr = FALSE, method = "bhhh", print.level = 0)
+Sln <- update(Sbc, dist = "ln")
+@ 
 
-%% <<>>=
-%% Slnd <- update(Sln, corr = TRUE)
-%% coef(summary(Slnd), "corr")
-%% @ 
+
+The dependent model is easily obtained by setting the \code{corr}
+argument to \code{TRUE}. For the log-normal model, we obtain :
+
+<<>>=
+Slnd <- update(Sln, corr = TRUE)
+coef(summary(Slnd), "corr")
+@ 
 
 %% The coefficient of correlation between the selection and the
 %% consumption is in this case highly significant.
@@ -2303,7 +2310,6 @@ log-normal distribution.
 ptobit <- mhurdle(apparel ~ 0 | linc + linc2 | factor(month) + smsa,
                   Interview, corr = TRUE, dist = "ln", h2 = FALSE,
                   method = "bhhh")
-summary(ptobit)
 @ 
 
 
