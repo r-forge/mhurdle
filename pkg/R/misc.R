@@ -203,7 +203,10 @@ seperate.mhurdle <- function(X1, X2, y, dist = NULL){
         fitted <- cbind(zero = pnorm(bX1), pos = E)
     }
     else{
-        if (dist == "tn") lin <- truncreg(y ~ X2 - 1, subset = y != 0)
+        if (dist == "tn"){
+                          lin <- truncreg(y ~ X2 - 1, subset = y != 0)
+                          lin$gradient <- lin$gradientObs
+                      }
         if (dist == "bc"){
             lin <- boxcoxreg(y ~ X2 - 1, subset = y != 0, alpha = 0, lambda = 0, fixed = "alpha", method = "bhhh", print.level = 0)
             K <- length(coef(lin)) - 1
