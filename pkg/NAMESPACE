@@ -1,7 +1,6 @@
 useDynLib("mhurdle")
 export("mhurdle", "rsq", "vuongtest")
 import("Formula")
-#import("pbivnorm")
 import("truncreg")
 import("maxLik")
 importFrom("stats", "binomial", "coef", "cor", "df.residual", "dnorm",
@@ -11,6 +10,7 @@ importFrom("stats", "binomial", "coef", "cor", "df.residual", "dnorm",
            "update", "var", "vcov", "integrate", "nobs", "terms")
 importFrom("survival", "survreg")
 importFrom("texreg", "extract", "createTexreg")
+importFrom("methods", "setMethod") 
 S3method("coef", "mhurdle")
 S3method("vcov", "mhurdle")
 S3method("logLik", "mhurdle")
