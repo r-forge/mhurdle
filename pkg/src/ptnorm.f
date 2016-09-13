@@ -37,7 +37,7 @@
 *
       DOUBLE PRECISION X, XABS, EXPONENTIAL, BUILD, CUMNORM
       XABS = ABS(X)
-      IF (ABSX .GT. 37) THEN
+      IF (XABS .GT. 37) THEN
          CUMNORM = 0
       ELSE
          EXPONENTIAL = EXP(- XABS ** 2 / 2)
@@ -66,7 +66,7 @@
             CUMNORM = EXPONENTIAL / BUILD / 2.506628274631
          END IF
       END IF
-      IF (X .GT. O) THEN
+      IF (X .GT. 0) THEN
          CUMNORM = 1 - CUMNORM
       END IF
       UNORM = CUMNORM
