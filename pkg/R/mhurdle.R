@@ -162,7 +162,7 @@ mhurdle.fit <- function(start, X1, X2, X3, X4, y, gradient = FALSE, fit = FALSE,
     }
     else rho.names <- NULL
     if (dist %in% c("bc", "bc2", "ihs")) tr.names <- "tr" else tr.names <- NULL
-    if (dist %in% c("ln2", "bc2")) mu.names <- "mu" else mu.names <- NULL
+    if (dist %in% c("ln2", "bc2")) mu.names <- "pos" else mu.names <- NULL
 
     coef.names <- list(h1   = colnames(X1),
                        h2   = colnames(X2),

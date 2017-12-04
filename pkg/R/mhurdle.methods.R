@@ -375,15 +375,18 @@ extract.mhurdle <- function (model, include.nobs = TRUE, ...){
     class(co) <- class(se) <- class(pval) <- "numeric"
     n <- nobs(model)
     lik <- logLik(model)
+    coefdet <- s$r.squared['coefdet']
+    lratio <- s$r.squared['lratio']
     gof <- numeric()
     gof.names <- character()
     gof.decimal <- logical()
-    gof <- c(gof, n, lik)
-    gof.names <- c(gof.names, "Num. obs.", "Log Likelihood")
-    gof.decimal <- c(gof.decimal, FALSE, TRUE)
+    gof <- c(gof, n, lik, coefdet, lratio)
+    gof.names <- c(gof.names, "Num. obs.", "Log Likelihood", "$R^2$", "McFadden $R^2$")
+    gof.decimal <- c(gof.decimal, FALSE, TRUE, TRUE, TRUE)
     tr <- createTexreg(coef.names = names, coef = co, se = se, pvalues = pval,
                        gof.names = gof.names, gof = gof, gof.decimal = gof.decimal)
     return(tr)
 }
 
 setMethod("extract", signature = className("mhurdle", "mhurdle"), definition = extract.mhurdle)
+

@@ -412,8 +412,8 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
         if (dist %in% c("ln", "ln2")){
             if (h1) arg1 <- bX1 + rho[1] * sigma else arg1 <- + Inf
             if (h3) arg3 <- bX3 + rho[3] * sigma else arg3 <- + Inf
-            E <- exp(bX2 + 0.5 * sigma ^ 2) / Phi3 * ptnorm(arg1, mz0 + sigma, arg3, rho) / Pplus -
-                mu / Phi3
+            E <- exp(bX2 + 0.5 * sigma ^ 2) / Phi3 * ptnorm(arg1, mz0 + sigma, arg3, rho)  -
+                mu * ptnorm(bX1, mz0, bX3, rho)/ Phi3
         }
         if (dist %in% c("n", "tn")){
             phi2 <- dnorm(bX2 / sigma)

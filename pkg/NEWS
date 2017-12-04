@@ -1,3 +1,8 @@
+Changes since verion 1-1-7
+	* the EV formula is fixed for the log-normal model
+	* improved version of the texreg method
+
+
 Changes since version 0.1-4
 	* major revision for the code and the vignette ; bc and ihs
 	transformation, heteroscedasticity are introduced
