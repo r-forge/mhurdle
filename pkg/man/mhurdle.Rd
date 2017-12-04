@@ -20,7 +20,8 @@ mhurdle(formula, data, subset, weights, na.action,
      dist = c("ln", "n", "bc", "ihs"),
      h2 = FALSE,
      scaled = TRUE,
-     corr = FALSE, robust = TRUE, ...)
+     corr = FALSE, robust = TRUE,
+     check.grad = FALSE, ...)
 \method{coef}{mhurdle}(object,
    which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"), ...)
 \method{vcov}{mhurdle}(object,
@@ -55,7 +56,9 @@ mhurdle(formula, data, subset, weights, na.action,
    \item{corr}{a boolean indicating whether the errors of the different
      equations are correlated or not,}
    \item{robust}{transformation of the structural parameters in order to
-   avoid numerical problems,}
+     avoid numerical problems,}
+   \item{check.grad}{if \code{TRUE}, a matrix containing the analytical
+   and the numerical gradient for the starting values are returned,}
   \item{naive}{a boolean, it \code{TRUE}, the likelihood of the naive
     model is returned,}
   \item{object,x}{an object of class \code{"mhurdle"},}
