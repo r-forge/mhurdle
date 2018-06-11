@@ -1,5 +1,5 @@
 useDynLib("mhurdle")
-export("mhurdle", "rsq", "vuongtest", "ndvuongtest")
+export("mhurdle", "rsq", "vuongtest")#, "ndvuongtest")
 import("Formula")
 import("truncreg")
 import("maxLik")
