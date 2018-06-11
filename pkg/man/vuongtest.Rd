@@ -10,7 +10,7 @@ vuongtest(x, y,
           type = c("non-nested", "nested", "overlapping"),
           hyp = FALSE,
           variance = c("centered", "uncentered"),
-          matrix = c("large", "reduced")
+          matrix = c("large", "reduced") 
          )
 }
 \arguments{
