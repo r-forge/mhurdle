@@ -266,15 +266,15 @@ lnl.naive <- function(param, dist = c("ln", "tn", "n", "ln2"), moments,
     if (h1){
         alpha1 <- param[1]
         alpha2 <- param[2]
-        param <- param[-c(1,2)]
+        param <- param[- c(1,2)]
     }
     else{
         alpha2 <- param[1]
-        param <- param[-1]
+        param <- param[- 1]
     }
     if (h3){
         alpha3 <- param[1]
-        param <- param[-1]
+        param <- param[- 1]
     }
     sigma <- param[1]
     
@@ -288,11 +288,11 @@ lnl.naive <- function(param, dist = c("ln", "tn", "n", "ln2"), moments,
         phi3 <- dnorm(alpha3)
     }
     else Phi3 <- 1
-    Phi2 <- pnorm(alpha2/sigma)
-    phi2 <- dnorm(alpha2/sigma)
+    Phi2 <- pnorm(alpha2 / sigma)
+    phi2 <- dnorm(alpha2 / sigma)
     scr <- ifelse(dist == "ln",
-                  s2 + (ym + log(Phi3) - alpha2)^2,
-                  Phi3^2*(s2 + (ym - alpha2/Phi3)^2)
+                  s2 + (ym + log(Phi3) - alpha2) ^ 2,
+                  Phi3 ^ 2 * (s2 + (ym - alpha2 / Phi3) ^ 2)
                   )
     Pbiv <- Phi1 * Phi2
     Phi1bis <- Phi1
@@ -300,20 +300,86 @@ lnl.naive <- function(param, dist = c("ln", "tn", "n", "ln2"), moments,
     P0 <- switch(dist,
                  "ln" = 1 - Phi1 * Phi3,
                  "ln2" = 1 - Phi1 * Phi3,
-                 "tn" = 1 - Pbiv/Phi2 * Phi3,
+                 "tn" = 1 - Pbiv / Phi2 * Phi3,
                  "n" = 1 - Pbiv * Phi3
                  )
     lnPos <-
-        -log(sigma) - 0.5 * log(2*pi) -
-            scr/(2*sigma^2) +
+        -log(sigma) - 0.5 * log(2 * pi) -
+            scr / (2 * sigma ^ 2) +
                 log(Phi3) +
-                    (log(Phi1bis)+s2term) * h1 -
+                    (log(Phi1bis) + s2term) * h1 -
                         ym * (dist == "ln") +
                             log(Phi3) * (dist != "ln") -
                                 log(Phi2) * (dist == "tn")
     
-    n * log(P0) + (1 - n) * lnPos
+    lnL <- n * log(P0) + (1 - n) * lnPos
+    #YC 20180110 extract the parts in order to compute the new R2s
+    attr(lnL, "parts") <- c(lnLNull = log(P0), lnLOne = log(1 - P0), lnLPos = lnPos)
+    lnL
 }
+
+
+lnl.naive <- function(param, dist = c("ln", "tn", "n", "ln2"), moments,
+                      h1 = TRUE, h3 = FALSE){
+    dist <- match.arg(dist)
+    n <- moments[1]
+    ym <- moments[2]
+    s2 <- moments[3]
+    if (h1){
+        alpha1 <- param[1]
+        alpha2 <- param[2]
+        param <- param[- c(1,2)]
+    }
+    else{
+        alpha2 <- param[1]
+        param <- param[- 1]
+    }
+    if (h3){
+        alpha3 <- param[1]
+        param <- param[- 1]
+    }
+    sigma <- param[1]
+    
+    if (h1){
+        Phi1 <- pnorm(alpha1)
+        phi1 <- dnorm(alpha1)
+    }
+    else Phi1 <- 1
+    if (h3){
+        Phi3 <- pnorm(alpha3)
+        phi3 <- dnorm(alpha3)
+    }
+    else Phi3 <- 1
+    Phi2 <- pnorm(alpha2 / sigma)
+    phi2 <- dnorm(alpha2 / sigma)
+    scr <- ifelse(dist == "ln",
+                  s2 + (ym + log(Phi3) - alpha2) ^ 2,
+                  Phi3 ^ 2 * (s2 + ym ^ 2) + alpha2 ^ 2 - 2 * alpha2 * Phi3 * ym
+                  )
+    Pbiv <- Phi1 * Phi2
+    Phi1bis <- Phi1
+    s2term <- 0
+    P0 <- switch(dist,
+                 "ln" = 1 - Phi1 * Phi3,
+                 "ln2" = 1 - Phi1 * Phi3,
+                 "tn" = 1 - Pbiv / Phi2 * Phi3,
+                 "n" = 1 - Pbiv * Phi3
+                 )
+    lnPos <-
+        - log(sigma) - 0.5 * log(2 * pi) -
+            scr / (2 * sigma ^ 2) +
+                log(Phi3) +
+                    log(Phi1) -
+                        ym * (dist == "ln") +
+                            log(Phi3) * (dist != "ln") -
+                                log(Phi2) * (dist == "tn")
+    
+    lnL <- n * log(P0) + (1 - n) * lnPos
+    #YC 20180110 extract the parts in order to compute the new R2s
+    attr(lnL, "parts") <- c(lnLNull = log(P0), lnLOne = log(1 - P0), lnLPos = lnPos)
+    lnL
+}
+
 
 
 ## Ostart.mhurdle <- function(X1, X2, X3, y, dist){
@@ -383,7 +449,8 @@ start.mhurdle <- function(X1, X2, X3, y, dist){
     if (dist == "n") lin <- lm(y ~ X2 - 1)
     if (dist == "tn") lin <- truncreg(y ~ X2 - 1, subset = y > 0)
     if (dist == "ln") lin <- lm(y ~ X2 - 1, subset = y > 0)
-    beta2 <- coef(lin[1:ncol(X2)])
+    beta2 <- coef(lin)[1:ncol(X2)]
+#    beta2 <- coef(lin[1:ncol(X2)])#YC20171204 wrong parenthesis
     if (dist %in% c("n", "ln")) sigma <- summary(lin)$sigma
     else sigma <- coef(lin)[ncol(X2) + 1]
     c(beta1, beta2, beta3, sigma)

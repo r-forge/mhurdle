@@ -1,16 +1,17 @@
 # simulated probabilities and quantiles for the weighted chi-squares
 # distribution
-pwchisq <- function(q, weights, lower.tail = TRUE, n = 1000){
-    set.seed(100)
+pwchisq <- function(q, weights, lower.tail = TRUE, R = 1E03, seed = 1){
+    set.seed(seed)
     K <- length(weights)
-    e <- matrix(rnorm(n * K) ^ 2, n, K)
+    e <- matrix(rnorm(R * K) ^ 2, R, K)
     wcs <- apply(e, 1, function(x) sum(x * weights))
     F <- ecdf(wcs)
     ifelse(lower.tail, F(q), 1 - F(q))
 }
-qwchisq <- function(p, weights, lower.tail = TRUE, n = 1000){
+qwchisq <- function(p, weights, lower.tail = TRUE, R = 1000, seed = 1){
+    set.seed(1)
     K <- length(weights)
-    e <- matrix(rnorm(n * K) ^ 2, n, K)
+    e <- matrix(rnorm(R * K) ^ 2, R, K)
     wcs <- apply(e, 1, function(x) sum(x * weights))
     ifelse(lower.tail, quantile(wcs, p), quantile(wcs, 1 - p))
 }  
@@ -19,8 +20,7 @@ vuongtest <- function(x, y,
                       type = c("non-nested", "nested", "overlapping"),
                       hyp = FALSE,
                       variance = c("centered", "uncentered"),
-                      matrix = c("large", "reduced")
-                      ){
+                      matrix = c("large", "reduced")){
     type <- match.arg(type)
     variance <- match.arg(variance)
     matrix <- match.arg(matrix)
@@ -32,7 +32,6 @@ vuongtest <- function(x, y,
         paste(deparse(substitute(x))),
         paste(deparse(substitute(y)))
         )
-    set.seed(100)
     
     ###  for convenience, call f the larger model and g the other one if
     ###  the models are nested, else call the first model f and g for
@@ -78,7 +77,7 @@ vuongtest <- function(x, y,
     #### construct the large or reduced matrix and its eigen values
     if (matrix == "large"){
         W <- rbind(cbind( -     Bf %*% Af1,  - Bfg %*% Ag1),
-                   cbind(   t(Bfg) %*% Af1,   Bg  %*% Ag1)
+                   cbind(   t(Bfg) %*% Af1,  Bg  %*% Ag1)
                    )
         Z <- eigen(W)$values
     }
@@ -117,12 +116,11 @@ vuongtest <- function(x, y,
             pval <- pchisq(statistic, parameter, lower.tail = FALSE)
         }
     }
-    
     #### overlapping test
     if (type == "overlapping"){
         method <- "Vuong Test (overlapping)"
         if (! hyp){
-        ### test first the hypothesis that w^2=0
+        ### test first the hypothesis that w ^ 2 = 0
             statistic <- c(wchisq = n * w2)
             pval <- pwchisq(statistic, Z ^ 2 , lower.tail = FALSE)
             parameter <- c(sev = sum(Z ^ 2))
@@ -148,3 +146,10 @@ vuongtest <- function(x, y,
     result
 }
 
+estfun.mhurdle <- function(x, ...){
+    x$gradient
+}
+
+llcont.mhurdle <- function(x, ...){
+    x$logLik
+}

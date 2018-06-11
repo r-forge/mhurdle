@@ -1,5 +1,5 @@
 useDynLib("mhurdle")
-export("mhurdle", "rsq", "vuongtest")
+export("mhurdle", "rsq", "vuongtest", "ndvuongtest")
 import("Formula")
 import("truncreg")
 import("maxLik")
@@ -7,7 +7,8 @@ importFrom("stats", "binomial", "coef", "cor", "df.residual", "dnorm",
            "ecdf", "fitted", "formula", "glm", "lm", "lm.fit",
            "logLik", "model.frame", "model.matrix", "model.response",
            "pchisq", "pnorm", "printCoefmat", "quantile", "rnorm",
-           "update", "var", "vcov", "integrate", "nobs", "terms")
+           "update", "var", "vcov", "integrate", "nobs", "terms",
+           "qnorm", "optimize", "uniroot")
 importFrom("survival", "survreg")
 importFrom("texreg", "extract", "createTexreg")
 importFrom("methods", "setMethod") 

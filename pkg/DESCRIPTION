@@ -1,6 +1,6 @@
 Package: mhurdle
 Version: 1.1-8
-Date: 2017-12-04
+Date: 2018-06-11
 Title: Multiple Hurdle Tobit Models
 Authors@R: c(person("Yves", "Croissant", role = c("aut", "cre"), email = "yves.croissant@univ-reunion.fr"),
              person("Fabrizio", "Carlevaro", role = "aut", email = "fabrizio.carlevaro@unige.ch"),
@@ -10,6 +10,6 @@ Description: Estimation of models with zero left-censored variables.
              Null values may be caused by a selection process, insufficient 
              resources or infrequency of purchase.
 License: GPL (>=2)
-URL: http://www.r-project.org
+URL: https://www.R-project.org
 
 

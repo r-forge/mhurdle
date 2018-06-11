@@ -179,6 +179,7 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
     Pplus <- (Pr123A$f - Pr123B$f) / PI
     Numerator <- PI - Pr123A$f + Pr123B$f
     lnL.null <- log(Numerator) - log(PI)
+    lnL.one <- log(PI - Numerator) - log(PI)
     lnL.null[y != 0] <- 0
     lnL.pos <-
         - log(sigma) +
@@ -187,10 +188,13 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
                     lnJ - log(PI)
     lnL.pos[y == 0] <- 0    
     lnL <- lnL.null * (y == 0) + lnL.pos * (y != 0)
-    
-    if (any(is.na(lnL) | is.infinite(lnL))){
+    if (any(is.na(lnL) | any(is.infinite(lnL)))){
+        lnL[is.na(lnL)] <- 0
         warnings("infinite or missing values of lnLi")
     }
+    attr(lnL, "parts") <- c(lnLNull = sum(lnL.null[y == 0]),
+                            lnLOne  = sum(lnL.one[y != 0]),
+                            lnLPos  = sum(lnL.pos[y != 0]))
 
     if (gradient){
         gradi <- c()
@@ -249,7 +253,9 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
         # PI is only relevant for truncated normal and box-cox transformation
         PIs <- 0
         Pr123Bs <- 0
-        if (is.infinite(mz0)) Pr123As <- 0 else Pr123As <- Pr123A$d2 * (- mz0 / sigma)
+#        print(mz0);stop()
+#        if (is.infinite(mz0)) Pr123As <- 0 else Pr123As <- Pr123A$d2 * (- mz0 / sigma)
+        Pr123As <- ifelse(is.infinite(mz0), 0, Pr123A$d2 * (- mz0 / sigma))
         if (dist == "tn" | (dist %in% c("bc", "bc2") && lambda > 0)) PIs <- PIs + dnorm(mzn) * (- mzn / sigma)
         if (dist %in% c("bc", "bc2") && lambda < 0){
             PIs <- PIs - dnorm(mzx) * (- mzx / sigma)

@@ -272,8 +272,13 @@ rsq <- function(object,
 }
 
 
-nobs.mhurdle <- function(object, ...){
-    nrow(object$model)
+nobs.mhurdle <- function(object, which = c("all", "null", "positive"), ...){
+    y <- model.response(model.frame(object))
+    which <- match.arg(which)
+    switch(which,
+           all = length(y),
+           null = sum(y == 0),
+           positive = sum(y > 0))
 }
 
 
@@ -377,12 +382,15 @@ extract.mhurdle <- function (model, include.nobs = TRUE, ...){
     lik <- logLik(model)
     coefdet <- s$r.squared['coefdet']
     lratio <- s$r.squared['lratio']
+    R2dich <- model$R2[1]
+    R2pos <- model$R2[2]
     gof <- numeric()
     gof.names <- character()
     gof.decimal <- logical()
-    gof <- c(gof, n, lik, coefdet, lratio)
-    gof.names <- c(gof.names, "Num. obs.", "Log Likelihood", "$R^2$", "McFadden $R^2$")
-    gof.decimal <- c(gof.decimal, FALSE, TRUE, TRUE, TRUE)
+    gof <- c(gof, n, lik, coefdet, lratio, R2dich, R2pos)
+#    gof.names <- c(gof.names, "Num. obs.", "Log Likelihood", "$R^2$", "McFadden $R^2$")
+    gof.names <- c(gof.names, "Num. obs.", "Log Likelihood", "$R^2$", "McFadden $R^2$", "$R^2 (y = 0)$", "$R^2 (y > 0)$")    
+    gof.decimal <- c(gof.decimal, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE)
     tr <- createTexreg(coef.names = names, coef = co, se = se, pvalues = pval,
                        gof.names = gof.names, gof = gof, gof.decimal = gof.decimal)
     return(tr)
