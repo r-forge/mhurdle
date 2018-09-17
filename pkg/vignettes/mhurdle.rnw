@@ -9,9 +9,10 @@
 \usepackage{rotating}
 \usepackage{amsmath}
 \usepackage{wasysym}
-\usepackage{threeparttable}
+%\usepackage{threeparttable}
 \usepackage{amssymb, amsfonts}
-\usepackage{longtable, lscape}
+\usepackage{longtable}
+\usepackage{lscape}
 \newcommand{\change}[1]{#1}
 
 %\VignetteIndexEntry{Multiple Hurdle Models in R: the mhurdle Package}

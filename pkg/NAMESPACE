@@ -1,4 +1,4 @@
-useDynLib("mhurdle")
+useDynLib("mhurdle", .registration = TRUE)
 export("mhurdle", "rsq", "vuongtest")#, "ndvuongtest")
 import("Formula")
 import("truncreg")
