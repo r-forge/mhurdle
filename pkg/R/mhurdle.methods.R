@@ -231,6 +231,40 @@ update.mhurdle <- function (object, new, ...){
   eval(call, parent.frame())
 }
 
+
+
+#' R squared and pseudo R squared
+#' 
+#' This function computes the R squared for multiple hurdle models. The measure
+#' is a pseudo coefficient of determination or may be based on the likelihood.
+#' 
+#' 
+#' @param object an object of class \code{"mhurdle"},
+#' @param type one of \code{"coefdet"} or \code{"lratio"} to select a pseudo
+#' coefficient of correlation or a Mc Fadden like measure based on the
+#' likelihood function,
+#' @param adj if \code{TRUE} a correction for the degrees of freedom is
+#' performed,
+#' @param r2pos only for pseudo coefficient of determination, should the
+#' positive part of the R squared be computed using the residual sum of squares
+#' (\code{"rss"}), the explained sum of squares (\code{"ess"}) or the
+#' coefficient of correlation between the fitted values and the response
+#' (\code{cor}).
+#' @return a numerical value
+#' @references
+#' 
+#' McFadden D (1974). The Measurement of Urban Travel Demand. Journal of Public
+#' Economics, 3, 303-328.
+#' @keywords htest
+#' @examples
+#' 
+#' data("Interview", package = "mhurdle")
+#' # independent double hurdle model
+#' idhm <- mhurdle(vacations ~ car + size | linc + linc2 | 0, Interview,
+#'               dist = "ln", h2 = TRUE, method = "bfgs")
+#' rsq(idhm, type = "lratio")
+#' rsq(idhm, type = "coefdet", r2pos = "rss")
+#' 
 rsq <- function(object,
                 type = c("coefdet", "lratio"),
                 adj = FALSE,

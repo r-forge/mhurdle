@@ -16,6 +16,41 @@ qwchisq <- function(p, weights, lower.tail = TRUE, R = 1000, seed = 1){
     ifelse(lower.tail, quantile(wcs, p), quantile(wcs, 1 - p))
 }  
 
+
+
+#' Vuoung test for non-nested models
+#' 
+#' The Vuong test is suitable to discriminate between two non-nested models.
+#' 
+#' 
+#' @aliases vuongtest ndvuongtest
+#' @param x a first fitted model of class \code{"mhurdle"},
+#' @param y a second fitted model of class \code{"mhurdle"},
+#' @param type the kind of test to be computed,
+#' @param hyp a boolean, \code{TRUE} if one of the models is asumed to be the
+#' true model,
+#' @param variance the variance is estimated using the \code{centered} or
+#' \code{uncentered} expression,
+#' @param matrix the W matrix can be computed using the general expression
+#' \code{large} or the reduced matrix \code{reduced} (only relevant for the
+#' nested case),
+#' @return an object of class \code{"htest"}
+#' @seealso \code{vuong} in package \code{pscl}.
+#' @references Vuong Q.H. (1989) Likelihood ratio tests for model selection and
+#' non-nested hypothesis, Econometrica, vol.57(2), pp.307-33.
+#' @keywords htest
+#' @examples
+#' 
+#' data("Interview", package = "mhurdle")
+#' # dependent double hurdle model
+#' dhm <- mhurdle(vacations ~ car + size | linc + linc2 | 0, Interview,
+#'               dist = "ln", h2 = TRUE, method = "bhhh", corr = TRUE)
+#' 
+#' # a double hurdle p-tobit model
+#' ptm <- mhurdle(vacations ~ 0 | linc + linc2 | car + size, Interview,
+#'               dist = "ln", h2 = TRUE, method = "bhhh", corr = TRUE)
+#' vuongtest(dhm, ptm)
+#' 
 vuongtest <- function(x, y,
                       type = c("non-nested", "nested", "overlapping"),
                       hyp = FALSE,
