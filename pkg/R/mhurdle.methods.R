@@ -11,6 +11,7 @@
 ## predict.mhurdle
 ## update.mhurdle
 ## rsq
+## effects.mhurdle
 
 nm.mhurdle <- function(object,
                        which = c("all", "h1", "h2", "h3", "sd", "h4", "corr", "tr", "pos"),
@@ -59,7 +60,7 @@ sub.mhurdle <- function(object,
 }
 
 coef.mhurdle <- function(object,
-                        which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"),
+                         which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"),
                       ...){
   which <- match.arg(which)
   nm <- nm.mhurdle(object, which)
@@ -70,7 +71,7 @@ coef.mhurdle <- function(object,
 }
 
 vcov.mhurdle <- function(object,
-                        which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"),
+                         which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"),
                       ...){
   which <- match.arg(which)
   nm <- nm.mhurdle(object, which)
@@ -164,22 +165,29 @@ print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
   invisible(x)
 }
 
-fitted.mhurdle <- function(object, which = c("all", "zero", "positive"), ...){
+fitted.mhurdle <- function(object, which = c("all", "zero", "positive"), mean = FALSE, ...){
   which <- match.arg(which)
-  switch(which,
-         all      = object$fitted.values,
-         zero = object$fitted.values[, 1],
-         positive = object$fitted.values[, 2]
-         )
+  res <- switch(which,
+                all      = object$fitted.values,
+                zero = object$fitted.values[, 1],
+                positive = object$fitted.values[, 2]
+                )
+  if (mean){
+      if (is.matrix(res)) res <- apply(res, 2, mean)
+      else res <- mean(res)
+  }
+  res
 }
 
 predict.mhurdle <- function(object, newdata = NULL, ...){
+    geomean <- attr(object$model, "geomean")
     if (is.null(newdata)){
         result <- fitted(object, ...)
     }
     else{
         cl <- object$call
-        dist <- ifelse(is.null(cl$dist), TRUE, cl$dist)
+        h2 <- ifelse(is.null(cl$h2), FALSE, TRUE)
+        dist <- if (is.null(cl$dist)) ifelse(h2, "ln2", "ln")
         corr <- ifelse(is.null(cl$corr), FALSE, cl$corr)
         robust <- FALSE
         m <- model.frame(formula(object), newdata)
@@ -188,9 +196,10 @@ predict.mhurdle <- function(object, newdata = NULL, ...){
         if (length(formula(object))[2] > 2) X3 <- model.matrix(formula(object), m, rhs = 3) else X3 <- NULL
         if (length(formula(object))[2] == 4) X4 <- model.matrix(formula(object), m, rhs = 4) else X4 <- NULL
         y <- model.response(m)
+        if (! is.null(geomean)) attr(y, "geomean") <- geomean
         if (length(X1) == 0) X1 <- NULL
         result <- attr(mhurdle.lnl(coef(object), X1 = X1, X2 = X2, X3 = X3, X4 = X4, y = y,
-                                   gradient = FALSE, fitted = TRUE,
+                                   gradient = FALSE, fitted = TRUE, robust = FALSE,
                                    dist = dist, corr = corr), "fitted")
     }
     result
@@ -279,6 +288,49 @@ nobs.mhurdle <- function(object, which = c("all", "null", "positive"), ...){
            all = length(y),
            null = sum(y == 0),
            positive = sum(y > 0))
+}
+
+
+effects.mhurdle <- function(object, covariate = NULL, data = NULL, reflevel = NULL, mean = FALSE, ...){
+    if (is.null(covariate)) stop("the name of a covariate should be indicated")
+    if (is.null(data)) odata <- eval(object$call$data) else odata <- data
+    eps <- 1E-04
+    ndata <- odata
+    thecov <- ndata[[covariate]]
+    if (is.numeric(thecov)){
+        step <- ifelse(is.integer(thecov), 1, eps)
+        ndata[[covariate]] <- ndata[[covariate]] + step
+        ofitted <- predict(object, odata)
+        nfitted <- predict(object, ndata)
+        mfx <- (nfitted - ofitted) / step
+        mfx[abs(mfx) < 1E-08] <- 0
+        if (mean) mfx <- apply(mfx, 2, mean)
+    }
+    if (is.factor(thecov)){
+        levs <- levels(thecov)
+        if (is.null(reflevel)) reflevel <- levs[1]
+        else{
+            if (! reflevel %in% levs) stop("undefined level")
+        }
+        nx <- vector(mode = "list", length = length(levs))
+        nx <- lapply(levs, function(d){
+            ndata[[covariate]] <- factor(d, levels = levels(thecov))
+            predict(object, ndata)
+        }
+        )
+        zero <- sapply(nx, function(x) x[, 1])
+        pos <- sapply(nx, function(x) x[, 2])
+        colnames(zero) <- colnames(pos) <- levs
+        zero <- zero - zero[, reflevel]
+        pos <- pos - pos[, reflevel]
+        zero <- zero[, - which(levs == reflevel)]
+        pos <- pos[, - which(levs == reflevel)]
+        mfx <- list(zero = zero, pos = pos)
+        if (mean){
+            mfx <- sapply(mfx, apply, 2, mean)
+        }
+    }
+    mfx
 }
 
 

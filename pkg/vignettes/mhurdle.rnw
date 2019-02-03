@@ -1035,11 +1035,13 @@ by \citet{CHAZ:05}. This transformation is written as:
   \right.
 \end{equation}
 
-with $\lambda$ a parameter characterizing the non linearity of the transformation. 
-As shown in Figure 1, this transformation is linear for $\lambda = 1$, convex for $\lambda > 1$, and concave for
-$\lambda < 1$, with a ceiling asymptote at $-1/\lambda$ when $\lambda<0$. $\gamma$ is a 
-location parameter, restricting the domain where the transformation holds, to the 
-interval $]-\lambda,+\infty[$. Hence, the image of this interval by the Box-Cox 
+with $\lambda$ a parameter characterizing the non linearity of the
+transformation.  As shown in Figure 1, this transformation is linear
+for $\lambda = 1$, convex for $\lambda > 1$, and concave for
+$\lambda < 1$, with a ceiling asymptote at $-1/\lambda$ when
+$\lambda<0$. $\gamma$ is a location parameter, restricting the domain
+where the transformation holds, to the interval
+$]-\lambda,+\infty[$. Hence, the image of this interval by the Box-Cox
 transformation is given by:
 
 \begin{equation}\label{eq61}
@@ -1111,21 +1113,27 @@ Finally, the distribution of the observed variable $y$ is obtained by inserting 
 in formulas \label{eq56} and \label{eq59}, jointly with the derivative of the Box-Cox 
 transformation, $T^{'}(y_2^*)=(y_2^*+\gamma)^{\lambda-1}$.
 
-Note that when $\gamma = 0$, the Box-Cox transformation holds only for $y_2^* > 0$, corresponding 
-to the restriction enforced to the desired consumption relation, when hurdle 2 is not in effect, 
-by means of Cragg's log-normal or truncated normal functional forms. These functional forms arise as special cases
-of the Box-Cox transformation, when $\lambda = 0$ and $\lambda = 1$, respectively. Thus, testing the
-statistical significance of parameter $\gamma$, against the alternative $\gamma > 0$, amounts
-to testing the assumption that hurdle 2 is not in effect within the framework of a nested
-model. Conversely, when $\gamma < 0$ the Box-Cox transformation holds for $y_2^* > -\gamma$
-meaning that $-\gamma$ stands for a "committed" consumption of a basic necessity, while 
-$\gamma > 0$ typify a luxury good whose consumption occurs only above a given income threshold.
+Note that when $\gamma = 0$, the Box-Cox transformation holds only for
+$y_2^* > 0$, corresponding to the restriction enforced to the desired
+consumption relation, when hurdle 2 is not in effect, by means of
+Cragg's log-normal or truncated normal functional forms. These
+functional forms arise as special cases of the Box-Cox transformation,
+when $\lambda = 0$ and $\lambda = 1$, respectively. Thus, testing the
+statistical significance of parameter $\gamma$, against the
+alternative $\gamma > 0$, amounts to testing the assumption that
+hurdle 2 is not in effect within the framework of a nested
+model. Conversely, when $\gamma < 0$ the Box-Cox transformation holds
+for $y_2^* > -\gamma$ meaning that $-\gamma$ stands for a "committed"
+consumption of a basic necessity, while $\gamma > 0$ typify a luxury
+good whose consumption occurs only above a given income threshold.
 
-The way the Box-Cox transformation generates the profile of the density function of $y_2^*$ from that
-of $z_2$ can be illustrated by considering the special case of $\beta_2^\top x_2=0$ and
-$\sigma(\beta_0^\top x_0)=1$. In this special case, the marginal density function of $y_2^*$
-is defined for $y_2^* \geq 0$,and takes the form of the product of the density function of $z_2$,
-written as a function of $y_2^*$:
+The way the Box-Cox transformation generates the profile of the
+density function of $y_2^*$ from that of $z_2$ can be illustrated by
+considering the special case of $\beta_2^\top x_2=0$ and
+$\sigma(\beta_0^\top x_0)=1$. In this special case, the marginal
+density function of $y_2^*$ is defined for $y_2^* \geq 0$,and takes
+the form of the product of the density function of $z_2$, written as a
+function of $y_2^*$:
 
 \begin{equation}\label{eq64}
    \frac{\phi(\frac{y_2^{*\lambda}-1}{\lambda})}{\Phi(sign(\lambda)\frac{1}{\lambda})}
@@ -1156,17 +1164,23 @@ must be considered.
  the value of $\lambda$, until the collapse of the entire probability mass at $y_2^* = 1$, when
  $\lambda \rightarrow \infty$.    
 
-\item When $\lambda < 1$, $J$ is a decreasing function of $y_2^*$, from $+\infty$ at $y_2^* = 0$,
- to $0$ when $y_2^* \rightarrow \infty$, taking value $1$ at $y_2^* = 1$, while the density function 
- of $z_2$ at $y_2^*=0$ holds finite or takes value $0$ depending on whether $0<\lambda<1$ or $\lambda\leq 0$. 
- Hence, contrary to the previous case, the mode of the density function of $y_2^*$ shifts short of $y_2^* = 1$, 
- while, at the origin, the density function of $y_2^*$ tends to $+\infty$ and turns out to be an 
- undetermined product depending on whether $0<\lambda<1$ or $\lambda\leq 0$. The application of
- Hospital's rule allows to remove the indetermination of this limit, which turns out to be equal to $0$.
- Note that the same tendency towards a concentration of the density function of $y_2^*$ around its degenerated 
- limit at $y_2^* = 1$ appears when $\lambda \rightarrow -\infty$. Note also that the J-shaped profile
- of this density function, when $0<\lambda<1$, has a mode preceded by an antimode that can coalesce into 
- a point of inflexion.
+\item When $\lambda < 1$, $J$ is a decreasing function of $y_2^*$,
+  from $+\infty$ at $y_2^* = 0$, to $0$ when
+  $y_2^* \rightarrow \infty$, taking value $1$ at $y_2^* = 1$, while
+  the density function of $z_2$ at $y_2^*=0$ holds finite or takes
+  value $0$ depending on whether $0<\lambda<1$ or $\lambda\leq 0$.
+  Hence, contrary to the previous case, the mode of the density
+  function of $y_2^*$ shifts short of $y_2^* = 1$, while, at the
+  origin, the density function of $y_2^*$ tends to $+\infty$ and turns
+  out to be an undetermined product depending on whether $0<\lambda<1$
+  or $\lambda\leq 0$. The application of Hospital's rule allows to
+  remove the indetermination of this limit, which turns out to be
+  equal to $0$.  Note that the same tendency towards a concentration
+  of the density function of $y_2^*$ around its degenerated limit at
+  $y_2^* = 1$ appears when $\lambda \rightarrow -\infty$. Note also
+  that the J-shaped profile of this density function, when
+  $0<\lambda<1$, has a mode preceded by an antimode that can coalesce
+  into a point of inflexion.
  
 \end{itemize}
  
@@ -1180,15 +1194,20 @@ based on the inverse hyperbolic sine function, namely:
   \ln \{\theta y_2^* + \sqrt{(\theta y_2^*)^2+1}\} 
 \end{equation}
 
-with $\theta$ a parameter characterizing the non linearity of the transformation. Indeed, as illustrated
-by Figure 3, while, for $\theta > 0$ and finite, the general shape of this transformation is that of 
-an odd \footnote{A function $f(x)$ is said odd if $f(-x)=-f(x)$ whatever $x$, implying that $f(0)=0$.} increasing 
-function, from $-\infty$ to $+\infty$,  with an inflexion point at $y_2^*=0$, concave for $y_2^*>0$ and 
-convex for $y_2^*<0$, the transformation becomes linear, 
-when $\theta \rightarrow 0$, and constant (equal to $0$), when $\theta\rightarrow +\infty$ 
-\footnote{These limits can be obtained easily by using Hospital's rule.}, by progressively loosing its 
-sigmoidal profile. As these profiles are invariant with respect to a change of sign of $\theta$, this parameter
-can be assumed to be non negative, without loss of generality.
+with $\theta$ a parameter characterizing the non linearity of the
+transformation. Indeed, as illustrated by Figure 3, while, for
+$\theta > 0$ and finite, the general shape of this transformation is
+that of an odd \footnote{A function $f(x)$ is said odd if
+  $f(-x)=-f(x)$ whatever $x$, implying that $f(0)=0$.} increasing
+function, from $-\infty$ to $+\infty$, with an inflexion point at
+$y_2^*=0$, concave for $y_2^*>0$ and convex for $y_2^*<0$, the
+transformation becomes linear, when $\theta \rightarrow 0$, and
+constant (equal to $0$), when $\theta\rightarrow +\infty$
+\footnote{These limits can be obtained easily by using Hospital's
+  rule.}, by progressively loosing its sigmoidal profile. As these
+profiles are invariant with respect to a change of sign of $\theta$,
+this parameter can be assumed to be non negative, without loss of
+generality.
 
 To determine the distribution of the observed variable $y$, we need to insert in formulas \label{eq56} and \label{eq59}
 the expressions of $\Phi(B_2)-\Phi(B_1)$ and $T^{'}(y_2^*)$ for Johnson's transformation. We first note that 
@@ -1214,15 +1233,20 @@ Secondly, the derivative of Johnson's transformation, namely:
 is a bell-shaped positive pair function \footnote{A function $f(x)$ is said pair if $f(-x)=f(x)$ whatever $x$.} taking
 constant values $1$ and $0$ when $\theta \rightarrow 0$ and $\theta\rightarrow +\infty$, respectively. 
 
-To analyze the profile of the density function of $y_2^*$ generated by this transformation,
-we consider, as we did before for the Box-Cox transformation, the special case of $\beta_2^\top x_2=0$ and
-$\sigma(\beta_0^\top x_0)=1$. In this special case, the marginal density function of $y_2^*$ 
-takes the form of the product of the density function of $\phi (T(y_2^*))$ times the value of the Jacobian
-$T^{'}(y_2^*)$. As a function of $\theta$, this formula generates a family of bell-shaped density
-functions which kurticity increases with the value of $\theta$, from metakurticity (that of the normal distribution) 
-when $\theta=0$, to extreme leptokurticity resulting in a concentration of all the density function at point 
-$y_2^*=0$, when $\theta \rightarrow +\infty$, as shown in Figure 4. Therefore, the inverse hyperbolic sine 
-transformation must be used only when hurdle 2 is in effect.
+To analyze the profile of the density function of $y_2^*$ generated by
+this transformation, we consider, as we did before for the Box-Cox
+transformation, the special case of $\beta_2^\top x_2=0$ and
+$\sigma(\beta_0^\top x_0)=1$. In this special case, the marginal
+density function of $y_2^*$ takes the form of the product of the
+density function of $\phi (T(y_2^*))$ times the value of the Jacobian
+$T^{'}(y_2^*)$. As a function of $\theta$, this formula generates a
+family of bell-shaped density functions which kurticity increases with
+the value of $\theta$, from metakurticity (that of the normal
+distribution) when $\theta=0$, to extreme leptokurticity resulting in
+a concentration of all the density function at point $y_2^*=0$, when
+$\theta \rightarrow +\infty$, as shown in Figure 4. Therefore, the
+inverse hyperbolic sine transformation must be used only when hurdle 2
+is in effect.
 
 
 \section{Model estimation, evaluation and selection}

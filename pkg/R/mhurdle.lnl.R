@@ -443,6 +443,9 @@ mhurdle.lnl <- function(param, X1, X2, X3, X4, y, gradient = FALSE,
             E <- bX2 / Phi3 + sigma / (Phi3 * Pplus) * (phi2 * Pr13 + rho[1] * phi1 * Pr23 + rho[3] * phi3 * Pr12)
 
         }
+        if (! is.null(attr(y, "geomean"))){
+            E <- E * attr(y, "geomean")
+        }
         attr(lnL, "fitted") <- cbind(zero = 1 - Pplus, 
                                      pos = E / Pplus)
     }

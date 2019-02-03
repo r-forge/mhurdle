@@ -9,6 +9,7 @@
 \alias{predict.mhurdle}
 \alias{update.mhurdle}
 \alias{fitted.mhurdle}
+\alias{effects.mhurdle}
 
 \title{Estimation of limited dependent variable models}
 \description{mhurdle fits a large set of models relevant when the dependent
@@ -34,8 +35,9 @@ mhurdle(formula, data, subset, weights, na.action,
    width = getOption("width"), ...)
 
 \method{fitted}{mhurdle}(object,
-   which = c("all", "zero", "positive"), ...)
+   which = c("all", "zero", "positive"), mean = FALSE, ...)
 \method{predict}{mhurdle}(object, newdata = NULL, ...)
+\method{effects}{mhurdle}(object, covariate = NULL, data = NULL, reflevel = NULL, mean = FALSE, ...)
 \method{update}{mhurdle}(object, new, ...)
 }
 \arguments{
@@ -70,6 +72,9 @@ mhurdle(formula, data, subset, weights, na.action,
     (\code{"h3"}) equation, the other coefficients \code{"other"} (the
     standard error and the coefficient of corr), the standard error
     (\code{"sigma"}) or the coefficient of correlation (\code{"rho"}),}
+  \item{covariate}{the covariate for which the effect has to be computed,}
+  \item{reflevel}{for the computation of effects for a factor, the reference level,}
+  \item{mean}{if \code{TRUE}, the mean of the effects is returned,}
   \item{\dots}{further arguments.}
   
 }

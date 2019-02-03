@@ -8,7 +8,7 @@ importFrom("stats", "binomial", "coef", "cor", "df.residual", "dnorm",
            "logLik", "model.frame", "model.matrix", "model.response",
            "pchisq", "pnorm", "printCoefmat", "quantile", "rnorm",
            "update", "var", "vcov", "integrate", "nobs", "terms",
-           "qnorm", "optimize", "uniroot")
+           "qnorm", "optimize", "uniroot", "effects", "predict")
 importFrom("survival", "survreg")
 importFrom("texreg", "extract", "createTexreg")
 importFrom("methods", "setMethod") 
@@ -20,6 +20,7 @@ S3method("summary", "mhurdle")
 S3method("update", "mhurdle")
 S3method("print", "summary.mhurdle")
 S3method("coef", "summary.mhurdle")
+S3method("effects", "mhurdle")
 S3method("predict", "mhurdle")
 S3method("extract", "mhurdle")
 

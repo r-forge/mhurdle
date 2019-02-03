@@ -76,7 +76,7 @@ onequation.mhurdle <- function(X2, y, dist = NULL){
     if (dist == "n"){
         # the tobit model, efficiently estimated using Survreg from
         # the survival package
-        tobit <- survreg(Surv(y, y > 0, type = "left") ~ X2 - 1, dist = "gaussian")
+        tobit <- survival::survreg(survival::Surv(y, y > 0, type = "left") ~ X2 - 1, dist = "gaussian")
         beta <- coef(tobit)
         bX <- as.numeric(crossprod(t(X2), beta))
         resid <- y - bX

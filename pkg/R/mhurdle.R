@@ -42,6 +42,7 @@ mhurdle <- function(formula, data, subset, weights, na.action,
     if (scaled){
         geomean <- exp(mean(log(y[y > 0])))
         y <- y / geomean
+        attr(y, "geomean") <- attr(mf, "geomean") <- geomean
     }
     N <- length(y)
     if (length(X1) == 0) X1 <- NULL
@@ -114,7 +115,6 @@ mhurdle <- function(formula, data, subset, weights, na.action,
                           fitted = fitted, check.grad = check.grad,
                           ...)
     if (check.grad) return(result)
-    if (fitted & scaled) result$fitted.values[, 2] <- result$fitted.values[, 2] * geomean
     
     # 3. Compute the naive model
 
