@@ -1,17 +1,33 @@
-## nm.mhurdle : extract the names of a relevant subset of the coefficients
-## sub.murdle : extract the indexes of a relevant subset of the coefficients
-## coef.mhurdle
-## vcov.mhurdle
-## logLik.mhurdle
-## print.mhurdle
-## summary.mhurdle
-## coef.summary.mhurdle
-## print.summary.mhurdle
-## fitted.mhurdle
-## predict.mhurdle
-## update.mhurdle
-## rsq
-## effects.mhurdle
+#' Methods for mhurdle fitted objects
+#'
+#' specific predict, fitted, coef, vcov, summary, ... for mhurdle
+#' objects. In particular, these methods enables to extract the several parts of the model
+#' 
+#' @name mhurdle.methods
+#' @aliases coef.mhurdle vcov.mhurdle logLik.mhurdle print.mhurdle
+#'     summary.mhurdle print.summary.mhurdle predict.mhurdle
+#'     update.mhurdle fitted.mhurdle effects.mhurdle
+#' @param newdata,data a \code{data.frame} for which the predictions
+#'     or the effectsshould be computed,
+#' @param naive a boolean, it \code{TRUE}, the likelihood of the naive
+#'     model is returned,
+#' @param object,x an object of class \code{"mhurdle"},
+#' @param new an updated formula for the \code{update} method,
+#' @param digits see \code{\link{print}},
+#' @param width see \code{\link{print}},
+#' @param which which coefficients or covariances should be extracted
+#'     ? Those of the selection (\code{"h1"}), consumption
+#'     (\code{"h2"}) or purchase (\code{"h3"}) equation, the other
+#'     coefficients \code{"other"} (the standard error and the
+#'     coefficient of corr), the standard error (\code{"sigma"}) or
+#'     the coefficient of correlation (\code{"rho"}),
+#' @param covariate the covariate for which the effect has to be
+#'     computed,
+#' @param reflevel for the computation of effects for a factor, the
+#'     reference level,
+#' @param mean if \code{TRUE}, the mean of the effects is returned,
+#' @param \dots further arguments.
+NULL
 
 nm.mhurdle <- function(object,
                        which = c("all", "h1", "h2", "h3", "sd", "h4", "corr", "tr", "pos"),
@@ -59,6 +75,9 @@ sub.mhurdle <- function(object,
     sub
 }
 
+#' @rdname mhurdle.methods
+#' @importFrom stats coef
+#' @export
 coef.mhurdle <- function(object,
                          which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"),
                       ...){
@@ -70,6 +89,9 @@ coef.mhurdle <- function(object,
   result
 }
 
+#' @rdname mhurdle.methods
+#' @importFrom stats vcov
+#' @export
 vcov.mhurdle <- function(object,
                          which = c("all", "h1", "h2", "h3", "h4", "sd", "corr", "tr", "pos"),
                       ...){
@@ -83,6 +105,9 @@ vcov.mhurdle <- function(object,
   result
 }
 
+#' @rdname mhurdle.methods
+#' @importFrom stats logLik
+#' @export
 logLik.mhurdle <- function(object, naive = FALSE, ...){
     if (naive) result <- object$naive$logLik
     else{
@@ -95,6 +120,8 @@ logLik.mhurdle <- function(object, naive = FALSE, ...){
 }
 
 
+#' @rdname mhurdle.methods
+#' @export
 print.mhurdle <- function (x, digits = max(3, getOption("digits") - 2),
                         width = getOption("width"), ...){
   cat("\nCall:\n", deparse(x$call), "\n\n", sep = "")
@@ -108,6 +135,8 @@ print.mhurdle <- function (x, digits = max(3, getOption("digits") - 2),
   invisible(x)
 }
 
+#' @rdname mhurdle.methods
+#' @export
 summary.mhurdle <- function (object,...){
   b <- coef(object)
   std.err <- sqrt(diag(vcov(object)))
@@ -123,6 +152,9 @@ summary.mhurdle <- function (object,...){
 }
 
 
+#' @rdname mhurdle.methods
+#' @method coef summary.mhurdle
+#' @export
 coef.summary.mhurdle <- function(object,
                                  which = c("all", "h1", "h2", "h3", "sd", "corr", "tr", "pos"),
                                  ...){
@@ -135,6 +167,9 @@ coef.summary.mhurdle <- function(object,
   result
 }
 
+#' @rdname mhurdle.methods
+#' @method print summary.mhurdle
+#' @export
 print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
                                   width = getOption("width"), ...){
   cat("\nCall:\n")
@@ -165,6 +200,9 @@ print.summary.mhurdle <- function(x, digits = max(3, getOption("digits") - 2),
   invisible(x)
 }
 
+#' @rdname mhurdle.methods
+#' @importFrom stats fitted
+#' @export
 fitted.mhurdle <- function(object, which = c("all", "zero", "positive"), mean = FALSE, ...){
   which <- match.arg(which)
   res <- switch(which,
@@ -179,6 +217,9 @@ fitted.mhurdle <- function(object, which = c("all", "zero", "positive"), mean = 
   res
 }
 
+#' @rdname mhurdle.methods
+#' @importFrom stats predict
+#' @export
 predict.mhurdle <- function(object, newdata = NULL, ...){
     geomean <- attr(object$model, "geomean")
     if (is.null(newdata)){
@@ -207,6 +248,9 @@ predict.mhurdle <- function(object, newdata = NULL, ...){
 
 ## a simple copy from mlogit. update with formula doesn't work
 ## otherwise ????
+#' @rdname mhurdle.methods
+#' @importFrom stats update
+#' @export
 update.mhurdle <- function (object, new, ...){
   call <- object$call
   if (is.null(call))
@@ -264,7 +308,7 @@ update.mhurdle <- function (object, new, ...){
 #'               dist = "ln", h2 = TRUE, method = "bfgs")
 #' rsq(idhm, type = "lratio")
 #' rsq(idhm, type = "coefdet", r2pos = "rss")
-#' 
+#' @export
 rsq <- function(object,
                 type = c("coefdet", "lratio"),
                 adj = FALSE,
@@ -315,6 +359,9 @@ rsq <- function(object,
 }
 
 
+#' @rdname mhurdle.methods
+#' @importFrom stats nobs
+#' @export
 nobs.mhurdle <- function(object, which = c("all", "null", "positive"), ...){
     y <- model.response(model.frame(object))
     which <- match.arg(which)
@@ -325,6 +372,9 @@ nobs.mhurdle <- function(object, which = c("all", "null", "positive"), ...){
 }
 
 
+#' @rdname mhurdle.methods
+#' @export
+#' @importFrom stats effects
 effects.mhurdle <- function(object, covariate = NULL, data = NULL, reflevel = NULL, mean = FALSE, ...){
     if (is.null(covariate)) stop("the name of a covariate should be indicated")
     if (is.null(data)) odata <- eval(object$call$data) else odata <- data
@@ -456,31 +506,4 @@ getindex <- function(X1, X2, X3, X4, corr, dist, which){
 
 ## setMethod("extract", signature = className("maxLik", "maxLik"), definition = extract.maxLik)
 
-extract.mhurdle <- function (model, include.nobs = TRUE, ...){
-    s <- summary(model, ...)
-    names <- rownames(s$coefficients)
-    class(names) <- "character"
-    co <- s$coefficients[, 1]
-    se <- s$coefficients[, 2]
-    pval <- s$coefficients[, 4]
-    class(co) <- class(se) <- class(pval) <- "numeric"
-    n <- nobs(model)
-    lik <- logLik(model)
-    coefdet <- s$r.squared['coefdet']
-    lratio <- s$r.squared['lratio']
-    R2dich <- model$R2[1]
-    R2pos <- model$R2[2]
-    gof <- numeric()
-    gof.names <- character()
-    gof.decimal <- logical()
-    gof <- c(gof, n, lik, coefdet, lratio, R2dich, R2pos)
-#    gof.names <- c(gof.names, "Num. obs.", "Log Likelihood", "$R^2$", "McFadden $R^2$")
-    gof.names <- c(gof.names, "Num. obs.", "Log Likelihood", "$R^2$", "McFadden $R^2$", "$R^2 (y = 0)$", "$R^2 (y > 0)$")    
-    gof.decimal <- c(gof.decimal, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE)
-    tr <- createTexreg(coef.names = names, coef = co, se = se, pvalues = pval,
-                       gof.names = gof.names, gof = gof, gof.decimal = gof.decimal)
-    return(tr)
-}
-
-setMethod("extract", signature = className("mhurdle", "mhurdle"), definition = extract.mhurdle)
 

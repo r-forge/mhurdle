@@ -120,7 +120,7 @@ onequation.mhurdle <- function(X2, y, dist = NULL){
             }
             lnL
         }
-        result <- maxLik(ltobit.lnl, start = start, method = "bhhh", print.level = 0)
+        result <- maxLik::maxLik(ltobit.lnl, start = start, method = "bhhh", print.level = 0)
         fitted <- attr(ltobit.lnl(coef(result), fitted = TRUE), "fitted")
         result <- list(coefficients = coef(result),
                        vcov = vcov(result),
@@ -204,7 +204,7 @@ seperate.mhurdle <- function(X1, X2, y, dist = NULL){
     }
     else{
         if (dist == "tn"){
-                          lin <- truncreg(y ~ X2 - 1, subset = y != 0)
+                          lin <- truncreg::truncreg(y ~ X2 - 1, subset = y != 0)
                           lin$gradient <- lin$gradientObs
                       }
         if (dist == "bc"){
@@ -407,7 +407,7 @@ lnl.naive <- function(param, dist = c("ln", "tn", "n", "ln2"), moments,
 ##         lin <- switch(dist,
 ##                       "ln" = lm(log(yPP)  ~ X2 - 1, subset = y != 0),
 ##                       "n" = lm(yPP        ~ X2 - 1, subset = y != 0),
-##                       "tn" = truncreg(yPP ~ X2 - 1, subset = y != 0, scaled = TRUE)
+##                       "tn" = truncreg::truncreg(yPP ~ X2 - 1, subset = y != 0, scaled = TRUE)
 ##                       )
 ##         if (dist %in% c("n", "ln")) start <- c(coef(lin), coef(probit), sigma = summary(lin)$sigma)
 ##         if (dist == "tn") start <- c(coef(lin)[- length(coef(lin))], coef(probit), sigma = coef(lin)[length(coef(lin))])
@@ -431,7 +431,7 @@ lnl.naive <- function(param, dist = c("ln", "tn", "n", "ln2"), moments,
 ##         lin <- switch(dist,
 ##                       "ln" = lm(log(yPP)  ~ X2 - 1, subset = y!= 0),
 ##                       "n" = lm(yPP       ~ X2 - 1, subset = y!= 0),
-##                       "tn" = truncreg(yPP ~ X2 - 1, subset = y!= 0, scaled = TRUE)
+##                       "tn" = truncreg::truncreg(yPP ~ X2 - 1, subset = y!= 0, scaled = TRUE)
 ##                       )
 ##         if(dist != "tn")
 ##             start <- c(beta1, coef(lin), beta3, sigma = summary(lin)$sigma)
@@ -447,7 +447,7 @@ start.mhurdle <- function(X1, X2, X3, y, dist){
     if (!is.null(X1)) beta1 <- coef(glm( (y != 0) ~ X1 - 1, family = binomial(link = 'probit'))) else beta1 <- NULL
     if (!is.null(X3)) beta3 <- coef(glm( (y != 0) ~ X3 - 1, family = binomial(link = 'probit'))) else beta3 <- NULL
     if (dist == "n") lin <- lm(y ~ X2 - 1)
-    if (dist == "tn") lin <- truncreg(y ~ X2 - 1, subset = y > 0)
+    if (dist == "tn") lin <- truncreg::truncreg(y ~ X2 - 1, subset = y > 0)
     if (dist == "ln") lin <- lm(y ~ X2 - 1, subset = y > 0)
     beta2 <- coef(lin)[1:ncol(X2)]
 #    beta2 <- coef(lin[1:ncol(X2)])#YC20171204 wrong parenthesis

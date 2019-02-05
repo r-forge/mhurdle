@@ -23,7 +23,7 @@ qwchisq <- function(p, weights, lower.tail = TRUE, R = 1000, seed = 1){
 #' The Vuong test is suitable to discriminate between two non-nested models.
 #' 
 #' 
-#' @aliases vuongtest ndvuongtest
+#' @aliases vuongtest
 #' @param x a first fitted model of class \code{"mhurdle"},
 #' @param y a second fitted model of class \code{"mhurdle"},
 #' @param type the kind of test to be computed,
@@ -50,7 +50,7 @@ qwchisq <- function(p, weights, lower.tail = TRUE, R = 1000, seed = 1){
 #' ptm <- mhurdle(vacations ~ 0 | linc + linc2 | car + size, Interview,
 #'               dist = "ln", h2 = TRUE, method = "bhhh", corr = TRUE)
 #' vuongtest(dhm, ptm)
-#' 
+#' @export
 vuongtest <- function(x, y,
                       type = c("non-nested", "nested", "overlapping"),
                       hyp = FALSE,

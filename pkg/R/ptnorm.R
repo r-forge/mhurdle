@@ -1,3 +1,5 @@
+#' @useDynLib mhurdle
+#' 
 
 punorm <- function(z){
     z <- as.double(z)
